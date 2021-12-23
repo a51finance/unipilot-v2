@@ -10,11 +10,106 @@ import * as Contracts from ".";
 declare module "hardhat/types/runtime" {
   interface HardhatEthersHelpers extends HardhatEthersHelpersBase {
     getContractFactory(
-      name: "Greeter",
+      name: "IUniswapV3Factory",
       signerOrOptions?: ethers.Signer | FactoryOptions,
-    ): Promise<Contracts.Greeter__factory>;
+    ): Promise<Contracts.IUniswapV3Factory__factory>;
+    getContractFactory(
+      name: "IUniswapV3Pool",
+      signerOrOptions?: ethers.Signer | FactoryOptions,
+    ): Promise<Contracts.IUniswapV3Pool__factory>;
+    getContractFactory(
+      name: "IUniswapV3PoolActions",
+      signerOrOptions?: ethers.Signer | FactoryOptions,
+    ): Promise<Contracts.IUniswapV3PoolActions__factory>;
+    getContractFactory(
+      name: "IUniswapV3PoolDerivedState",
+      signerOrOptions?: ethers.Signer | FactoryOptions,
+    ): Promise<Contracts.IUniswapV3PoolDerivedState__factory>;
+    getContractFactory(
+      name: "IUniswapV3PoolEvents",
+      signerOrOptions?: ethers.Signer | FactoryOptions,
+    ): Promise<Contracts.IUniswapV3PoolEvents__factory>;
+    getContractFactory(
+      name: "IUniswapV3PoolImmutables",
+      signerOrOptions?: ethers.Signer | FactoryOptions,
+    ): Promise<Contracts.IUniswapV3PoolImmutables__factory>;
+    getContractFactory(
+      name: "IUniswapV3PoolOwnerActions",
+      signerOrOptions?: ethers.Signer | FactoryOptions,
+    ): Promise<Contracts.IUniswapV3PoolOwnerActions__factory>;
+    getContractFactory(
+      name: "IUniswapV3PoolState",
+      signerOrOptions?: ethers.Signer | FactoryOptions,
+    ): Promise<Contracts.IUniswapV3PoolState__factory>;
+    getContractFactory(
+      name: "IUnipilotDeployer",
+      signerOrOptions?: ethers.Signer | FactoryOptions,
+    ): Promise<Contracts.IUnipilotDeployer__factory>;
+    getContractFactory(
+      name: "IUnipilotFactory",
+      signerOrOptions?: ethers.Signer | FactoryOptions,
+    ): Promise<Contracts.IUnipilotFactory__factory>;
+    getContractFactory(
+      name: "UnipilotDeployer",
+      signerOrOptions?: ethers.Signer | FactoryOptions,
+    ): Promise<Contracts.UnipilotDeployer__factory>;
+    getContractFactory(
+      name: "UnipilotFactory",
+      signerOrOptions?: ethers.Signer | FactoryOptions,
+    ): Promise<Contracts.UnipilotFactory__factory>;
 
-    getContractAt(name: "Greeter", address: string, signer?: ethers.Signer): Promise<Contracts.Greeter>;
+    getContractAt(
+      name: "IUniswapV3Factory",
+      address: string,
+      signer?: ethers.Signer,
+    ): Promise<Contracts.IUniswapV3Factory>;
+    getContractAt(name: "IUniswapV3Pool", address: string, signer?: ethers.Signer): Promise<Contracts.IUniswapV3Pool>;
+    getContractAt(
+      name: "IUniswapV3PoolActions",
+      address: string,
+      signer?: ethers.Signer,
+    ): Promise<Contracts.IUniswapV3PoolActions>;
+    getContractAt(
+      name: "IUniswapV3PoolDerivedState",
+      address: string,
+      signer?: ethers.Signer,
+    ): Promise<Contracts.IUniswapV3PoolDerivedState>;
+    getContractAt(
+      name: "IUniswapV3PoolEvents",
+      address: string,
+      signer?: ethers.Signer,
+    ): Promise<Contracts.IUniswapV3PoolEvents>;
+    getContractAt(
+      name: "IUniswapV3PoolImmutables",
+      address: string,
+      signer?: ethers.Signer,
+    ): Promise<Contracts.IUniswapV3PoolImmutables>;
+    getContractAt(
+      name: "IUniswapV3PoolOwnerActions",
+      address: string,
+      signer?: ethers.Signer,
+    ): Promise<Contracts.IUniswapV3PoolOwnerActions>;
+    getContractAt(
+      name: "IUniswapV3PoolState",
+      address: string,
+      signer?: ethers.Signer,
+    ): Promise<Contracts.IUniswapV3PoolState>;
+    getContractAt(
+      name: "IUnipilotDeployer",
+      address: string,
+      signer?: ethers.Signer,
+    ): Promise<Contracts.IUnipilotDeployer>;
+    getContractAt(
+      name: "IUnipilotFactory",
+      address: string,
+      signer?: ethers.Signer,
+    ): Promise<Contracts.IUnipilotFactory>;
+    getContractAt(
+      name: "UnipilotDeployer",
+      address: string,
+      signer?: ethers.Signer,
+    ): Promise<Contracts.UnipilotDeployer>;
+    getContractAt(name: "UnipilotFactory", address: string, signer?: ethers.Signer): Promise<Contracts.UnipilotFactory>;
 
     // default types
     getContractFactory(name: string, signerOrOptions?: ethers.Signer | FactoryOptions): Promise<ethers.ContractFactory>;
