@@ -2,6 +2,7 @@ import "@nomiclabs/hardhat-waffle";
 import "@nomiclabs/hardhat-etherscan";
 import "@typechain/hardhat";
 import "hardhat-gas-reporter";
+import "hardhat-contract-sizer";
 import "solidity-coverage";
 
 import "./tasks/accounts";
@@ -37,7 +38,9 @@ if (!infuraApiKey) {
 
 const etherscanApiKey = process.env.ETHERSCAN_API_KEY;
 
-function createTestnetConfig(network: keyof typeof chainIds): NetworkUserConfig {
+function createTestnetConfig(
+  network: keyof typeof chainIds,
+): NetworkUserConfig {
   const url: string = "https://" + network + ".infura.io/v3/" + infuraApiKey;
   return {
     accounts: [`${process.env.PK1}`, `${process.env.PK2}`],
@@ -81,7 +84,7 @@ const config: HardhatUserConfig = {
   solidity: {
     compilers: [
       {
-        version: "0.8.4",
+        version: "0.7.6",
         settings: {
           metadata: {
             // Not including the metadata hash
@@ -96,9 +99,6 @@ const config: HardhatUserConfig = {
           },
         },
       },
-      {
-        version: "0.7.5",
-      },
     ],
   },
   typechain: {
@@ -107,6 +107,11 @@ const config: HardhatUserConfig = {
   },
   etherscan: {
     apiKey: etherscanApiKey,
+  },
+  contractSizer: {
+    alphaSort: true,
+    runOnCompile: true,
+    disambiguatePaths: false,
   },
 };
 
