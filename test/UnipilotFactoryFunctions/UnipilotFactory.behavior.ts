@@ -9,10 +9,17 @@ export async function shouleBehaveLikePilotFactory(
   unipilotFactory: Contract,
 ): Promise<void> {
   const owner = wallets[0];
+  const alice = wallets[1];
+  it("Governance: it should pass reason: as the owner is wallet[0]", async () => {
+    // console.log("governance address", governanceAddress, owner.address);
+    await expect(await unipilotFactory.connect(wallets[3]).owner()).to.equal(
+      owner.address,
+    );
+  });
 
-  //   it("Should fail set price threshold, unauthorized", async () => {
-  //     await expect(unipilotFactory.connect(wallets[3]).setPricethreshold(parseUnits("1", "4"))).to.be.revertedWith(
-  //       "Strategy:: Not governance",
-  //     );
-  //   });
+  it("Governance: it should fail  reason: as it is not governance address", async () => {
+    await expect(await unipilotFactory.connect(wallets[3]).owner()).to.equal(
+      alice.address,
+    );
+  });
 }

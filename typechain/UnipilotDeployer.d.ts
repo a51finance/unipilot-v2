@@ -23,7 +23,10 @@ interface UnipilotDeployerInterface extends ethers.utils.Interface {
     "parameters()": FunctionFragment;
   };
 
-  encodeFunctionData(functionFragment: "parameters", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "parameters",
+    values?: undefined,
+  ): string;
 
   decodeFunctionResult(functionFragment: "parameters", data: BytesLike): Result;
 

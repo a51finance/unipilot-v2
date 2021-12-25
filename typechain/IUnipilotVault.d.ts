@@ -11,6 +11,7 @@ import {
   PopulatedTransaction,
   BaseContract,
   ContractTransaction,
+  Overrides,
   CallOverrides,
 } from "ethers";
 import { BytesLike } from "@ethersproject/bytes";
@@ -18,22 +19,35 @@ import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 
-interface IUnipilotDeployerInterface extends ethers.utils.Interface {
+interface IUnipilotVaultInterface extends ethers.utils.Interface {
   functions: {
-    "parameters()": FunctionFragment;
+    "deposit(address,address,uint256,uint256)": FunctionFragment;
   };
 
   encodeFunctionData(
-    functionFragment: "parameters",
-    values?: undefined,
+    functionFragment: "deposit",
+    values: [string, string, BigNumberish, BigNumberish],
   ): string;
 
-  decodeFunctionResult(functionFragment: "parameters", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "deposit", data: BytesLike): Result;
 
-  events: {};
+  events: {
+    "Deposit(address,uint256,uint256,uint256)": EventFragment;
+  };
+
+  getEvent(nameOrSignatureOrTopic: "Deposit"): EventFragment;
 }
 
-export class IUnipilotDeployer extends BaseContract {
+export type DepositEvent = TypedEvent<
+  [string, BigNumber, BigNumber, BigNumber] & {
+    depositor: string;
+    amount0: BigNumber;
+    amount1: BigNumber;
+    lpShares: BigNumber;
+  }
+>;
+
+export class IUnipilotVault extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
@@ -74,46 +88,85 @@ export class IUnipilotDeployer extends BaseContract {
     toBlock?: string | number | undefined,
   ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
-  interface: IUnipilotDeployerInterface;
+  interface: IUnipilotVaultInterface;
 
   functions: {
-    parameters(overrides?: CallOverrides): Promise<
-      [string, string, string, number] & {
-        factory: string;
-        tokenA: string;
-        tokenB: string;
-        fee: number;
-      }
-    >;
+    deposit(
+      depositor: string,
+      recipient: string,
+      amount0: BigNumberish,
+      amount1: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> },
+    ): Promise<ContractTransaction>;
   };
 
-  parameters(overrides?: CallOverrides): Promise<
-    [string, string, string, number] & {
-      factory: string;
-      tokenA: string;
-      tokenB: string;
-      fee: number;
-    }
-  >;
+  deposit(
+    depositor: string,
+    recipient: string,
+    amount0: BigNumberish,
+    amount1: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> },
+  ): Promise<ContractTransaction>;
 
   callStatic: {
-    parameters(overrides?: CallOverrides): Promise<
-      [string, string, string, number] & {
-        factory: string;
-        tokenA: string;
-        tokenB: string;
-        fee: number;
+    deposit(
+      depositor: string,
+      recipient: string,
+      amount0: BigNumberish,
+      amount1: BigNumberish,
+      overrides?: CallOverrides,
+    ): Promise<BigNumber>;
+  };
+
+  filters: {
+    "Deposit(address,uint256,uint256,uint256)"(
+      depositor?: null,
+      amount0?: null,
+      amount1?: null,
+      lpShares?: null,
+    ): TypedEventFilter<
+      [string, BigNumber, BigNumber, BigNumber],
+      {
+        depositor: string;
+        amount0: BigNumber;
+        amount1: BigNumber;
+        lpShares: BigNumber;
+      }
+    >;
+
+    Deposit(
+      depositor?: null,
+      amount0?: null,
+      amount1?: null,
+      lpShares?: null,
+    ): TypedEventFilter<
+      [string, BigNumber, BigNumber, BigNumber],
+      {
+        depositor: string;
+        amount0: BigNumber;
+        amount1: BigNumber;
+        lpShares: BigNumber;
       }
     >;
   };
 
-  filters: {};
-
   estimateGas: {
-    parameters(overrides?: CallOverrides): Promise<BigNumber>;
+    deposit(
+      depositor: string,
+      recipient: string,
+      amount0: BigNumberish,
+      amount1: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> },
+    ): Promise<BigNumber>;
   };
 
   populateTransaction: {
-    parameters(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    deposit(
+      depositor: string,
+      recipient: string,
+      amount0: BigNumberish,
+      amount1: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> },
+    ): Promise<PopulatedTransaction>;
   };
 }
