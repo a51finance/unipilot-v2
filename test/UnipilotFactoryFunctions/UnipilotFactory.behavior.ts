@@ -9,10 +9,37 @@ export async function shouleBehaveLikePilotFactory(
   unipilotFactory: Contract,
 ): Promise<void> {
   const owner = wallets[0];
+  const alice = wallets[1];
+  it("Governance: it should pass reason: as the owner is wallet[0]", async () => {
+    // console.log("governance address", governanceAddress, owner.address);
 
-  //   it("Should fail set price threshold, unauthorized", async () => {
-  //     await expect(unipilotFactory.connect(wallets[3]).setPricethreshold(parseUnits("1", "4"))).to.be.revertedWith(
-  //       "Strategy:: Not governance",
-  //     );
-  //   });
+    await expect(await unipilotFactory.connect(wallets[3]).owner()).to.equal(
+      owner.address,
+    );
+  });
+  it("Governance: it should pass  reason: as it is not governance address", async () => {
+    await expect(
+      await unipilotFactory.connect(wallets[3]).owner(),
+    ).to.not.equal(alice.address);
+  });
+  it("Governance: it should pass reason: wallet[0] is calling setOwner to alice", async () => {
+    await expect(await unipilotFactory.connect(owner).setOwner(alice.address))
+      .to.ok;
+    const newOwner = await unipilotFactory.connect(owner).owner();
+  });
+  it("Governance: it should pass reason: alice is the new owner", async () => {
+    await expect(await unipilotFactory.connect(owner).owner()).to.equal(
+      alice.address,
+    );
+  });
+  it("Governance: it should pass reason: owner is not the new owner", async () => {
+    await expect(await unipilotFactory.connect(owner).owner()).to.not.equal(
+      owner.address,
+    );
+  });
+  // it("Governance: revert message: NO reason: failed as owner will try to setOwner", async () => {
+  //   await expect(
+  //     await unipilotFactory.connect(owner).setOwner(owner.address),
+  //   ).to.be.revertedWith("NO");
+  // });
 }

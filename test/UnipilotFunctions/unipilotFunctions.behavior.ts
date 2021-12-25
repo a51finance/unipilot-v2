@@ -12,8 +12,10 @@ export async function shouldBehaveLikeUnipilotFunctions(
   UnipilotRouter: Contract,
 ): Promise<void> {
   describe("Testing the UnipilotFactory !!", async () => {
-    //   await shouldBehaveLikeCreatePool(wallets, Ulm, mintProxy, Unipilot, tokens);
     shouleBehaveLikePilotFactory(wallets, UnipilotFactory);
+  });
+
+  describe("Testing the UnipilotRouter !!", async () => {
     shouldBehaveLikeUnipilotRouterFunctions(wallets, UnipilotRouter);
   });
 }

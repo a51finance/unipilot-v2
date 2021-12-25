@@ -2,6 +2,7 @@ import { expect, use } from "chai";
 import { BigNumber, utils, Contract, ContractFactory } from "ethers";
 
 import {
+  deployUnipilotFactory,
   deployUnipilotRouter,
   deployUniswapContracts,
   deployWETH9,
@@ -12,7 +13,8 @@ import { solidity } from "ethereum-waffle";
 import hre from "hardhat";
 
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { shouldBehaveLikeUnipilotRouterFunctions } from "./UnipilotRouterFunctions/unipilotRouterFunctions.behavior";
+// import { shouldBehaveLikeUnipilotRouterFunctions } from "./UnipilotRouterFunctions/unipilotRouterFunctions.behavior";
+import { shouldBehaveLikeUnipilotFunctions } from "./UnipilotFunctions/unipilotFunctions.behavior";
 
 use(solidity);
 
@@ -22,9 +24,12 @@ describe("Initializing the testing suite", async () => {
   let swapRouter: Contract;
   let unipilotRouter: Contract;
   let WETH9: Contract;
+  let unipilotFactory: Contract;
   before("Deploying the contracts", async () => {
-    let [wallet0] = await hre.ethers.getSigners();
+    let [wallet0, wallet1, wallet2, wallet3] = await hre.ethers.getSigners();
     WETH9 = await deployWETH9(wallet0);
+    unipilotFactory = await deployUnipilotFactory(wallet0);
+
     let uniswapv3Contracts = await deployUniswapContracts(wallet0, WETH9);
     unipilotRouter = await deployUnipilotRouter(wallet0);
 
@@ -37,10 +42,23 @@ describe("Initializing the testing suite", async () => {
     it("Runs Unipilot Functions", async function () {
       console.log("WETH9", WETH9.address);
       console.log("UNISWAP FACTORY", uniswapV3Factory.address);
-      let [wallet0, wallet1, wallet3] = await hre.ethers.getSigners();
-      let wallets = [wallet0, wallet1, wallet3];
+      // let [wallet0, wallet1, wallet3] = await hre.ethers.getSigners();
+      // let wallets = [wallet0, wallet1, wallet3];
 
-      shouldBehaveLikeUnipilotRouterFunctions(wallets, unipilotRouter);
+      let [wallet0, wallet1, wallet2, wallet3] = await hre.ethers.getSigners();
+      let wallets: SignerWithAddress[] = [wallet0, wallet1, wallet2, wallet3];
+
+      // shouldBehaveLikeUnipilotRouterFunctions(wallets, unipilotRouter);
+      console.log("Unipilot Router ", unipilotRouter.address);
+
+      console.log("UnipilotFactory ", unipilotFactory.address);
+
+      shouldBehaveLikeUnipilotFunctions(
+        wallets,
+        uniswapV3Factory,
+        unipilotFactory,
+        unipilotRouter,
+      );
     });
   });
 });
