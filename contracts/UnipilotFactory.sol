@@ -8,6 +8,7 @@ import "./interfaces/IUnipilotFactory.sol";
 import "./UnipilotDeployer.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract UnipilotFactory is IUnipilotFactory, UnipilotDeployer {
     address public override owner;
@@ -18,7 +19,8 @@ contract UnipilotFactory is IUnipilotFactory, UnipilotDeployer {
         uniswapFactory = _uniswapFactory;
     }
 
-    mapping(address => mapping(address => mapping(uint24 => address))) public vaults;
+    mapping(address => mapping(address => mapping(uint24 => address)))
+        public vaults;
 
     modifier isOwner() {
         require(msg.sender == owner, "NO");
@@ -33,7 +35,11 @@ contract UnipilotFactory is IUnipilotFactory, UnipilotDeployer {
         uint160 _sqrtPriceX96
     ) external override returns (address _vault) {
         require(vaults[_tokenA][_tokenB][_fee] == address(0), "VE");
-        address _pool = IUniswapV3Factory(uniswapFactory).createPool(_tokenA, _tokenB, _fee);
+        address _pool = IUniswapV3Factory(uniswapFactory).createPool(
+            _tokenA,
+            _tokenB,
+            _fee
+        );
         IUniswapV3Pool(_pool).initialize(_sqrtPriceX96);
         _vault = deploy(address(this), _tokenA, _tokenB, _fee);
         vaults[_tokenA][_tokenB][_fee] = _vault;

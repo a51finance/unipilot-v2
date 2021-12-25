@@ -7916,7 +7916,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"hardhat-gas-reporter@npm:^1.0.4":
+"hardhat-gas-reporter@npm:^1.0.6":
   version: 1.0.6
   resolution: "hardhat-gas-reporter@npm:1.0.6"
   dependencies:
@@ -14990,7 +14990,7 @@ __metadata:
     fs-extra: ^10.0.0
     hardhat: ^2.6.4
     hardhat-contract-sizer: ^2.3.0
-    hardhat-gas-reporter: ^1.0.4
+    hardhat-gas-reporter: ^1.0.6
     husky: ^7.0.2
     lint-staged: ^11.2.3
     lodash: ^4.17.21
