@@ -1,6 +1,6 @@
 //SPDX-License-Identifier: MIT
 
-pragma solidity =0.7.6;
+pragma solidity ^0.7.4;
 
 import "./interfaces/IUnipilotFactory.sol";
 
@@ -8,7 +8,6 @@ import "./interfaces/IUnipilotFactory.sol";
 import "./UnipilotDeployer.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract UnipilotFactory is IUnipilotFactory, UnipilotDeployer {
     address public override owner;
@@ -59,8 +58,4 @@ contract UnipilotFactory is IUnipilotFactory, UnipilotDeployer {
         emit OwnerChanged(owner, _newOwner);
         owner = _newOwner;
     }
-
-    //getVaults
-
-    //setOwner
 }
