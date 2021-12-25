@@ -242,16 +242,16 @@ export class UnipilotFactory__factory extends ContractFactory {
 
   deploy(
     _uniswapFactory: string,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<UnipilotFactory> {
     return super.deploy(
       _uniswapFactory,
-      overrides || {},
+      overrides || {}
     ) as Promise<UnipilotFactory>;
   }
   getDeployTransaction(
     _uniswapFactory: string,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): TransactionRequest {
     return super.getDeployTransaction(_uniswapFactory, overrides || {});
   }
@@ -268,7 +268,7 @@ export class UnipilotFactory__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): UnipilotFactory {
     return new Contract(address, _abi, signerOrProvider) as UnipilotFactory;
   }

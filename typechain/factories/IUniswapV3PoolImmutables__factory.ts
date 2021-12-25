@@ -97,12 +97,12 @@ export class IUniswapV3PoolImmutables__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): IUniswapV3PoolImmutables {
     return new Contract(
       address,
       _abi,
-      signerOrProvider,
+      signerOrProvider
     ) as IUniswapV3PoolImmutables;
   }
 }

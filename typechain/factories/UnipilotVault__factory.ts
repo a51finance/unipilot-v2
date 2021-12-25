@@ -572,7 +572,7 @@ type UnipilotVaultConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: UnipilotVaultConstructorParams,
+  xs: UnipilotVaultConstructorParams
 ): xs is ConstructorParameters<typeof ContractFactory> => {
   return (
     typeof xs[0] === "string" ||
@@ -590,13 +590,13 @@ export class UnipilotVault__factory extends ContractFactory {
       super(
         _abi,
         UnipilotVault__factory.linkBytecode(linkLibraryAddresses),
-        signer,
+        signer
       );
     }
   }
 
   static linkBytecode(
-    linkLibraryAddresses: UnipilotVaultLibraryAddresses,
+    linkLibraryAddresses: UnipilotVaultLibraryAddresses
   ): string {
     let linkedBytecode = _bytecode;
 
@@ -606,7 +606,7 @@ export class UnipilotVault__factory extends ContractFactory {
         "contracts/libraries/UnipilotMaths.sol:UnipilotMaths"
       ]
         .replace(/^0x/, "")
-        .toLowerCase(),
+        .toLowerCase()
     );
 
     return linkedBytecode;
@@ -618,7 +618,7 @@ export class UnipilotVault__factory extends ContractFactory {
     _router: string,
     _name: string,
     _symbol: string,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<UnipilotVault> {
     return super.deploy(
       _governance,
@@ -626,7 +626,7 @@ export class UnipilotVault__factory extends ContractFactory {
       _router,
       _name,
       _symbol,
-      overrides || {},
+      overrides || {}
     ) as Promise<UnipilotVault>;
   }
   getDeployTransaction(
@@ -635,7 +635,7 @@ export class UnipilotVault__factory extends ContractFactory {
     _router: string,
     _name: string,
     _symbol: string,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): TransactionRequest {
     return super.getDeployTransaction(
       _governance,
@@ -643,7 +643,7 @@ export class UnipilotVault__factory extends ContractFactory {
       _router,
       _name,
       _symbol,
-      overrides || {},
+      overrides || {}
     );
   }
   attach(address: string): UnipilotVault {
@@ -659,7 +659,7 @@ export class UnipilotVault__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): UnipilotVault {
     return new Contract(address, _abi, signerOrProvider) as UnipilotVault;
   }

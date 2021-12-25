@@ -27,17 +27,17 @@ interface IUnipilotVaultInterface extends ethers.utils.Interface {
 
   encodeFunctionData(
     functionFragment: "deposit",
-    values: [string, string, BigNumberish, BigNumberish],
+    values: [string, string, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "getVaultInfo",
-    values?: undefined,
+    values?: undefined
   ): string;
 
   decodeFunctionResult(functionFragment: "deposit", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getVaultInfo",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
 
   events: {
@@ -62,26 +62,26 @@ export class IUnipilotVault extends BaseContract {
   deployed(): Promise<this>;
 
   listeners<EventArgsArray extends Array<any>, EventArgsObject>(
-    eventFilter?: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    eventFilter?: TypedEventFilter<EventArgsArray, EventArgsObject>
   ): Array<TypedListener<EventArgsArray, EventArgsObject>>;
   off<EventArgsArray extends Array<any>, EventArgsObject>(
     eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
-    listener: TypedListener<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
   ): this;
   on<EventArgsArray extends Array<any>, EventArgsObject>(
     eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
-    listener: TypedListener<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
   ): this;
   once<EventArgsArray extends Array<any>, EventArgsObject>(
     eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
-    listener: TypedListener<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
   ): this;
   removeListener<EventArgsArray extends Array<any>, EventArgsObject>(
     eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
-    listener: TypedListener<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
   ): this;
   removeAllListeners<EventArgsArray extends Array<any>, EventArgsObject>(
-    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>
   ): this;
 
   listeners(eventName?: string): Array<Listener>;
@@ -94,7 +94,7 @@ export class IUnipilotVault extends BaseContract {
   queryFilter<EventArgsArray extends Array<any>, EventArgsObject>(
     event: TypedEventFilter<EventArgsArray, EventArgsObject>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined,
+    toBlock?: string | number | undefined
   ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
   interface: IUnipilotVaultInterface;
@@ -105,11 +105,11 @@ export class IUnipilotVault extends BaseContract {
       recipient: string,
       amount0: BigNumberish,
       amount1: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     getVaultInfo(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[string, string, BigNumber]>;
   };
 
@@ -118,7 +118,7 @@ export class IUnipilotVault extends BaseContract {
     recipient: string,
     amount0: BigNumberish,
     amount1: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   getVaultInfo(overrides?: CallOverrides): Promise<[string, string, BigNumber]>;
@@ -129,11 +129,11 @@ export class IUnipilotVault extends BaseContract {
       recipient: string,
       amount0: BigNumberish,
       amount1: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getVaultInfo(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[string, string, BigNumber]>;
   };
 
@@ -142,7 +142,7 @@ export class IUnipilotVault extends BaseContract {
       depositor?: null,
       amount0?: null,
       amount1?: null,
-      lpShares?: null,
+      lpShares?: null
     ): TypedEventFilter<
       [string, BigNumber, BigNumber, BigNumber],
       {
@@ -157,7 +157,7 @@ export class IUnipilotVault extends BaseContract {
       depositor?: null,
       amount0?: null,
       amount1?: null,
-      lpShares?: null,
+      lpShares?: null
     ): TypedEventFilter<
       [string, BigNumber, BigNumber, BigNumber],
       {
@@ -175,7 +175,7 @@ export class IUnipilotVault extends BaseContract {
       recipient: string,
       amount0: BigNumberish,
       amount1: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     getVaultInfo(overrides?: CallOverrides): Promise<BigNumber>;
@@ -187,7 +187,7 @@ export class IUnipilotVault extends BaseContract {
       recipient: string,
       amount0: BigNumberish,
       amount1: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     getVaultInfo(overrides?: CallOverrides): Promise<PopulatedTransaction>;

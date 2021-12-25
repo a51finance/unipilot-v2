@@ -317,7 +317,7 @@ export class ERC20Burnable__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): ERC20Burnable {
     return new Contract(address, _abi, signerOrProvider) as ERC20Burnable;
   }

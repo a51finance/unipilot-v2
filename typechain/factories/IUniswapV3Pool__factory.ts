@@ -1000,7 +1000,7 @@ export class IUniswapV3Pool__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): IUniswapV3Pool {
     return new Contract(address, _abi, signerOrProvider) as IUniswapV3Pool;
   }

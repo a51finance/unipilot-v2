@@ -29,18 +29,18 @@ interface IUnipilotFactoryInterface extends ethers.utils.Interface {
 
   encodeFunctionData(
     functionFragment: "createVault",
-    values: [string, string, BigNumberish, BigNumberish],
+    values: [string, string, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "getVaults",
-    values: [string, string, BigNumberish],
+    values: [string, string, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(functionFragment: "setOwner", values: [string]): string;
 
   decodeFunctionResult(
     functionFragment: "createVault",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "getVaults", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
@@ -69,26 +69,26 @@ export class IUnipilotFactory extends BaseContract {
   deployed(): Promise<this>;
 
   listeners<EventArgsArray extends Array<any>, EventArgsObject>(
-    eventFilter?: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    eventFilter?: TypedEventFilter<EventArgsArray, EventArgsObject>
   ): Array<TypedListener<EventArgsArray, EventArgsObject>>;
   off<EventArgsArray extends Array<any>, EventArgsObject>(
     eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
-    listener: TypedListener<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
   ): this;
   on<EventArgsArray extends Array<any>, EventArgsObject>(
     eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
-    listener: TypedListener<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
   ): this;
   once<EventArgsArray extends Array<any>, EventArgsObject>(
     eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
-    listener: TypedListener<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
   ): this;
   removeListener<EventArgsArray extends Array<any>, EventArgsObject>(
     eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
-    listener: TypedListener<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
   ): this;
   removeAllListeners<EventArgsArray extends Array<any>, EventArgsObject>(
-    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>
   ): this;
 
   listeners(eventName?: string): Array<Listener>;
@@ -101,7 +101,7 @@ export class IUnipilotFactory extends BaseContract {
   queryFilter<EventArgsArray extends Array<any>, EventArgsObject>(
     event: TypedEventFilter<EventArgsArray, EventArgsObject>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined,
+    toBlock?: string | number | undefined
   ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
   interface: IUnipilotFactoryInterface;
@@ -112,21 +112,21 @@ export class IUnipilotFactory extends BaseContract {
       _tokenB: string,
       _fee: BigNumberish,
       _sqrtPriceX96: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     getVaults(
       _tokenA: string,
       _tokenB: string,
       _fee: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[string] & { _vault: string }>;
 
     owner(overrides?: CallOverrides): Promise<[string]>;
 
     setOwner(
       _newOwner: string,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
 
@@ -135,21 +135,21 @@ export class IUnipilotFactory extends BaseContract {
     _tokenB: string,
     _fee: BigNumberish,
     _sqrtPriceX96: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   getVaults(
     _tokenA: string,
     _tokenB: string,
     _fee: BigNumberish,
-    overrides?: CallOverrides,
+    overrides?: CallOverrides
   ): Promise<string>;
 
   owner(overrides?: CallOverrides): Promise<string>;
 
   setOwner(
     _newOwner: string,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   callStatic: {
@@ -158,14 +158,14 @@ export class IUnipilotFactory extends BaseContract {
       _tokenB: string,
       _fee: BigNumberish,
       _sqrtPriceX96: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<string>;
 
     getVaults(
       _tokenA: string,
       _tokenB: string,
       _fee: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<string>;
 
     owner(overrides?: CallOverrides): Promise<string>;
@@ -176,7 +176,7 @@ export class IUnipilotFactory extends BaseContract {
   filters: {
     "OwnerChanged(address,address)"(
       _oldOwner?: string | null,
-      _newOwner?: string | null,
+      _newOwner?: string | null
     ): TypedEventFilter<
       [string, string],
       { _oldOwner: string; _newOwner: string }
@@ -184,7 +184,7 @@ export class IUnipilotFactory extends BaseContract {
 
     OwnerChanged(
       _oldOwner?: string | null,
-      _newOwner?: string | null,
+      _newOwner?: string | null
     ): TypedEventFilter<
       [string, string],
       { _oldOwner: string; _newOwner: string }
@@ -193,7 +193,7 @@ export class IUnipilotFactory extends BaseContract {
     "VaultCreated(address,address,uint24)"(
       _tokenA?: string | null,
       _tokenB?: string | null,
-      fee?: null,
+      fee?: null
     ): TypedEventFilter<
       [string, string, number],
       { _tokenA: string; _tokenB: string; fee: number }
@@ -202,7 +202,7 @@ export class IUnipilotFactory extends BaseContract {
     VaultCreated(
       _tokenA?: string | null,
       _tokenB?: string | null,
-      fee?: null,
+      fee?: null
     ): TypedEventFilter<
       [string, string, number],
       { _tokenA: string; _tokenB: string; fee: number }
@@ -215,21 +215,21 @@ export class IUnipilotFactory extends BaseContract {
       _tokenB: string,
       _fee: BigNumberish,
       _sqrtPriceX96: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     getVaults(
       _tokenA: string,
       _tokenB: string,
       _fee: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     owner(overrides?: CallOverrides): Promise<BigNumber>;
 
     setOwner(
       _newOwner: string,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
 
@@ -239,21 +239,21 @@ export class IUnipilotFactory extends BaseContract {
       _tokenB: string,
       _fee: BigNumberish,
       _sqrtPriceX96: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     getVaults(
       _tokenA: string,
       _tokenB: string,
       _fee: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     setOwner(
       _newOwner: string,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };
 }

@@ -346,12 +346,12 @@ export class IUniswapV3PoolEvents__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): IUniswapV3PoolEvents {
     return new Contract(
       address,
       _abi,
-      signerOrProvider,
+      signerOrProvider
     ) as IUniswapV3PoolEvents;
   }
 }
