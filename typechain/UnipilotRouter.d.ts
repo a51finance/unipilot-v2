@@ -11,6 +11,7 @@ import {
   PopulatedTransaction,
   BaseContract,
   ContractTransaction,
+  Overrides,
   CallOverrides,
 } from "ethers";
 import { BytesLike } from "@ethersproject/bytes";
@@ -18,22 +19,31 @@ import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 
-interface IUnipilotDeployerInterface extends ethers.utils.Interface {
+interface UnipilotRouterInterface extends ethers.utils.Interface {
   functions: {
-    "parameters()": FunctionFragment;
+    "deposit(address,address,uint256,uint256)": FunctionFragment;
+    "unipilotFactory()": FunctionFragment;
   };
 
   encodeFunctionData(
-    functionFragment: "parameters",
+    functionFragment: "deposit",
+    values: [string, string, BigNumberish, BigNumberish],
+  ): string;
+  encodeFunctionData(
+    functionFragment: "unipilotFactory",
     values?: undefined,
   ): string;
 
-  decodeFunctionResult(functionFragment: "parameters", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "deposit", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "unipilotFactory",
+    data: BytesLike,
+  ): Result;
 
   events: {};
 }
 
-export class IUnipilotDeployer extends BaseContract {
+export class UnipilotRouter extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
@@ -74,46 +84,65 @@ export class IUnipilotDeployer extends BaseContract {
     toBlock?: string | number | undefined,
   ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
-  interface: IUnipilotDeployerInterface;
+  interface: UnipilotRouterInterface;
 
   functions: {
-    parameters(overrides?: CallOverrides): Promise<
-      [string, string, string, number] & {
-        factory: string;
-        tokenA: string;
-        tokenB: string;
-        fee: number;
-      }
-    >;
+    deposit(
+      _vault: string,
+      _recipient: string,
+      _amount0: BigNumberish,
+      _amount1: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> },
+    ): Promise<ContractTransaction>;
+
+    unipilotFactory(overrides?: CallOverrides): Promise<[string]>;
   };
 
-  parameters(overrides?: CallOverrides): Promise<
-    [string, string, string, number] & {
-      factory: string;
-      tokenA: string;
-      tokenB: string;
-      fee: number;
-    }
-  >;
+  deposit(
+    _vault: string,
+    _recipient: string,
+    _amount0: BigNumberish,
+    _amount1: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> },
+  ): Promise<ContractTransaction>;
+
+  unipilotFactory(overrides?: CallOverrides): Promise<string>;
 
   callStatic: {
-    parameters(overrides?: CallOverrides): Promise<
-      [string, string, string, number] & {
-        factory: string;
-        tokenA: string;
-        tokenB: string;
-        fee: number;
-      }
-    >;
+    deposit(
+      _vault: string,
+      _recipient: string,
+      _amount0: BigNumberish,
+      _amount1: BigNumberish,
+      overrides?: CallOverrides,
+    ): Promise<BigNumber>;
+
+    unipilotFactory(overrides?: CallOverrides): Promise<string>;
   };
 
   filters: {};
 
   estimateGas: {
-    parameters(overrides?: CallOverrides): Promise<BigNumber>;
+    deposit(
+      _vault: string,
+      _recipient: string,
+      _amount0: BigNumberish,
+      _amount1: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> },
+    ): Promise<BigNumber>;
+
+    unipilotFactory(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
-    parameters(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    deposit(
+      _vault: string,
+      _recipient: string,
+      _amount0: BigNumberish,
+      _amount1: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> },
+    ): Promise<PopulatedTransaction>;
+
+    unipilotFactory(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
 }

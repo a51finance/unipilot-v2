@@ -18,22 +18,25 @@ import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 
-interface IUnipilotDeployerInterface extends ethers.utils.Interface {
+interface UnipilotMathsInterface extends ethers.utils.Interface {
   functions: {
-    "parameters()": FunctionFragment;
+    "PRECISION()": FunctionFragment;
+    "currentTick(IUniswapV3Pool)": FunctionFragment;
   };
 
-  encodeFunctionData(
-    functionFragment: "parameters",
-    values?: undefined,
-  ): string;
+  encodeFunctionData(functionFragment: "PRECISION", values?: undefined): string;
+  encodeFunctionData(functionFragment: "currentTick", values: [string]): string;
 
-  decodeFunctionResult(functionFragment: "parameters", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "PRECISION", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "currentTick",
+    data: BytesLike,
+  ): Result;
 
   events: {};
 }
 
-export class IUnipilotDeployer extends BaseContract {
+export class UnipilotMaths extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
@@ -74,46 +77,41 @@ export class IUnipilotDeployer extends BaseContract {
     toBlock?: string | number | undefined,
   ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
-  interface: IUnipilotDeployerInterface;
+  interface: UnipilotMathsInterface;
 
   functions: {
-    parameters(overrides?: CallOverrides): Promise<
-      [string, string, string, number] & {
-        factory: string;
-        tokenA: string;
-        tokenB: string;
-        fee: number;
-      }
-    >;
+    PRECISION(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    currentTick(
+      pool: string,
+      overrides?: CallOverrides,
+    ): Promise<[number] & { tick: number }>;
   };
 
-  parameters(overrides?: CallOverrides): Promise<
-    [string, string, string, number] & {
-      factory: string;
-      tokenA: string;
-      tokenB: string;
-      fee: number;
-    }
-  >;
+  PRECISION(overrides?: CallOverrides): Promise<BigNumber>;
+
+  currentTick(pool: string, overrides?: CallOverrides): Promise<number>;
 
   callStatic: {
-    parameters(overrides?: CallOverrides): Promise<
-      [string, string, string, number] & {
-        factory: string;
-        tokenA: string;
-        tokenB: string;
-        fee: number;
-      }
-    >;
+    PRECISION(overrides?: CallOverrides): Promise<BigNumber>;
+
+    currentTick(pool: string, overrides?: CallOverrides): Promise<number>;
   };
 
   filters: {};
 
   estimateGas: {
-    parameters(overrides?: CallOverrides): Promise<BigNumber>;
+    PRECISION(overrides?: CallOverrides): Promise<BigNumber>;
+
+    currentTick(pool: string, overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
-    parameters(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    PRECISION(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    currentTick(
+      pool: string,
+      overrides?: CallOverrides,
+    ): Promise<PopulatedTransaction>;
   };
 }

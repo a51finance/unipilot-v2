@@ -18,22 +18,25 @@ import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 
-interface IUnipilotDeployerInterface extends ethers.utils.Interface {
+interface IERC1271Interface extends ethers.utils.Interface {
   functions: {
-    "parameters()": FunctionFragment;
+    "isValidSignature(bytes32,bytes)": FunctionFragment;
   };
 
   encodeFunctionData(
-    functionFragment: "parameters",
-    values?: undefined,
+    functionFragment: "isValidSignature",
+    values: [BytesLike, BytesLike],
   ): string;
 
-  decodeFunctionResult(functionFragment: "parameters", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "isValidSignature",
+    data: BytesLike,
+  ): Result;
 
   events: {};
 }
 
-export class IUnipilotDeployer extends BaseContract {
+export class IERC1271 extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
@@ -74,46 +77,45 @@ export class IUnipilotDeployer extends BaseContract {
     toBlock?: string | number | undefined,
   ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
-  interface: IUnipilotDeployerInterface;
+  interface: IERC1271Interface;
 
   functions: {
-    parameters(overrides?: CallOverrides): Promise<
-      [string, string, string, number] & {
-        factory: string;
-        tokenA: string;
-        tokenB: string;
-        fee: number;
-      }
-    >;
+    isValidSignature(
+      hash: BytesLike,
+      signature: BytesLike,
+      overrides?: CallOverrides,
+    ): Promise<[string] & { magicValue: string }>;
   };
 
-  parameters(overrides?: CallOverrides): Promise<
-    [string, string, string, number] & {
-      factory: string;
-      tokenA: string;
-      tokenB: string;
-      fee: number;
-    }
-  >;
+  isValidSignature(
+    hash: BytesLike,
+    signature: BytesLike,
+    overrides?: CallOverrides,
+  ): Promise<string>;
 
   callStatic: {
-    parameters(overrides?: CallOverrides): Promise<
-      [string, string, string, number] & {
-        factory: string;
-        tokenA: string;
-        tokenB: string;
-        fee: number;
-      }
-    >;
+    isValidSignature(
+      hash: BytesLike,
+      signature: BytesLike,
+      overrides?: CallOverrides,
+    ): Promise<string>;
   };
 
   filters: {};
 
   estimateGas: {
-    parameters(overrides?: CallOverrides): Promise<BigNumber>;
+    isValidSignature(
+      hash: BytesLike,
+      signature: BytesLike,
+      overrides?: CallOverrides,
+    ): Promise<BigNumber>;
   };
 
   populateTransaction: {
-    parameters(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    isValidSignature(
+      hash: BytesLike,
+      signature: BytesLike,
+      overrides?: CallOverrides,
+    ): Promise<PopulatedTransaction>;
   };
 }

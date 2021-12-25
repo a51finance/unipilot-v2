@@ -4,7 +4,10 @@
 
 import { Signer, utils, Contract, ContractFactory, Overrides } from "ethers";
 import { Provider, TransactionRequest } from "@ethersproject/providers";
-import type { UnipilotDeployer, UnipilotDeployerInterface } from "../UnipilotDeployer";
+import type {
+  UnipilotDeployer,
+  UnipilotDeployerInterface,
+} from "../UnipilotDeployer";
 
 const _abi = [
   {
@@ -38,10 +41,12 @@ const _abi = [
 ];
 
 const _bytecode =
-  "0x608060405234801561001057600080fd5b5061016d806100206000396000f3fe608060405234801561001057600080fd5b506004361061002b5760003560e01c80638903573014610030575b600080fd5b6100386100aa565b604051808573ffffffffffffffffffffffffffffffffffffffff1681526020018473ffffffffffffffffffffffffffffffffffffffff1681526020018373ffffffffffffffffffffffffffffffffffffffff1681526020018262ffffff16815260200194505050505060405180910390f35b60008060000160009054906101000a900473ffffffffffffffffffffffffffffffffffffffff16908060010160009054906101000a900473ffffffffffffffffffffffffffffffffffffffff16908060020160009054906101000a900473ffffffffffffffffffffffffffffffffffffffff16908060020160149054906101000a900462ffffff1690508456fea26469706673582212204bed04a06dc36e1f13f2ee6aa69f1068c95305831df3e67101ec7e42eb80328d64736f6c63430007050033";
+  "0x608060405234801561001057600080fd5b5060cf8061001f6000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80638903573014602d575b600080fd5b60336079565b6040805173ffffffffffffffffffffffffffffffffffffffff95861681529385166020850152919093168282015262ffffff909216606082015290519081900360800190f35b60005460015460025473ffffffffffffffffffffffffffffffffffffffff928316929182169181169074010000000000000000000000000000000000000000900462ffffff168456fea164736f6c6343000706000a";
 
 export class UnipilotDeployer__factory extends ContractFactory {
-  constructor(...args: [signer: Signer] | ConstructorParameters<typeof ContractFactory>) {
+  constructor(
+    ...args: [signer: Signer] | ConstructorParameters<typeof ContractFactory>
+  ) {
     if (args.length === 1) {
       super(_abi, _bytecode, args[0]);
     } else {
@@ -49,10 +54,14 @@ export class UnipilotDeployer__factory extends ContractFactory {
     }
   }
 
-  deploy(overrides?: Overrides & { from?: string | Promise<string> }): Promise<UnipilotDeployer> {
+  deploy(
+    overrides?: Overrides & { from?: string | Promise<string> },
+  ): Promise<UnipilotDeployer> {
     return super.deploy(overrides || {}) as Promise<UnipilotDeployer>;
   }
-  getDeployTransaction(overrides?: Overrides & { from?: string | Promise<string> }): TransactionRequest {
+  getDeployTransaction(
+    overrides?: Overrides & { from?: string | Promise<string> },
+  ): TransactionRequest {
     return super.getDeployTransaction(overrides || {});
   }
   attach(address: string): UnipilotDeployer {
@@ -66,7 +75,10 @@ export class UnipilotDeployer__factory extends ContractFactory {
   static createInterface(): UnipilotDeployerInterface {
     return new utils.Interface(_abi) as UnipilotDeployerInterface;
   }
-  static connect(address: string, signerOrProvider: Signer | Provider): UnipilotDeployer {
+  static connect(
+    address: string,
+    signerOrProvider: Signer | Provider,
+  ): UnipilotDeployer {
     return new Contract(address, _abi, signerOrProvider) as UnipilotDeployer;
   }
 }

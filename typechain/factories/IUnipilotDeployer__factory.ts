@@ -4,7 +4,10 @@
 
 import { Contract, Signer, utils } from "ethers";
 import { Provider } from "@ethersproject/providers";
-import type { IUnipilotDeployer, IUnipilotDeployerInterface } from "../IUnipilotDeployer";
+import type {
+  IUnipilotDeployer,
+  IUnipilotDeployerInterface,
+} from "../IUnipilotDeployer";
 
 const _abi = [
   {
@@ -42,7 +45,10 @@ export class IUnipilotDeployer__factory {
   static createInterface(): IUnipilotDeployerInterface {
     return new utils.Interface(_abi) as IUnipilotDeployerInterface;
   }
-  static connect(address: string, signerOrProvider: Signer | Provider): IUnipilotDeployer {
+  static connect(
+    address: string,
+    signerOrProvider: Signer | Provider,
+  ): IUnipilotDeployer {
     return new Contract(address, _abi, signerOrProvider) as IUnipilotDeployer;
   }
 }

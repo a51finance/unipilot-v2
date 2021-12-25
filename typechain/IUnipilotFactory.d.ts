@@ -27,12 +27,21 @@ interface IUnipilotFactoryInterface extends ethers.utils.Interface {
     "setOwner(address)": FunctionFragment;
   };
 
-  encodeFunctionData(functionFragment: "createVault", values: [string, string, BigNumberish, BigNumberish]): string;
-  encodeFunctionData(functionFragment: "getVaults", values: [string, string, BigNumberish]): string;
+  encodeFunctionData(
+    functionFragment: "createVault",
+    values: [string, string, BigNumberish, BigNumberish],
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getVaults",
+    values: [string, string, BigNumberish],
+  ): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(functionFragment: "setOwner", values: [string]): string;
 
-  decodeFunctionResult(functionFragment: "createVault", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "createVault",
+    data: BytesLike,
+  ): Result;
   decodeFunctionResult(functionFragment: "getVaults", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "setOwner", data: BytesLike): Result;
@@ -46,7 +55,9 @@ interface IUnipilotFactoryInterface extends ethers.utils.Interface {
   getEvent(nameOrSignatureOrTopic: "VaultCreated"): EventFragment;
 }
 
-export type OwnerChangedEvent = TypedEvent<[string, string] & { _oldOwner: string; _newOwner: string }>;
+export type OwnerChangedEvent = TypedEvent<
+  [string, string] & { _oldOwner: string; _newOwner: string }
+>;
 
 export type VaultCreatedEvent = TypedEvent<
   [string, string, number] & { _tokenA: string; _tokenB: string; fee: number }
@@ -127,7 +138,12 @@ export class IUnipilotFactory extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
-  getVaults(_tokenA: string, _tokenB: string, _fee: BigNumberish, overrides?: CallOverrides): Promise<string>;
+  getVaults(
+    _tokenA: string,
+    _tokenB: string,
+    _fee: BigNumberish,
+    overrides?: CallOverrides,
+  ): Promise<string>;
 
   owner(overrides?: CallOverrides): Promise<string>;
 
@@ -145,7 +161,12 @@ export class IUnipilotFactory extends BaseContract {
       overrides?: CallOverrides,
     ): Promise<string>;
 
-    getVaults(_tokenA: string, _tokenB: string, _fee: BigNumberish, overrides?: CallOverrides): Promise<string>;
+    getVaults(
+      _tokenA: string,
+      _tokenB: string,
+      _fee: BigNumberish,
+      overrides?: CallOverrides,
+    ): Promise<string>;
 
     owner(overrides?: CallOverrides): Promise<string>;
 
@@ -156,24 +177,36 @@ export class IUnipilotFactory extends BaseContract {
     "OwnerChanged(address,address)"(
       _oldOwner?: string | null,
       _newOwner?: string | null,
-    ): TypedEventFilter<[string, string], { _oldOwner: string; _newOwner: string }>;
+    ): TypedEventFilter<
+      [string, string],
+      { _oldOwner: string; _newOwner: string }
+    >;
 
     OwnerChanged(
       _oldOwner?: string | null,
       _newOwner?: string | null,
-    ): TypedEventFilter<[string, string], { _oldOwner: string; _newOwner: string }>;
+    ): TypedEventFilter<
+      [string, string],
+      { _oldOwner: string; _newOwner: string }
+    >;
 
     "VaultCreated(address,address,uint24)"(
       _tokenA?: string | null,
       _tokenB?: string | null,
       fee?: null,
-    ): TypedEventFilter<[string, string, number], { _tokenA: string; _tokenB: string; fee: number }>;
+    ): TypedEventFilter<
+      [string, string, number],
+      { _tokenA: string; _tokenB: string; fee: number }
+    >;
 
     VaultCreated(
       _tokenA?: string | null,
       _tokenB?: string | null,
       fee?: null,
-    ): TypedEventFilter<[string, string, number], { _tokenA: string; _tokenB: string; fee: number }>;
+    ): TypedEventFilter<
+      [string, string, number],
+      { _tokenA: string; _tokenB: string; fee: number }
+    >;
   };
 
   estimateGas: {
@@ -185,11 +218,19 @@ export class IUnipilotFactory extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
-    getVaults(_tokenA: string, _tokenB: string, _fee: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
+    getVaults(
+      _tokenA: string,
+      _tokenB: string,
+      _fee: BigNumberish,
+      overrides?: CallOverrides,
+    ): Promise<BigNumber>;
 
     owner(overrides?: CallOverrides): Promise<BigNumber>;
 
-    setOwner(_newOwner: string, overrides?: Overrides & { from?: string | Promise<string> }): Promise<BigNumber>;
+    setOwner(
+      _newOwner: string,
+      overrides?: Overrides & { from?: string | Promise<string> },
+    ): Promise<BigNumber>;
   };
 
   populateTransaction: {

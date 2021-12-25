@@ -11,29 +11,19 @@ import {
   PopulatedTransaction,
   BaseContract,
   ContractTransaction,
-  CallOverrides,
 } from "ethers";
 import { BytesLike } from "@ethersproject/bytes";
 import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 
-interface IUnipilotDeployerInterface extends ethers.utils.Interface {
-  functions: {
-    "parameters()": FunctionFragment;
-  };
-
-  encodeFunctionData(
-    functionFragment: "parameters",
-    values?: undefined,
-  ): string;
-
-  decodeFunctionResult(functionFragment: "parameters", data: BytesLike): Result;
+interface PeripheryPaymentsInterface extends ethers.utils.Interface {
+  functions: {};
 
   events: {};
 }
 
-export class IUnipilotDeployer extends BaseContract {
+export class PeripheryPayments extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
@@ -74,46 +64,15 @@ export class IUnipilotDeployer extends BaseContract {
     toBlock?: string | number | undefined,
   ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
-  interface: IUnipilotDeployerInterface;
+  interface: PeripheryPaymentsInterface;
 
-  functions: {
-    parameters(overrides?: CallOverrides): Promise<
-      [string, string, string, number] & {
-        factory: string;
-        tokenA: string;
-        tokenB: string;
-        fee: number;
-      }
-    >;
-  };
+  functions: {};
 
-  parameters(overrides?: CallOverrides): Promise<
-    [string, string, string, number] & {
-      factory: string;
-      tokenA: string;
-      tokenB: string;
-      fee: number;
-    }
-  >;
-
-  callStatic: {
-    parameters(overrides?: CallOverrides): Promise<
-      [string, string, string, number] & {
-        factory: string;
-        tokenA: string;
-        tokenB: string;
-        fee: number;
-      }
-    >;
-  };
+  callStatic: {};
 
   filters: {};
 
-  estimateGas: {
-    parameters(overrides?: CallOverrides): Promise<BigNumber>;
-  };
+  estimateGas: {};
 
-  populateTransaction: {
-    parameters(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-  };
+  populateTransaction: {};
 }
