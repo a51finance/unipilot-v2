@@ -17,9 +17,33 @@ export async function shouleBehaveLikePilotFactory(
     );
   });
 
-  it("Governance: it should fail  reason: as it is not governance address", async () => {
-    await expect(await unipilotFactory.connect(wallets[3]).owner()).to.equal(
+  it("Governance: it should pass  reason: as it is not governance address", async () => {
+    await expect(
+      await unipilotFactory.connect(wallets[3]).owner(),
+    ).to.not.equal(alice.address);
+  });
+
+  it("Governanace: it should pass reason: wallet[0] is calling setOwner to alice", async () => {
+    await expect(await unipilotFactory.connect(owner).setOwner(alice.address))
+      .to.ok;
+    const newOwner = await unipilotFactory.connect(owner).owner();
+  });
+
+  it("Governanace: it should pass reason: alice is the new owner", async () => {
+    await expect(await unipilotFactory.connect(owner).owner()).to.equal(
       alice.address,
     );
+  });
+
+  it("Governanace: it should pass reason: owner is not the new owner", async () => {
+    await expect(await unipilotFactory.connect(owner).owner()).to.not.equal(
+      owner.address,
+    );
+  });
+
+  it("Governace: revert message: NO reason: failed as owner will try to setOwner", async () => {
+    await expect(
+      await unipilotFactory.connect(owner).setOwner(owner.address),
+    ).to.be.revertedWith("NO");
   });
 }
