@@ -41,27 +41,28 @@ const deployUnipilotFactory = async () => {
     UnipilotFactoryArtifacts.bytecode,
     wallet,
   );
-  const UnipilotFactoryContract = await UnipilotFactory.deploy("0x1F98431c8aD98523631AE4a59f267346ea31F984");
+  const UnipilotFactoryContract = await UnipilotFactory.deploy(
+    "0x1F98431c8aD98523631AE4a59f267346ea31F984",
+  );
   const walletAddress = await wallet.getAddress();
-  console.log("UnipilotFactory deployed to:", UnipilotFactoryContract.address, "from account,", walletAddress);
+  console.log(
+    "UnipilotFactory deployed to:",
+    UnipilotFactoryContract.address,
+    "from account,",
+    walletAddress,
+  );
 };
 
-const deployVault = async (contractAddress: string, amount: string, tokenAddress: string) => {
+const deployVault = async (
+  contractAddress: string,
+  amount: string,
+  tokenAddress: string,
+) => {
   const tokenContract = new ethers.ContractFactory(
     UnipilotFactoryArtifacts.abi,
     UnipilotFactoryArtifacts.bytecode,
     wallet2,
   );
-  const tokenContractInstance = tokenContract.attach(contractAddress);
-  try {
-    const stake = await tokenContractInstance.stake(amount, tokenAddress, {
-      gasLimit: "10000000",
-      gasPrice: "1500226581",
-    });
-    console.log("staked pilot -> ", stake.hash);
-  } catch (err) {
-    console.log(err);
-  }
 };
 
 const checkGovernance = async (contractAddress: string) => {
@@ -70,7 +71,8 @@ const checkGovernance = async (contractAddress: string) => {
     UnipilotFactoryArtifacts.bytecode,
     wallet,
   );
-  const unipilotFactoryInstance = uniPilotFactoryContract.attach(contractAddress);
+  const unipilotFactoryInstance =
+    uniPilotFactoryContract.attach(contractAddress);
   const owner = await unipilotFactoryInstance.owner();
   console.log("Owner of Unipilot Factory", owner);
 };
@@ -79,7 +81,6 @@ const main = async () => {
   await updateStateVariables();
   await updateStateVariables2();
   // await deployUnipilotFactory();
-  // await checkStakedValue("0xBA16795882959B20A4B5a112E5a06735ED867077");
   await checkGovernance("0xcE8f9628aD97D45ee6B7088ccd316D11B37cce71");
 };
 

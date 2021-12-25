@@ -28,14 +28,26 @@ export interface IUniswapV3PoolActionsInterface extends utils.Interface {
     "swap(address,bool,int256,uint160,bytes)": FunctionFragment;
   };
 
-  encodeFunctionData(functionFragment: "burn", values: [BigNumberish, BigNumberish, BigNumberish]): string;
+  encodeFunctionData(
+    functionFragment: "burn",
+    values: [BigNumberish, BigNumberish, BigNumberish],
+  ): string;
   encodeFunctionData(
     functionFragment: "collect",
     values: [string, BigNumberish, BigNumberish, BigNumberish, BigNumberish],
   ): string;
-  encodeFunctionData(functionFragment: "flash", values: [string, BigNumberish, BigNumberish, BytesLike]): string;
-  encodeFunctionData(functionFragment: "increaseObservationCardinalityNext", values: [BigNumberish]): string;
-  encodeFunctionData(functionFragment: "initialize", values: [BigNumberish]): string;
+  encodeFunctionData(
+    functionFragment: "flash",
+    values: [string, BigNumberish, BigNumberish, BytesLike],
+  ): string;
+  encodeFunctionData(
+    functionFragment: "increaseObservationCardinalityNext",
+    values: [BigNumberish],
+  ): string;
+  encodeFunctionData(
+    functionFragment: "initialize",
+    values: [BigNumberish],
+  ): string;
   encodeFunctionData(
     functionFragment: "mint",
     values: [string, BigNumberish, BigNumberish, BigNumberish, BytesLike],
@@ -48,7 +60,10 @@ export interface IUniswapV3PoolActionsInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "burn", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "collect", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "flash", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "increaseObservationCardinalityNext", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "increaseObservationCardinalityNext",
+    data: BytesLike,
+  ): Result;
   decodeFunctionResult(functionFragment: "initialize", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "mint", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "swap", data: BytesLike): Result;
@@ -69,9 +84,13 @@ export interface IUniswapV3PoolActions extends BaseContract {
     toBlock?: string | number | undefined,
   ): Promise<Array<TEvent>>;
 
-  listeners<TEvent extends TypedEvent>(eventFilter?: TypedEventFilter<TEvent>): Array<TypedListener<TEvent>>;
+  listeners<TEvent extends TypedEvent>(
+    eventFilter?: TypedEventFilter<TEvent>,
+  ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(eventFilter: TypedEventFilter<TEvent>): this;
+  removeAllListeners<TEvent extends TypedEvent>(
+    eventFilter: TypedEventFilter<TEvent>,
+  ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
   on: OnEvent<this>;
@@ -190,7 +209,9 @@ export interface IUniswapV3PoolActions extends BaseContract {
       tickUpper: BigNumberish,
       amount: BigNumberish,
       overrides?: CallOverrides,
-    ): Promise<[BigNumber, BigNumber] & { amount0: BigNumber; amount1: BigNumber }>;
+    ): Promise<
+      [BigNumber, BigNumber] & { amount0: BigNumber; amount1: BigNumber }
+    >;
 
     collect(
       recipient: string,
@@ -199,7 +220,9 @@ export interface IUniswapV3PoolActions extends BaseContract {
       amount0Requested: BigNumberish,
       amount1Requested: BigNumberish,
       overrides?: CallOverrides,
-    ): Promise<[BigNumber, BigNumber] & { amount0: BigNumber; amount1: BigNumber }>;
+    ): Promise<
+      [BigNumber, BigNumber] & { amount0: BigNumber; amount1: BigNumber }
+    >;
 
     flash(
       recipient: string,
@@ -214,7 +237,10 @@ export interface IUniswapV3PoolActions extends BaseContract {
       overrides?: CallOverrides,
     ): Promise<void>;
 
-    initialize(sqrtPriceX96: BigNumberish, overrides?: CallOverrides): Promise<void>;
+    initialize(
+      sqrtPriceX96: BigNumberish,
+      overrides?: CallOverrides,
+    ): Promise<void>;
 
     mint(
       recipient: string,
@@ -223,7 +249,9 @@ export interface IUniswapV3PoolActions extends BaseContract {
       amount: BigNumberish,
       data: BytesLike,
       overrides?: CallOverrides,
-    ): Promise<[BigNumber, BigNumber] & { amount0: BigNumber; amount1: BigNumber }>;
+    ): Promise<
+      [BigNumber, BigNumber] & { amount0: BigNumber; amount1: BigNumber }
+    >;
 
     swap(
       recipient: string,
@@ -232,7 +260,9 @@ export interface IUniswapV3PoolActions extends BaseContract {
       sqrtPriceLimitX96: BigNumberish,
       data: BytesLike,
       overrides?: CallOverrides,
-    ): Promise<[BigNumber, BigNumber] & { amount0: BigNumber; amount1: BigNumber }>;
+    ): Promise<
+      [BigNumber, BigNumber] & { amount0: BigNumber; amount1: BigNumber }
+    >;
   };
 
   filters: {};

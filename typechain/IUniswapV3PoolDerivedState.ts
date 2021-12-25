@@ -21,11 +21,20 @@ export interface IUniswapV3PoolDerivedStateInterface extends utils.Interface {
     "snapshotCumulativesInside(int24,int24)": FunctionFragment;
   };
 
-  encodeFunctionData(functionFragment: "observe", values: [BigNumberish[]]): string;
-  encodeFunctionData(functionFragment: "snapshotCumulativesInside", values: [BigNumberish, BigNumberish]): string;
+  encodeFunctionData(
+    functionFragment: "observe",
+    values: [BigNumberish[]],
+  ): string;
+  encodeFunctionData(
+    functionFragment: "snapshotCumulativesInside",
+    values: [BigNumberish, BigNumberish],
+  ): string;
 
   decodeFunctionResult(functionFragment: "observe", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "snapshotCumulativesInside", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "snapshotCumulativesInside",
+    data: BytesLike,
+  ): Result;
 
   events: {};
 }
@@ -43,9 +52,13 @@ export interface IUniswapV3PoolDerivedState extends BaseContract {
     toBlock?: string | number | undefined,
   ): Promise<Array<TEvent>>;
 
-  listeners<TEvent extends TypedEvent>(eventFilter?: TypedEventFilter<TEvent>): Array<TypedListener<TEvent>>;
+  listeners<TEvent extends TypedEvent>(
+    eventFilter?: TypedEventFilter<TEvent>,
+  ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(eventFilter: TypedEventFilter<TEvent>): this;
+  removeAllListeners<TEvent extends TypedEvent>(
+    eventFilter: TypedEventFilter<TEvent>,
+  ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
   on: OnEvent<this>;
@@ -125,7 +138,10 @@ export interface IUniswapV3PoolDerivedState extends BaseContract {
   filters: {};
 
   estimateGas: {
-    observe(secondsAgos: BigNumberish[], overrides?: CallOverrides): Promise<BigNumber>;
+    observe(
+      secondsAgos: BigNumberish[],
+      overrides?: CallOverrides,
+    ): Promise<BigNumber>;
 
     snapshotCumulativesInside(
       tickLower: BigNumberish,
@@ -135,7 +151,10 @@ export interface IUniswapV3PoolDerivedState extends BaseContract {
   };
 
   populateTransaction: {
-    observe(secondsAgos: BigNumberish[], overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    observe(
+      secondsAgos: BigNumberish[],
+      overrides?: CallOverrides,
+    ): Promise<PopulatedTransaction>;
 
     snapshotCumulativesInside(
       tickLower: BigNumberish,

@@ -25,7 +25,9 @@ export interface IUniswapV3PoolEventsInterface extends utils.Interface {
   getEvent(nameOrSignatureOrTopic: "Collect"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "CollectProtocol"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Flash"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "IncreaseObservationCardinalityNext"): EventFragment;
+  getEvent(
+    nameOrSignatureOrTopic: "IncreaseObservationCardinalityNext",
+  ): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Initialize"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Mint"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "SetFeeProtocol"): EventFragment;
@@ -89,9 +91,13 @@ export type IncreaseObservationCardinalityNextEvent = TypedEvent<
   }
 >;
 
-export type IncreaseObservationCardinalityNextEventFilter = TypedEventFilter<IncreaseObservationCardinalityNextEvent>;
+export type IncreaseObservationCardinalityNextEventFilter =
+  TypedEventFilter<IncreaseObservationCardinalityNextEvent>;
 
-export type InitializeEvent = TypedEvent<[BigNumber, number], { sqrtPriceX96: BigNumber; tick: number }>;
+export type InitializeEvent = TypedEvent<
+  [BigNumber, number],
+  { sqrtPriceX96: BigNumber; tick: number }
+>;
 
 export type InitializeEventFilter = TypedEventFilter<InitializeEvent>;
 
@@ -150,9 +156,13 @@ export interface IUniswapV3PoolEvents extends BaseContract {
     toBlock?: string | number | undefined,
   ): Promise<Array<TEvent>>;
 
-  listeners<TEvent extends TypedEvent>(eventFilter?: TypedEventFilter<TEvent>): Array<TypedListener<TEvent>>;
+  listeners<TEvent extends TypedEvent>(
+    eventFilter?: TypedEventFilter<TEvent>,
+  ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(eventFilter: TypedEventFilter<TEvent>): this;
+  removeAllListeners<TEvent extends TypedEvent>(
+    eventFilter: TypedEventFilter<TEvent>,
+  ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
   on: OnEvent<this>;
@@ -237,7 +247,10 @@ export interface IUniswapV3PoolEvents extends BaseContract {
       observationCardinalityNextNew?: null,
     ): IncreaseObservationCardinalityNextEventFilter;
 
-    "Initialize(uint160,int24)"(sqrtPriceX96?: null, tick?: null): InitializeEventFilter;
+    "Initialize(uint160,int24)"(
+      sqrtPriceX96?: null,
+      tick?: null,
+    ): InitializeEventFilter;
     Initialize(sqrtPriceX96?: null, tick?: null): InitializeEventFilter;
 
     "Mint(address,address,int24,int24,uint128,uint256,uint256)"(

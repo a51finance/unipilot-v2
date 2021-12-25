@@ -23,11 +23,23 @@ export interface IUniswapV3PoolOwnerActionsInterface extends utils.Interface {
     "setFeeProtocol(uint8,uint8)": FunctionFragment;
   };
 
-  encodeFunctionData(functionFragment: "collectProtocol", values: [string, BigNumberish, BigNumberish]): string;
-  encodeFunctionData(functionFragment: "setFeeProtocol", values: [BigNumberish, BigNumberish]): string;
+  encodeFunctionData(
+    functionFragment: "collectProtocol",
+    values: [string, BigNumberish, BigNumberish],
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setFeeProtocol",
+    values: [BigNumberish, BigNumberish],
+  ): string;
 
-  decodeFunctionResult(functionFragment: "collectProtocol", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "setFeeProtocol", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "collectProtocol",
+    data: BytesLike,
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "setFeeProtocol",
+    data: BytesLike,
+  ): Result;
 
   events: {};
 }
@@ -45,9 +57,13 @@ export interface IUniswapV3PoolOwnerActions extends BaseContract {
     toBlock?: string | number | undefined,
   ): Promise<Array<TEvent>>;
 
-  listeners<TEvent extends TypedEvent>(eventFilter?: TypedEventFilter<TEvent>): Array<TypedListener<TEvent>>;
+  listeners<TEvent extends TypedEvent>(
+    eventFilter?: TypedEventFilter<TEvent>,
+  ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(eventFilter: TypedEventFilter<TEvent>): this;
+  removeAllListeners<TEvent extends TypedEvent>(
+    eventFilter: TypedEventFilter<TEvent>,
+  ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
   on: OnEvent<this>;
@@ -88,9 +104,15 @@ export interface IUniswapV3PoolOwnerActions extends BaseContract {
       amount0Requested: BigNumberish,
       amount1Requested: BigNumberish,
       overrides?: CallOverrides,
-    ): Promise<[BigNumber, BigNumber] & { amount0: BigNumber; amount1: BigNumber }>;
+    ): Promise<
+      [BigNumber, BigNumber] & { amount0: BigNumber; amount1: BigNumber }
+    >;
 
-    setFeeProtocol(feeProtocol0: BigNumberish, feeProtocol1: BigNumberish, overrides?: CallOverrides): Promise<void>;
+    setFeeProtocol(
+      feeProtocol0: BigNumberish,
+      feeProtocol1: BigNumberish,
+      overrides?: CallOverrides,
+    ): Promise<void>;
   };
 
   filters: {};

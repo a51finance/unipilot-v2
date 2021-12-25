@@ -4,7 +4,10 @@
 
 import { Contract, Signer, utils } from "ethers";
 import { Provider } from "@ethersproject/providers";
-import type { IUniswapV3PoolDerivedState, IUniswapV3PoolDerivedStateInterface } from "../IUniswapV3PoolDerivedState";
+import type {
+  IUniswapV3PoolDerivedState,
+  IUniswapV3PoolDerivedStateInterface,
+} from "../IUniswapV3PoolDerivedState";
 
 const _abi = [
   {
@@ -72,7 +75,14 @@ export class IUniswapV3PoolDerivedState__factory {
   static createInterface(): IUniswapV3PoolDerivedStateInterface {
     return new utils.Interface(_abi) as IUniswapV3PoolDerivedStateInterface;
   }
-  static connect(address: string, signerOrProvider: Signer | Provider): IUniswapV3PoolDerivedState {
-    return new Contract(address, _abi, signerOrProvider) as IUniswapV3PoolDerivedState;
+  static connect(
+    address: string,
+    signerOrProvider: Signer | Provider,
+  ): IUniswapV3PoolDerivedState {
+    return new Contract(
+      address,
+      _abi,
+      signerOrProvider,
+    ) as IUniswapV3PoolDerivedState;
   }
 }
