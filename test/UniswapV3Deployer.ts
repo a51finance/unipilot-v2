@@ -26,14 +26,14 @@ export class UniswapV3Deployer {
     const factory = await deployer.deployFactory();
     const router = await deployer.deployRouter(factory.address, weth9.address);
     const nftDescriptorLibrary = await deployer.deployNFTDescriptorLibrary();
-    const positionDescriptor = await deployer.deployPositionDescriptor(
-      nftDescriptorLibrary.address,
-      weth9.address,
-    );
+    // const positionDescriptor = await deployer.deployPositionDescriptor(
+    //   nftDescriptorLibrary.address,
+    //   weth9.address,
+    // );
     const positionManager = await deployer.deployNonfungiblePositionManager(
       factory.address,
       weth9.address,
-      positionDescriptor.address,
+      factory.address,
     );
 
     return {
@@ -41,7 +41,7 @@ export class UniswapV3Deployer {
       factory,
       router,
       nftDescriptorLibrary,
-      positionDescriptor,
+      // positionDescriptor,
       positionManager,
     };
   }
