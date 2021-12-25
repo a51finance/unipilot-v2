@@ -18,6 +18,18 @@ contract UnipilotRouter {
     ) external returns (uint256 lpShares) {
         require(_vault != address(0) && _recipient != address(0), "NA");
 
+        (address token0, address token1, uint256 fee) = IUnipilotVault(_vault)
+            .getVaultInfo();
+
+        require(
+            IUnipilotFactory(unipilotFactory).getVaults(
+                token0,
+                token1,
+                uint24(fee)
+            ) != address(0),
+            "NVA"
+        );
+
         lpShares = IUnipilotVault(_vault).deposit(
             msg.sender,
             _recipient,
@@ -25,4 +37,8 @@ contract UnipilotRouter {
             _amount1
         );
     }
+
+    // Withdraw goes to here...
+
+    // Rebase goes to here...
 }

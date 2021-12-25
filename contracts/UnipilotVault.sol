@@ -87,4 +87,17 @@ contract UnipilotVault is
 
         emit Deposit(depositor, amount0, amount1, lpShares);
     }
+
+    function getVaultInfo()
+        external
+        view
+        override
+        returns (
+            address,
+            address,
+            uint256
+        )
+    {
+        return (token0, token1, fee);
+    }
 }

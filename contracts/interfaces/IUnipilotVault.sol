@@ -16,4 +16,13 @@ interface IUnipilotVault {
         uint256 amount0,
         uint256 amount1
     ) external returns (uint256 lpShares);
+
+    function getVaultInfo()
+        external
+        view
+        returns (
+            address,
+            address,
+            uint256
+        );
 }
