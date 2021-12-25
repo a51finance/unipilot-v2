@@ -1,4 +1,6 @@
-pragma solidity ^0.7.4;
+//SPDX-License-Identifier: MIT
+
+pragma solidity =0.7.6;
 
 interface IUnipilotFactory {
     event VaultCreated(address indexed _tokenA, address indexed _tokenB, uint24 fee);

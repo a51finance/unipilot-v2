@@ -1,6 +1,6 @@
 //SPDX-License-Identifier: MIT
 
-pragma solidity ^0.7.4;
+pragma solidity =0.7.6;
 
 import "./interfaces/IUnipilotFactory.sol";
 
@@ -50,7 +50,6 @@ contract UnipilotFactory is IUnipilotFactory, UnipilotDeployer {
     }
 
     function setOwner(address _newOwner) external override isOwner {
-        owner = _newOwner;
         emit OwnerChanged(owner, _newOwner);
         owner = _newOwner;
     }

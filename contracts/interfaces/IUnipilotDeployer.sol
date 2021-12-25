@@ -1,6 +1,6 @@
 //SPDX-License-Identifier: MIT
 
-pragma solidity ^0.7.4;
+pragma solidity =0.7.6;
 
 interface IUnipilotDeployer {
     function parameters()
