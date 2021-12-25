@@ -10,7 +10,6 @@ export async function shouldBehaveLikeUnipilotFunctions(
   UnipilotFactory: Contract,
 ): Promise<void> {
   describe("Testing the UnipilotFactory !!", async () => {
-    //   await shouldBehaveLikeCreatePool(wallets, Ulm, mintProxy, Unipilot, tokens);
     shouleBehaveLikePilotFactory(wallets, UnipilotFactory);
   });
 }
