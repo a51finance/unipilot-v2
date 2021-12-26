@@ -16,14 +16,14 @@ contract UnipilotDeployer is IUnipilotDeployer {
 
     Parameters public override parameters;
 
-    function deploy(
-        address _factory,
-        address _tokenA,
-        address _tokenB,
-        uint24 _fee
-    ) internal returns (address _vault) {
-        parameters = Parameters({ factory: _factory, tokenA: _tokenA, tokenB: _tokenB, fee: _fee });
-        // _vault = address(new UnipilotVault{salt: keccak256(abi.encode(_tokenA, _tokenB, _fee))}());
-        delete parameters;
-    }
+    // function deploy(
+    //     address _factory,
+    //     address _tokenA,
+    //     address _tokenB,
+    //     uint24 _fee
+    // ) internal returns (address _vault) {
+    //     parameters = Parameters({ factory: _factory, tokenA: _tokenA, tokenB: _tokenB, fee: _fee });
+    //     // _vault = address(new UnipilotVault{salt: keccak256(abi.encode(_tokenA, _tokenB, _fee))}());
+    //     delete parameters;
+    // }
 }
