@@ -29,6 +29,7 @@ export interface UnipilotVaultInterface extends utils.Interface {
     "decreaseAllowance(address,uint256)": FunctionFragment;
     "deposit(address,address,uint256,uint256)": FunctionFragment;
     "fee()": FunctionFragment;
+    "getVaultInfo()": FunctionFragment;
     "governance()": FunctionFragment;
     "increaseAllowance(address,uint256)": FunctionFragment;
     "name()": FunctionFragment;
@@ -70,6 +71,10 @@ export interface UnipilotVaultInterface extends utils.Interface {
     values: [string, string, BigNumberish, BigNumberish],
   ): string;
   encodeFunctionData(functionFragment: "fee", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "getVaultInfo",
+    values?: undefined,
+  ): string;
   encodeFunctionData(
     functionFragment: "governance",
     values?: undefined,
@@ -124,6 +129,10 @@ export interface UnipilotVaultInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "deposit", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "fee", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "getVaultInfo",
+    data: BytesLike,
+  ): Result;
   decodeFunctionResult(functionFragment: "governance", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "increaseAllowance",
@@ -254,6 +263,10 @@ export interface UnipilotVault extends BaseContract {
 
     fee(overrides?: CallOverrides): Promise<[BigNumber]>;
 
+    getVaultInfo(
+      overrides?: CallOverrides,
+    ): Promise<[string, string, BigNumber]>;
+
     governance(overrides?: CallOverrides): Promise<[string]>;
 
     increaseAllowance(
@@ -344,6 +357,8 @@ export interface UnipilotVault extends BaseContract {
 
   fee(overrides?: CallOverrides): Promise<BigNumber>;
 
+  getVaultInfo(overrides?: CallOverrides): Promise<[string, string, BigNumber]>;
+
   governance(overrides?: CallOverrides): Promise<string>;
 
   increaseAllowance(
@@ -430,6 +445,10 @@ export interface UnipilotVault extends BaseContract {
     ): Promise<BigNumber>;
 
     fee(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getVaultInfo(
+      overrides?: CallOverrides,
+    ): Promise<[string, string, BigNumber]>;
 
     governance(overrides?: CallOverrides): Promise<string>;
 
@@ -559,6 +578,8 @@ export interface UnipilotVault extends BaseContract {
 
     fee(overrides?: CallOverrides): Promise<BigNumber>;
 
+    getVaultInfo(overrides?: CallOverrides): Promise<BigNumber>;
+
     governance(overrides?: CallOverrides): Promise<BigNumber>;
 
     increaseAllowance(
@@ -652,6 +673,8 @@ export interface UnipilotVault extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     fee(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    getVaultInfo(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     governance(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 

@@ -76,12 +76,22 @@ const _abi = [
         name: "_sqrtPriceX96",
         type: "uint160",
       },
+      {
+        internalType: "string",
+        name: "_name",
+        type: "string",
+      },
+      {
+        internalType: "string",
+        name: "_symbol",
+        type: "string",
+      },
     ],
     name: "createVault",
     outputs: [
       {
         internalType: "address",
-        name: "_pool",
+        name: "_vault",
         type: "address",
       },
     ],

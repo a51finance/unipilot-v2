@@ -97,6 +97,34 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions,
     ): Promise<Contracts.UnipilotMaths__factory>;
     getContractFactory(
+      name: "ERC20",
+      signerOrOptions?: ethers.Signer | FactoryOptions,
+    ): Promise<Contracts.ERC20__factory>;
+    getContractFactory(
+      name: "IndexFund",
+      signerOrOptions?: ethers.Signer | FactoryOptions,
+    ): Promise<Contracts.IndexFund__factory>;
+    getContractFactory(
+      name: "IERC20",
+      signerOrOptions?: ethers.Signer | FactoryOptions,
+    ): Promise<Contracts.IERC20__factory>;
+    getContractFactory(
+      name: "IERC20Burnable",
+      signerOrOptions?: ethers.Signer | FactoryOptions,
+    ): Promise<Contracts.IERC20Burnable__factory>;
+    getContractFactory(
+      name: "IUnipilotTokenProxy",
+      signerOrOptions?: ethers.Signer | FactoryOptions,
+    ): Promise<Contracts.IUnipilotTokenProxy__factory>;
+    getContractFactory(
+      name: "Pilot",
+      signerOrOptions?: ethers.Signer | FactoryOptions,
+    ): Promise<Contracts.Pilot__factory>;
+    getContractFactory(
+      name: "UnipilotTokenProxy",
+      signerOrOptions?: ethers.Signer | FactoryOptions,
+    ): Promise<Contracts.UnipilotTokenProxy__factory>;
+    getContractFactory(
       name: "UnipilotDeployer",
       signerOrOptions?: ethers.Signer | FactoryOptions,
     ): Promise<Contracts.UnipilotDeployer__factory>;
@@ -104,6 +132,10 @@ declare module "hardhat/types/runtime" {
       name: "UnipilotFactory",
       signerOrOptions?: ethers.Signer | FactoryOptions,
     ): Promise<Contracts.UnipilotFactory__factory>;
+    getContractFactory(
+      name: "UnipilotRouter",
+      signerOrOptions?: ethers.Signer | FactoryOptions,
+    ): Promise<Contracts.UnipilotRouter__factory>;
     getContractFactory(
       name: "UnipilotVault",
       signerOrOptions?: ethers.Signer | FactoryOptions,
@@ -215,6 +247,41 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer,
     ): Promise<Contracts.UnipilotMaths>;
     getContractAt(
+      name: "ERC20",
+      address: string,
+      signer?: ethers.Signer,
+    ): Promise<Contracts.ERC20>;
+    getContractAt(
+      name: "IndexFund",
+      address: string,
+      signer?: ethers.Signer,
+    ): Promise<Contracts.IndexFund>;
+    getContractAt(
+      name: "IERC20",
+      address: string,
+      signer?: ethers.Signer,
+    ): Promise<Contracts.IERC20>;
+    getContractAt(
+      name: "IERC20Burnable",
+      address: string,
+      signer?: ethers.Signer,
+    ): Promise<Contracts.IERC20Burnable>;
+    getContractAt(
+      name: "IUnipilotTokenProxy",
+      address: string,
+      signer?: ethers.Signer,
+    ): Promise<Contracts.IUnipilotTokenProxy>;
+    getContractAt(
+      name: "Pilot",
+      address: string,
+      signer?: ethers.Signer,
+    ): Promise<Contracts.Pilot>;
+    getContractAt(
+      name: "UnipilotTokenProxy",
+      address: string,
+      signer?: ethers.Signer,
+    ): Promise<Contracts.UnipilotTokenProxy>;
+    getContractAt(
       name: "UnipilotDeployer",
       address: string,
       signer?: ethers.Signer,
@@ -224,6 +291,11 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer,
     ): Promise<Contracts.UnipilotFactory>;
+    getContractAt(
+      name: "UnipilotRouter",
+      address: string,
+      signer?: ethers.Signer,
+    ): Promise<Contracts.UnipilotRouter>;
     getContractAt(
       name: "UnipilotVault",
       address: string,

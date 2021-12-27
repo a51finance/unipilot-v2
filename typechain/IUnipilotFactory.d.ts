@@ -21,7 +21,7 @@ import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 
 interface IUnipilotFactoryInterface extends ethers.utils.Interface {
   functions: {
-    "createVault(address,address,uint24,uint160)": FunctionFragment;
+    "createVault(address,address,uint24,uint160,string,string)": FunctionFragment;
     "getVaults(address,address,uint24)": FunctionFragment;
     "owner()": FunctionFragment;
     "setOwner(address)": FunctionFragment;
@@ -29,7 +29,7 @@ interface IUnipilotFactoryInterface extends ethers.utils.Interface {
 
   encodeFunctionData(
     functionFragment: "createVault",
-    values: [string, string, BigNumberish, BigNumberish],
+    values: [string, string, BigNumberish, BigNumberish, string, string],
   ): string;
   encodeFunctionData(
     functionFragment: "getVaults",
@@ -112,6 +112,8 @@ export class IUnipilotFactory extends BaseContract {
       _tokenB: string,
       _fee: BigNumberish,
       _sqrtPriceX96: BigNumberish,
+      _name: string,
+      _symbol: string,
       overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
@@ -135,6 +137,8 @@ export class IUnipilotFactory extends BaseContract {
     _tokenB: string,
     _fee: BigNumberish,
     _sqrtPriceX96: BigNumberish,
+    _name: string,
+    _symbol: string,
     overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
@@ -158,6 +162,8 @@ export class IUnipilotFactory extends BaseContract {
       _tokenB: string,
       _fee: BigNumberish,
       _sqrtPriceX96: BigNumberish,
+      _name: string,
+      _symbol: string,
       overrides?: CallOverrides,
     ): Promise<string>;
 
@@ -215,6 +221,8 @@ export class IUnipilotFactory extends BaseContract {
       _tokenB: string,
       _fee: BigNumberish,
       _sqrtPriceX96: BigNumberish,
+      _name: string,
+      _symbol: string,
       overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
@@ -239,6 +247,8 @@ export class IUnipilotFactory extends BaseContract {
       _tokenB: string,
       _fee: BigNumberish,
       _sqrtPriceX96: BigNumberish,
+      _name: string,
+      _symbol: string,
       overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 

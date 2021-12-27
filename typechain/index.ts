@@ -21,8 +21,14 @@ export type { IUnipilotDeployer } from "./IUnipilotDeployer";
 export type { IUnipilotFactory } from "./IUnipilotFactory";
 export type { IUnipilotVault } from "./IUnipilotVault";
 export type { UnipilotMaths } from "./UnipilotMaths";
+export type { IndexFund } from "./IndexFund";
+export type { IERC20Burnable } from "./IERC20Burnable";
+export type { IUnipilotTokenProxy } from "./IUnipilotTokenProxy";
+export type { Pilot } from "./Pilot";
+export type { UnipilotTokenProxy } from "./UnipilotTokenProxy";
 export type { UnipilotDeployer } from "./UnipilotDeployer";
 export type { UnipilotFactory } from "./UnipilotFactory";
+export type { UnipilotRouter } from "./UnipilotRouter";
 export type { UnipilotVault } from "./UnipilotVault";
 
 export { ERC20Permit__factory } from "./factories/ERC20Permit__factory";
@@ -45,6 +51,12 @@ export { IUnipilotDeployer__factory } from "./factories/IUnipilotDeployer__facto
 export { IUnipilotFactory__factory } from "./factories/IUnipilotFactory__factory";
 export { IUnipilotVault__factory } from "./factories/IUnipilotVault__factory";
 export { UnipilotMaths__factory } from "./factories/UnipilotMaths__factory";
+export { IndexFund__factory } from "./factories/IndexFund__factory";
+export { IERC20Burnable__factory } from "./factories/IERC20Burnable__factory";
+export { IUnipilotTokenProxy__factory } from "./factories/IUnipilotTokenProxy__factory";
+export { Pilot__factory } from "./factories/Pilot__factory";
+export { UnipilotTokenProxy__factory } from "./factories/UnipilotTokenProxy__factory";
 export { UnipilotDeployer__factory } from "./factories/UnipilotDeployer__factory";
 export { UnipilotFactory__factory } from "./factories/UnipilotFactory__factory";
+export { UnipilotRouter__factory } from "./factories/UnipilotRouter__factory";
 export { UnipilotVault__factory } from "./factories/UnipilotVault__factory";

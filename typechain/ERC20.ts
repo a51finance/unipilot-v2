@@ -19,6 +19,7 @@ import { TypedEventFilter, TypedEvent, TypedListener, OnEvent } from "./common";
 
 export interface ERC20Interface extends utils.Interface {
   functions: {
+    "_mint(address,uint256)": FunctionFragment;
     "allowance(address,address)": FunctionFragment;
     "approve(address,uint256)": FunctionFragment;
     "balanceOf(address)": FunctionFragment;
@@ -32,6 +33,10 @@ export interface ERC20Interface extends utils.Interface {
     "transferFrom(address,address,uint256)": FunctionFragment;
   };
 
+  encodeFunctionData(
+    functionFragment: "_mint",
+    values: [string, BigNumberish],
+  ): string;
   encodeFunctionData(
     functionFragment: "allowance",
     values: [string, string],
@@ -65,6 +70,7 @@ export interface ERC20Interface extends utils.Interface {
     values: [string, string, BigNumberish],
   ): string;
 
+  decodeFunctionResult(functionFragment: "_mint", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "allowance", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "approve", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
@@ -139,6 +145,12 @@ export interface ERC20 extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
+    _mint(
+      account: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> },
+    ): Promise<ContractTransaction>;
+
     allowance(
       owner: string,
       spender: string,
@@ -186,6 +198,12 @@ export interface ERC20 extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
   };
+
+  _mint(
+    account: string,
+    amount: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> },
+  ): Promise<ContractTransaction>;
 
   allowance(
     owner: string,
@@ -235,6 +253,12 @@ export interface ERC20 extends BaseContract {
   ): Promise<ContractTransaction>;
 
   callStatic: {
+    _mint(
+      account: string,
+      amount: BigNumberish,
+      overrides?: CallOverrides,
+    ): Promise<void>;
+
     allowance(
       owner: string,
       spender: string,
@@ -308,6 +332,12 @@ export interface ERC20 extends BaseContract {
   };
 
   estimateGas: {
+    _mint(
+      account: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> },
+    ): Promise<BigNumber>;
+
     allowance(
       owner: string,
       spender: string,
@@ -357,6 +387,12 @@ export interface ERC20 extends BaseContract {
   };
 
   populateTransaction: {
+    _mint(
+      account: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> },
+    ): Promise<PopulatedTransaction>;
+
     allowance(
       owner: string,
       spender: string,

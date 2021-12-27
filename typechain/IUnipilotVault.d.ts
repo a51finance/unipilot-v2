@@ -22,14 +22,23 @@ import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 interface IUnipilotVaultInterface extends ethers.utils.Interface {
   functions: {
     "deposit(address,address,uint256,uint256)": FunctionFragment;
+    "getVaultInfo()": FunctionFragment;
   };
 
   encodeFunctionData(
     functionFragment: "deposit",
     values: [string, string, BigNumberish, BigNumberish],
   ): string;
+  encodeFunctionData(
+    functionFragment: "getVaultInfo",
+    values?: undefined,
+  ): string;
 
   decodeFunctionResult(functionFragment: "deposit", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "getVaultInfo",
+    data: BytesLike,
+  ): Result;
 
   events: {
     "Deposit(address,uint256,uint256,uint256)": EventFragment;
@@ -98,6 +107,10 @@ export class IUnipilotVault extends BaseContract {
       amount1: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
+
+    getVaultInfo(
+      overrides?: CallOverrides,
+    ): Promise<[string, string, BigNumber]>;
   };
 
   deposit(
@@ -108,6 +121,8 @@ export class IUnipilotVault extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
+  getVaultInfo(overrides?: CallOverrides): Promise<[string, string, BigNumber]>;
+
   callStatic: {
     deposit(
       depositor: string,
@@ -116,6 +131,10 @@ export class IUnipilotVault extends BaseContract {
       amount1: BigNumberish,
       overrides?: CallOverrides,
     ): Promise<BigNumber>;
+
+    getVaultInfo(
+      overrides?: CallOverrides,
+    ): Promise<[string, string, BigNumber]>;
   };
 
   filters: {
@@ -158,6 +177,8 @@ export class IUnipilotVault extends BaseContract {
       amount1: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
+
+    getVaultInfo(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -168,5 +189,7 @@ export class IUnipilotVault extends BaseContract {
       amount1: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
+
+    getVaultInfo(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
 }

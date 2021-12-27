@@ -7,13 +7,14 @@ import "./interfaces/IUnipilotFactory.sol";
 import { UnipilotVault } from "./UnipilotVault.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
+import "@openzeppelin/contracts/utils/Create2.sol";
 
 contract UnipilotFactory is IUnipilotFactory {
     address public override owner;
-    address public immutable uniswapFactory;
+    address public uniswapFactory;
 
-    constructor(address _uniswapFactory) {
-        owner = msg.sender;
+    constructor(address _uniswapFactory, address _governance) {
+        owner = _governance;
         uniswapFactory = _uniswapFactory;
     }
 
