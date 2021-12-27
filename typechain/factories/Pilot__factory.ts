@@ -610,26 +610,26 @@ export class Pilot__factory extends ContractFactory {
     _timelock: string,
     vestingAddresses: string[],
     vestingAmounts: BigNumberish[],
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<Pilot> {
     return super.deploy(
       _timelock,
       vestingAddresses,
       vestingAmounts,
-      overrides || {},
+      overrides || {}
     ) as Promise<Pilot>;
   }
   getDeployTransaction(
     _timelock: string,
     vestingAddresses: string[],
     vestingAmounts: BigNumberish[],
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): TransactionRequest {
     return super.getDeployTransaction(
       _timelock,
       vestingAddresses,
       vestingAmounts,
-      overrides || {},
+      overrides || {}
     );
   }
   attach(address: string): Pilot {

@@ -55,12 +55,12 @@ export class UnipilotDeployer__factory extends ContractFactory {
   }
 
   deploy(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<UnipilotDeployer> {
     return super.deploy(overrides || {}) as Promise<UnipilotDeployer>;
   }
   getDeployTransaction(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): TransactionRequest {
     return super.getDeployTransaction(overrides || {});
   }
@@ -77,7 +77,7 @@ export class UnipilotDeployer__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): UnipilotDeployer {
     return new Contract(address, _abi, signerOrProvider) as UnipilotDeployer;
   }

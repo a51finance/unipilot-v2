@@ -175,23 +175,23 @@ export class IndexFund__factory extends ContractFactory {
   deploy(
     _timelockAddress: string,
     _lockedFundAddresses: string[],
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<IndexFund> {
     return super.deploy(
       _timelockAddress,
       _lockedFundAddresses,
-      overrides || {},
+      overrides || {}
     ) as Promise<IndexFund>;
   }
   getDeployTransaction(
     _timelockAddress: string,
     _lockedFundAddresses: string[],
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): TransactionRequest {
     return super.getDeployTransaction(
       _timelockAddress,
       _lockedFundAddresses,
-      overrides || {},
+      overrides || {}
     );
   }
   attach(address: string): IndexFund {
@@ -207,7 +207,7 @@ export class IndexFund__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): IndexFund {
     return new Contract(address, _abi, signerOrProvider) as IndexFund;
   }

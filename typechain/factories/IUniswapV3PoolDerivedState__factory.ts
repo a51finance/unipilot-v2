@@ -77,12 +77,12 @@ export class IUniswapV3PoolDerivedState__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): IUniswapV3PoolDerivedState {
     return new Contract(
       address,
       _abi,
-      signerOrProvider,
+      signerOrProvider
     ) as IUniswapV3PoolDerivedState;
   }
 }

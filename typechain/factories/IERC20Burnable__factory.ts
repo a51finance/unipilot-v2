@@ -220,7 +220,7 @@ export class IERC20Burnable__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): IERC20Burnable {
     return new Contract(address, _abi, signerOrProvider) as IERC20Burnable;
   }

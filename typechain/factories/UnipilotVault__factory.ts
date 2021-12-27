@@ -578,14 +578,14 @@ export class UnipilotVault__factory extends ContractFactory {
     _pool: string,
     _name: string,
     _symbol: string,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<UnipilotVault> {
     return super.deploy(
       _governance,
       _pool,
       _name,
       _symbol,
-      overrides || {},
+      overrides || {}
     ) as Promise<UnipilotVault>;
   }
   getDeployTransaction(
@@ -593,14 +593,14 @@ export class UnipilotVault__factory extends ContractFactory {
     _pool: string,
     _name: string,
     _symbol: string,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): TransactionRequest {
     return super.getDeployTransaction(
       _governance,
       _pool,
       _name,
       _symbol,
-      overrides || {},
+      overrides || {}
     );
   }
   attach(address: string): UnipilotVault {
@@ -616,7 +616,7 @@ export class UnipilotVault__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): UnipilotVault {
     return new Contract(address, _abi, signerOrProvider) as UnipilotVault;
   }

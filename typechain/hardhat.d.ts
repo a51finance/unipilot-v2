@@ -14,308 +14,308 @@ declare module "hardhat/types/runtime" {
   interface HardhatEthersHelpers extends HardhatEthersHelpersBase {
     getContractFactory(
       name: "ERC20Permit",
-      signerOrOptions?: ethers.Signer | FactoryOptions,
+      signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ERC20Permit__factory>;
     getContractFactory(
       name: "IERC20Permit",
-      signerOrOptions?: ethers.Signer | FactoryOptions,
+      signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IERC20Permit__factory>;
     getContractFactory(
       name: "ERC20",
-      signerOrOptions?: ethers.Signer | FactoryOptions,
+      signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ERC20__factory>;
     getContractFactory(
       name: "ERC20Burnable",
-      signerOrOptions?: ethers.Signer | FactoryOptions,
+      signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ERC20Burnable__factory>;
     getContractFactory(
       name: "IERC20",
-      signerOrOptions?: ethers.Signer | FactoryOptions,
+      signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IERC20__factory>;
     getContractFactory(
       name: "IUniswapV3Factory",
-      signerOrOptions?: ethers.Signer | FactoryOptions,
+      signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IUniswapV3Factory__factory>;
     getContractFactory(
       name: "IUniswapV3Pool",
-      signerOrOptions?: ethers.Signer | FactoryOptions,
+      signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IUniswapV3Pool__factory>;
     getContractFactory(
       name: "IUniswapV3PoolActions",
-      signerOrOptions?: ethers.Signer | FactoryOptions,
+      signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IUniswapV3PoolActions__factory>;
     getContractFactory(
       name: "IUniswapV3PoolDerivedState",
-      signerOrOptions?: ethers.Signer | FactoryOptions,
+      signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IUniswapV3PoolDerivedState__factory>;
     getContractFactory(
       name: "IUniswapV3PoolEvents",
-      signerOrOptions?: ethers.Signer | FactoryOptions,
+      signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IUniswapV3PoolEvents__factory>;
     getContractFactory(
       name: "IUniswapV3PoolImmutables",
-      signerOrOptions?: ethers.Signer | FactoryOptions,
+      signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IUniswapV3PoolImmutables__factory>;
     getContractFactory(
       name: "IUniswapV3PoolOwnerActions",
-      signerOrOptions?: ethers.Signer | FactoryOptions,
+      signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IUniswapV3PoolOwnerActions__factory>;
     getContractFactory(
       name: "IUniswapV3PoolState",
-      signerOrOptions?: ethers.Signer | FactoryOptions,
+      signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IUniswapV3PoolState__factory>;
     getContractFactory(
       name: "PeripheryPayments",
-      signerOrOptions?: ethers.Signer | FactoryOptions,
+      signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.PeripheryPayments__factory>;
     getContractFactory(
       name: "IERC1271",
-      signerOrOptions?: ethers.Signer | FactoryOptions,
+      signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IERC1271__factory>;
     getContractFactory(
       name: "IERC20Permit",
-      signerOrOptions?: ethers.Signer | FactoryOptions,
+      signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IERC20Permit__factory>;
     getContractFactory(
       name: "IWETH9",
-      signerOrOptions?: ethers.Signer | FactoryOptions,
+      signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IWETH9__factory>;
     getContractFactory(
       name: "IUnipilotDeployer",
-      signerOrOptions?: ethers.Signer | FactoryOptions,
+      signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IUnipilotDeployer__factory>;
     getContractFactory(
       name: "IUnipilotFactory",
-      signerOrOptions?: ethers.Signer | FactoryOptions,
+      signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IUnipilotFactory__factory>;
     getContractFactory(
       name: "IUnipilotVault",
-      signerOrOptions?: ethers.Signer | FactoryOptions,
+      signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IUnipilotVault__factory>;
     getContractFactory(
       name: "UnipilotMaths",
-      signerOrOptions?: ethers.Signer | FactoryOptions,
+      signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.UnipilotMaths__factory>;
     getContractFactory(
       name: "ERC20",
-      signerOrOptions?: ethers.Signer | FactoryOptions,
+      signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ERC20__factory>;
     getContractFactory(
       name: "IndexFund",
-      signerOrOptions?: ethers.Signer | FactoryOptions,
+      signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IndexFund__factory>;
     getContractFactory(
       name: "IERC20",
-      signerOrOptions?: ethers.Signer | FactoryOptions,
+      signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IERC20__factory>;
     getContractFactory(
       name: "IERC20Burnable",
-      signerOrOptions?: ethers.Signer | FactoryOptions,
+      signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IERC20Burnable__factory>;
     getContractFactory(
       name: "IUnipilotTokenProxy",
-      signerOrOptions?: ethers.Signer | FactoryOptions,
+      signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IUnipilotTokenProxy__factory>;
     getContractFactory(
       name: "Pilot",
-      signerOrOptions?: ethers.Signer | FactoryOptions,
+      signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.Pilot__factory>;
     getContractFactory(
       name: "UnipilotTokenProxy",
-      signerOrOptions?: ethers.Signer | FactoryOptions,
+      signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.UnipilotTokenProxy__factory>;
     getContractFactory(
       name: "UnipilotDeployer",
-      signerOrOptions?: ethers.Signer | FactoryOptions,
+      signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.UnipilotDeployer__factory>;
     getContractFactory(
       name: "UnipilotFactory",
-      signerOrOptions?: ethers.Signer | FactoryOptions,
+      signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.UnipilotFactory__factory>;
     getContractFactory(
       name: "UnipilotRouter",
-      signerOrOptions?: ethers.Signer | FactoryOptions,
+      signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.UnipilotRouter__factory>;
     getContractFactory(
       name: "UnipilotVault",
-      signerOrOptions?: ethers.Signer | FactoryOptions,
+      signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.UnipilotVault__factory>;
 
     getContractAt(
       name: "ERC20Permit",
       address: string,
-      signer?: ethers.Signer,
+      signer?: ethers.Signer
     ): Promise<Contracts.ERC20Permit>;
     getContractAt(
       name: "IERC20Permit",
       address: string,
-      signer?: ethers.Signer,
+      signer?: ethers.Signer
     ): Promise<Contracts.IERC20Permit>;
     getContractAt(
       name: "ERC20",
       address: string,
-      signer?: ethers.Signer,
+      signer?: ethers.Signer
     ): Promise<Contracts.ERC20>;
     getContractAt(
       name: "ERC20Burnable",
       address: string,
-      signer?: ethers.Signer,
+      signer?: ethers.Signer
     ): Promise<Contracts.ERC20Burnable>;
     getContractAt(
       name: "IERC20",
       address: string,
-      signer?: ethers.Signer,
+      signer?: ethers.Signer
     ): Promise<Contracts.IERC20>;
     getContractAt(
       name: "IUniswapV3Factory",
       address: string,
-      signer?: ethers.Signer,
+      signer?: ethers.Signer
     ): Promise<Contracts.IUniswapV3Factory>;
     getContractAt(
       name: "IUniswapV3Pool",
       address: string,
-      signer?: ethers.Signer,
+      signer?: ethers.Signer
     ): Promise<Contracts.IUniswapV3Pool>;
     getContractAt(
       name: "IUniswapV3PoolActions",
       address: string,
-      signer?: ethers.Signer,
+      signer?: ethers.Signer
     ): Promise<Contracts.IUniswapV3PoolActions>;
     getContractAt(
       name: "IUniswapV3PoolDerivedState",
       address: string,
-      signer?: ethers.Signer,
+      signer?: ethers.Signer
     ): Promise<Contracts.IUniswapV3PoolDerivedState>;
     getContractAt(
       name: "IUniswapV3PoolEvents",
       address: string,
-      signer?: ethers.Signer,
+      signer?: ethers.Signer
     ): Promise<Contracts.IUniswapV3PoolEvents>;
     getContractAt(
       name: "IUniswapV3PoolImmutables",
       address: string,
-      signer?: ethers.Signer,
+      signer?: ethers.Signer
     ): Promise<Contracts.IUniswapV3PoolImmutables>;
     getContractAt(
       name: "IUniswapV3PoolOwnerActions",
       address: string,
-      signer?: ethers.Signer,
+      signer?: ethers.Signer
     ): Promise<Contracts.IUniswapV3PoolOwnerActions>;
     getContractAt(
       name: "IUniswapV3PoolState",
       address: string,
-      signer?: ethers.Signer,
+      signer?: ethers.Signer
     ): Promise<Contracts.IUniswapV3PoolState>;
     getContractAt(
       name: "PeripheryPayments",
       address: string,
-      signer?: ethers.Signer,
+      signer?: ethers.Signer
     ): Promise<Contracts.PeripheryPayments>;
     getContractAt(
       name: "IERC1271",
       address: string,
-      signer?: ethers.Signer,
+      signer?: ethers.Signer
     ): Promise<Contracts.IERC1271>;
     getContractAt(
       name: "IERC20Permit",
       address: string,
-      signer?: ethers.Signer,
+      signer?: ethers.Signer
     ): Promise<Contracts.IERC20Permit>;
     getContractAt(
       name: "IWETH9",
       address: string,
-      signer?: ethers.Signer,
+      signer?: ethers.Signer
     ): Promise<Contracts.IWETH9>;
     getContractAt(
       name: "IUnipilotDeployer",
       address: string,
-      signer?: ethers.Signer,
+      signer?: ethers.Signer
     ): Promise<Contracts.IUnipilotDeployer>;
     getContractAt(
       name: "IUnipilotFactory",
       address: string,
-      signer?: ethers.Signer,
+      signer?: ethers.Signer
     ): Promise<Contracts.IUnipilotFactory>;
     getContractAt(
       name: "IUnipilotVault",
       address: string,
-      signer?: ethers.Signer,
+      signer?: ethers.Signer
     ): Promise<Contracts.IUnipilotVault>;
     getContractAt(
       name: "UnipilotMaths",
       address: string,
-      signer?: ethers.Signer,
+      signer?: ethers.Signer
     ): Promise<Contracts.UnipilotMaths>;
     getContractAt(
       name: "ERC20",
       address: string,
-      signer?: ethers.Signer,
+      signer?: ethers.Signer
     ): Promise<Contracts.ERC20>;
     getContractAt(
       name: "IndexFund",
       address: string,
-      signer?: ethers.Signer,
+      signer?: ethers.Signer
     ): Promise<Contracts.IndexFund>;
     getContractAt(
       name: "IERC20",
       address: string,
-      signer?: ethers.Signer,
+      signer?: ethers.Signer
     ): Promise<Contracts.IERC20>;
     getContractAt(
       name: "IERC20Burnable",
       address: string,
-      signer?: ethers.Signer,
+      signer?: ethers.Signer
     ): Promise<Contracts.IERC20Burnable>;
     getContractAt(
       name: "IUnipilotTokenProxy",
       address: string,
-      signer?: ethers.Signer,
+      signer?: ethers.Signer
     ): Promise<Contracts.IUnipilotTokenProxy>;
     getContractAt(
       name: "Pilot",
       address: string,
-      signer?: ethers.Signer,
+      signer?: ethers.Signer
     ): Promise<Contracts.Pilot>;
     getContractAt(
       name: "UnipilotTokenProxy",
       address: string,
-      signer?: ethers.Signer,
+      signer?: ethers.Signer
     ): Promise<Contracts.UnipilotTokenProxy>;
     getContractAt(
       name: "UnipilotDeployer",
       address: string,
-      signer?: ethers.Signer,
+      signer?: ethers.Signer
     ): Promise<Contracts.UnipilotDeployer>;
     getContractAt(
       name: "UnipilotFactory",
       address: string,
-      signer?: ethers.Signer,
+      signer?: ethers.Signer
     ): Promise<Contracts.UnipilotFactory>;
     getContractAt(
       name: "UnipilotRouter",
       address: string,
-      signer?: ethers.Signer,
+      signer?: ethers.Signer
     ): Promise<Contracts.UnipilotRouter>;
     getContractAt(
       name: "UnipilotVault",
       address: string,
-      signer?: ethers.Signer,
+      signer?: ethers.Signer
     ): Promise<Contracts.UnipilotVault>;
 
     // default types
     getContractFactory(
       name: string,
-      signerOrOptions?: ethers.Signer | FactoryOptions,
+      signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<ethers.ContractFactory>;
     getContractFactory(
       abi: any[],
       bytecode: ethers.utils.BytesLike,
-      signer?: ethers.Signer,
+      signer?: ethers.Signer
     ): Promise<ethers.ContractFactory>;
     getContractAt(
       nameOrAbi: string | any[],
       address: string,
-      signer?: ethers.Signer,
+      signer?: ethers.Signer
     ): Promise<ethers.Contract>;
   }
 }

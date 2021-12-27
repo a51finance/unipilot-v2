@@ -9,6 +9,7 @@ export async function shouldBehaveLikeUnipilotFunctions(
   wallets: SignerWithAddress[],
   UnipilotFactory: Contract,
   UniswapV3Factory: Contract,
+  UnipilotRouter: Contract,
   WETH9: Contract,
   PILOT: Contract,
   pool: string,
@@ -24,7 +25,7 @@ export async function shouldBehaveLikeUnipilotFunctions(
     );
   });
 
-  // describe("Testing the UnipilotRouter !!", async () => {
-  //   shouldBehaveLikeUnipilotRouterFunctions(wallets, UnipilotRouter);
-  // });
+  describe("Testing the UnipilotRouter !!", async () => {
+    shouldBehaveLikeUnipilotRouterFunctions(wallets, UnipilotRouter);
+  });
 }

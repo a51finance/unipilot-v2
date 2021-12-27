@@ -47,7 +47,7 @@ export class IUnipilotDeployer__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): IUnipilotDeployer {
     return new Contract(address, _abi, signerOrProvider) as IUnipilotDeployer;
   }

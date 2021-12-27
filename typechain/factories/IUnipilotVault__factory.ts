@@ -107,7 +107,7 @@ export class IUnipilotVault__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): IUnipilotVault {
     return new Contract(address, _abi, signerOrProvider) as IUnipilotVault;
   }

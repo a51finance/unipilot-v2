@@ -27,7 +27,7 @@ export class PeripheryPayments__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): PeripheryPayments {
     return new Contract(address, _abi, signerOrProvider) as PeripheryPayments;
   }

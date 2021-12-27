@@ -343,26 +343,26 @@ export class ERC20__factory extends ContractFactory {
     name_: string,
     symbol_: string,
     _decimals: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ERC20> {
     return super.deploy(
       name_,
       symbol_,
       _decimals,
-      overrides || {},
+      overrides || {}
     ) as Promise<ERC20>;
   }
   getDeployTransaction(
     name_: string,
     symbol_: string,
     _decimals: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): TransactionRequest {
     return super.getDeployTransaction(
       name_,
       symbol_,
       _decimals,
-      overrides || {},
+      overrides || {}
     );
   }
   attach(address: string): ERC20 {

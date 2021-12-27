@@ -71,12 +71,12 @@ export class IUniswapV3PoolOwnerActions__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): IUniswapV3PoolOwnerActions {
     return new Contract(
       address,
       _abi,
-      signerOrProvider,
+      signerOrProvider
     ) as IUniswapV3PoolOwnerActions;
   }
 }

@@ -3,6 +3,7 @@ import { BigNumber, utils, Contract, ContractFactory } from "ethers";
 
 import {
   deployUnipilotFactory,
+  deployUnipilotRouter,
   deployUniswapContracts,
   deployWETH9,
 } from "./stubs";
@@ -23,6 +24,7 @@ describe("Initializing the testing suite", async () => {
   let uniswapPositionManager: Contract;
   let unipilotFactory: Contract;
   let swapRouter: Contract;
+  let unipilotRouter: Contract;
   let WETH9: Contract;
   let PILOT: Contract;
   let DAI: Contract;
@@ -59,6 +61,8 @@ describe("Initializing the testing suite", async () => {
       3000,
       "79228162514264337593543950336",
     );
+
+    unipilotRouter = await deployUnipilotRouter(wallet0);
   });
   describe("Running the pilot functions", async () => {
     it("Runs Unipilot Functions", async function () {
@@ -73,6 +77,7 @@ describe("Initializing the testing suite", async () => {
         wallets,
         unipilotFactory,
         uniswapV3Factory,
+        unipilotRouter,
         WETH9,
         PILOT,
         pool,
