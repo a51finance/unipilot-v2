@@ -44,17 +44,17 @@ contract UnipilotVault is
         _;
     }
 
-    constructor(
-        address _governance,
-        address _pool,
-        address _router,
-        string memory _name,
-        string memory _symbol
-    ) ERC20Permit(_name) ERC20(_name, _symbol) {
-        governance = _governance;
-        router = _router;
-        pool = IUniswapV3Pool(_pool);
-        initializeVault(pool);
+    constructor()
+        // address _governance,
+        // address _pool,
+        // string memory _name,
+        // string memory _symbol
+        ERC20Permit("Vault")
+        ERC20("Vault", "VAULT")
+    {
+        // governance = _governance;
+        // pool = IUniswapV3Pool(_pool);
+        // initializeVault(pool);
     }
 
     function initializeVault(IUniswapV3Pool pool) internal {
@@ -68,7 +68,7 @@ contract UnipilotVault is
         address recipient,
         uint256 amount0,
         uint256 amount1
-    ) external override onlyRouter returns (uint256 lpShares) {
+    ) external override returns (uint256 lpShares) {
         uint256 currentPrice = UnipilotMaths.getCurrentPrice(
             UnipilotMaths.currentTick(pool)
         );

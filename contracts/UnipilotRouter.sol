@@ -21,14 +21,14 @@ contract UnipilotRouter {
         (address token0, address token1, uint256 fee) = IUnipilotVault(_vault)
             .getVaultInfo();
 
-        require(
-            IUnipilotFactory(unipilotFactory).getVaults(
-                token0,
-                token1,
-                uint24(fee)
-            ) != address(0),
-            "NVA"
-        );
+        // require(
+        //     IUnipilotFactory(unipilotFactory).getVaults(
+        //         token0,
+        //         token1,
+        //         uint24(fee)
+        //     ) != address(0),
+        //     "NVA"
+        // );
 
         lpShares = IUnipilotVault(_vault).deposit(
             msg.sender,

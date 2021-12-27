@@ -13,14 +13,14 @@ import {
   Signer,
   utils,
 } from "ethers";
-import { FunctionFragment, Result, EventFragment } from "@ethersproject/abi";
+import { FunctionFragment, Result } from "@ethersproject/abi";
 import { Listener, Provider } from "@ethersproject/providers";
 import { TypedEventFilter, TypedEvent, TypedListener, OnEvent } from "./common";
 
-export interface IUnipilotVaultInterface extends utils.Interface {
+export interface UnipilotRouterInterface extends utils.Interface {
   functions: {
     "deposit(address,address,uint256,uint256)": FunctionFragment;
-    "getVaultInfo()": FunctionFragment;
+    "unipilotFactory()": FunctionFragment;
   };
 
   encodeFunctionData(
@@ -28,41 +28,25 @@ export interface IUnipilotVaultInterface extends utils.Interface {
     values: [string, string, BigNumberish, BigNumberish],
   ): string;
   encodeFunctionData(
-    functionFragment: "getVaultInfo",
+    functionFragment: "unipilotFactory",
     values?: undefined,
   ): string;
 
   decodeFunctionResult(functionFragment: "deposit", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "getVaultInfo",
+    functionFragment: "unipilotFactory",
     data: BytesLike,
   ): Result;
 
-  events: {
-    "Deposit(address,uint256,uint256,uint256)": EventFragment;
-  };
-
-  getEvent(nameOrSignatureOrTopic: "Deposit"): EventFragment;
+  events: {};
 }
 
-export type DepositEvent = TypedEvent<
-  [string, BigNumber, BigNumber, BigNumber],
-  {
-    depositor: string;
-    amount0: BigNumber;
-    amount1: BigNumber;
-    lpShares: BigNumber;
-  }
->;
-
-export type DepositEventFilter = TypedEventFilter<DepositEvent>;
-
-export interface IUnipilotVault extends BaseContract {
+export interface UnipilotRouter extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
 
-  interface: IUnipilotVaultInterface;
+  interface: UnipilotRouterInterface;
 
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
@@ -85,78 +69,61 @@ export interface IUnipilotVault extends BaseContract {
 
   functions: {
     deposit(
-      depositor: string,
-      recipient: string,
-      amount0: BigNumberish,
-      amount1: BigNumberish,
+      _vault: string,
+      _recipient: string,
+      _amount0: BigNumberish,
+      _amount1: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
-    getVaultInfo(
-      overrides?: CallOverrides,
-    ): Promise<[string, string, BigNumber]>;
+    unipilotFactory(overrides?: CallOverrides): Promise<[string]>;
   };
 
   deposit(
-    depositor: string,
-    recipient: string,
-    amount0: BigNumberish,
-    amount1: BigNumberish,
+    _vault: string,
+    _recipient: string,
+    _amount0: BigNumberish,
+    _amount1: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
-  getVaultInfo(overrides?: CallOverrides): Promise<[string, string, BigNumber]>;
+  unipilotFactory(overrides?: CallOverrides): Promise<string>;
 
   callStatic: {
     deposit(
-      depositor: string,
-      recipient: string,
-      amount0: BigNumberish,
-      amount1: BigNumberish,
+      _vault: string,
+      _recipient: string,
+      _amount0: BigNumberish,
+      _amount1: BigNumberish,
       overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
-    getVaultInfo(
-      overrides?: CallOverrides,
-    ): Promise<[string, string, BigNumber]>;
+    unipilotFactory(overrides?: CallOverrides): Promise<string>;
   };
 
-  filters: {
-    "Deposit(address,uint256,uint256,uint256)"(
-      depositor?: null,
-      amount0?: null,
-      amount1?: null,
-      lpShares?: null,
-    ): DepositEventFilter;
-    Deposit(
-      depositor?: null,
-      amount0?: null,
-      amount1?: null,
-      lpShares?: null,
-    ): DepositEventFilter;
-  };
+  filters: {};
 
   estimateGas: {
     deposit(
-      depositor: string,
-      recipient: string,
-      amount0: BigNumberish,
-      amount1: BigNumberish,
+      _vault: string,
+      _recipient: string,
+      _amount0: BigNumberish,
+      _amount1: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
-    getVaultInfo(overrides?: CallOverrides): Promise<BigNumber>;
+    unipilotFactory(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
     deposit(
-      depositor: string,
-      recipient: string,
-      amount0: BigNumberish,
-      amount1: BigNumberish,
+      _vault: string,
+      _recipient: string,
+      _amount0: BigNumberish,
+      _amount1: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
-    getVaultInfo(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    unipilotFactory(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
 }

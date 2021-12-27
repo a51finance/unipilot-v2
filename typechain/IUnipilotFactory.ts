@@ -25,12 +25,21 @@ export interface IUnipilotFactoryInterface extends utils.Interface {
     "setOwner(address)": FunctionFragment;
   };
 
-  encodeFunctionData(functionFragment: "createVault", values: [string, string, BigNumberish, BigNumberish]): string;
-  encodeFunctionData(functionFragment: "getVaults", values: [string, string, BigNumberish]): string;
+  encodeFunctionData(
+    functionFragment: "createVault",
+    values: [string, string, BigNumberish, BigNumberish],
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getVaults",
+    values: [string, string, BigNumberish],
+  ): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(functionFragment: "setOwner", values: [string]): string;
 
-  decodeFunctionResult(functionFragment: "createVault", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "createVault",
+    data: BytesLike,
+  ): Result;
   decodeFunctionResult(functionFragment: "getVaults", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "setOwner", data: BytesLike): Result;
@@ -44,11 +53,17 @@ export interface IUnipilotFactoryInterface extends utils.Interface {
   getEvent(nameOrSignatureOrTopic: "VaultCreated"): EventFragment;
 }
 
-export type OwnerChangedEvent = TypedEvent<[string, string], { _oldOwner: string; _newOwner: string }>;
+export type OwnerChangedEvent = TypedEvent<
+  [string, string],
+  { _oldOwner: string; _newOwner: string }
+>;
 
 export type OwnerChangedEventFilter = TypedEventFilter<OwnerChangedEvent>;
 
-export type VaultCreatedEvent = TypedEvent<[string, string, number], { _tokenA: string; _tokenB: string; fee: number }>;
+export type VaultCreatedEvent = TypedEvent<
+  [string, string, number],
+  { _tokenA: string; _tokenB: string; fee: number }
+>;
 
 export type VaultCreatedEventFilter = TypedEventFilter<VaultCreatedEvent>;
 
@@ -65,9 +80,13 @@ export interface IUnipilotFactory extends BaseContract {
     toBlock?: string | number | undefined,
   ): Promise<Array<TEvent>>;
 
-  listeners<TEvent extends TypedEvent>(eventFilter?: TypedEventFilter<TEvent>): Array<TypedListener<TEvent>>;
+  listeners<TEvent extends TypedEvent>(
+    eventFilter?: TypedEventFilter<TEvent>,
+  ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(eventFilter: TypedEventFilter<TEvent>): this;
+  removeAllListeners<TEvent extends TypedEvent>(
+    eventFilter: TypedEventFilter<TEvent>,
+  ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
   on: OnEvent<this>;
@@ -106,7 +125,12 @@ export interface IUnipilotFactory extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
-  getVaults(_tokenA: string, _tokenB: string, _fee: BigNumberish, overrides?: CallOverrides): Promise<string>;
+  getVaults(
+    _tokenA: string,
+    _tokenB: string,
+    _fee: BigNumberish,
+    overrides?: CallOverrides,
+  ): Promise<string>;
 
   owner(overrides?: CallOverrides): Promise<string>;
 
@@ -124,7 +148,12 @@ export interface IUnipilotFactory extends BaseContract {
       overrides?: CallOverrides,
     ): Promise<string>;
 
-    getVaults(_tokenA: string, _tokenB: string, _fee: BigNumberish, overrides?: CallOverrides): Promise<string>;
+    getVaults(
+      _tokenA: string,
+      _tokenB: string,
+      _fee: BigNumberish,
+      overrides?: CallOverrides,
+    ): Promise<string>;
 
     owner(overrides?: CallOverrides): Promise<string>;
 
@@ -132,15 +161,25 @@ export interface IUnipilotFactory extends BaseContract {
   };
 
   filters: {
-    "OwnerChanged(address,address)"(_oldOwner?: string | null, _newOwner?: string | null): OwnerChangedEventFilter;
-    OwnerChanged(_oldOwner?: string | null, _newOwner?: string | null): OwnerChangedEventFilter;
+    "OwnerChanged(address,address)"(
+      _oldOwner?: string | null,
+      _newOwner?: string | null,
+    ): OwnerChangedEventFilter;
+    OwnerChanged(
+      _oldOwner?: string | null,
+      _newOwner?: string | null,
+    ): OwnerChangedEventFilter;
 
     "VaultCreated(address,address,uint24)"(
       _tokenA?: string | null,
       _tokenB?: string | null,
       fee?: null,
     ): VaultCreatedEventFilter;
-    VaultCreated(_tokenA?: string | null, _tokenB?: string | null, fee?: null): VaultCreatedEventFilter;
+    VaultCreated(
+      _tokenA?: string | null,
+      _tokenB?: string | null,
+      fee?: null,
+    ): VaultCreatedEventFilter;
   };
 
   estimateGas: {
@@ -152,11 +191,19 @@ export interface IUnipilotFactory extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
-    getVaults(_tokenA: string, _tokenB: string, _fee: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
+    getVaults(
+      _tokenA: string,
+      _tokenB: string,
+      _fee: BigNumberish,
+      overrides?: CallOverrides,
+    ): Promise<BigNumber>;
 
     owner(overrides?: CallOverrides): Promise<BigNumber>;
 
-    setOwner(_newOwner: string, overrides?: Overrides & { from?: string | Promise<string> }): Promise<BigNumber>;
+    setOwner(
+      _newOwner: string,
+      overrides?: Overrides & { from?: string | Promise<string> },
+    ): Promise<BigNumber>;
   };
 
   populateTransaction: {

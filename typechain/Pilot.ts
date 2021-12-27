@@ -17,34 +17,40 @@ import { FunctionFragment, Result, EventFragment } from "@ethersproject/abi";
 import { Listener, Provider } from "@ethersproject/providers";
 import { TypedEventFilter, TypedEvent, TypedListener, OnEvent } from "./common";
 
-export interface UnipilotVaultInterface extends utils.Interface {
+export interface PilotInterface extends utils.Interface {
   functions: {
-    "DOMAIN_SEPARATOR()": FunctionFragment;
+    "PERMIT_TYPEHASH()": FunctionFragment;
+    "TRANSFER_WITH_AUTHORIZATION_TYPEHASH()": FunctionFragment;
     "allowance(address,address)": FunctionFragment;
     "approve(address,uint256)": FunctionFragment;
+    "authorizationState(address,bytes32)": FunctionFragment;
     "balanceOf(address)": FunctionFragment;
     "burn(uint256)": FunctionFragment;
     "burnFrom(address,uint256)": FunctionFragment;
     "decimals()": FunctionFragment;
     "decreaseAllowance(address,uint256)": FunctionFragment;
-    "deposit(address,address,uint256,uint256)": FunctionFragment;
-    "fee()": FunctionFragment;
-    "getVaultInfo()": FunctionFragment;
-    "governance()": FunctionFragment;
+    "getChainId()": FunctionFragment;
+    "getDomainSeparator()": FunctionFragment;
     "increaseAllowance(address,uint256)": FunctionFragment;
+    "mint(address,uint256)": FunctionFragment;
     "name()": FunctionFragment;
     "nonces(address)": FunctionFragment;
     "permit(address,address,uint256,uint256,uint8,bytes32,bytes32)": FunctionFragment;
     "symbol()": FunctionFragment;
-    "token0()": FunctionFragment;
-    "token1()": FunctionFragment;
+    "timelock()": FunctionFragment;
     "totalSupply()": FunctionFragment;
     "transfer(address,uint256)": FunctionFragment;
     "transferFrom(address,address,uint256)": FunctionFragment;
+    "transferWithAuthorization(address,address,uint256,uint256,uint256,bytes32,uint8,bytes32,bytes32)": FunctionFragment;
+    "updateMinter(address)": FunctionFragment;
   };
 
   encodeFunctionData(
-    functionFragment: "DOMAIN_SEPARATOR",
+    functionFragment: "PERMIT_TYPEHASH",
+    values?: undefined,
+  ): string;
+  encodeFunctionData(
+    functionFragment: "TRANSFER_WITH_AUTHORIZATION_TYPEHASH",
     values?: undefined,
   ): string;
   encodeFunctionData(
@@ -54,6 +60,10 @@ export interface UnipilotVaultInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "approve",
     values: [string, BigNumberish],
+  ): string;
+  encodeFunctionData(
+    functionFragment: "authorizationState",
+    values: [string, BytesLike],
   ): string;
   encodeFunctionData(functionFragment: "balanceOf", values: [string]): string;
   encodeFunctionData(functionFragment: "burn", values: [BigNumberish]): string;
@@ -67,20 +77,19 @@ export interface UnipilotVaultInterface extends utils.Interface {
     values: [string, BigNumberish],
   ): string;
   encodeFunctionData(
-    functionFragment: "deposit",
-    values: [string, string, BigNumberish, BigNumberish],
-  ): string;
-  encodeFunctionData(functionFragment: "fee", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "getVaultInfo",
+    functionFragment: "getChainId",
     values?: undefined,
   ): string;
   encodeFunctionData(
-    functionFragment: "governance",
+    functionFragment: "getDomainSeparator",
     values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "increaseAllowance",
+    values: [string, BigNumberish],
+  ): string;
+  encodeFunctionData(
+    functionFragment: "mint",
     values: [string, BigNumberish],
   ): string;
   encodeFunctionData(functionFragment: "name", values?: undefined): string;
@@ -98,8 +107,7 @@ export interface UnipilotVaultInterface extends utils.Interface {
     ],
   ): string;
   encodeFunctionData(functionFragment: "symbol", values?: undefined): string;
-  encodeFunctionData(functionFragment: "token0", values?: undefined): string;
-  encodeFunctionData(functionFragment: "token1", values?: undefined): string;
+  encodeFunctionData(functionFragment: "timelock", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "totalSupply",
     values?: undefined,
@@ -112,13 +120,39 @@ export interface UnipilotVaultInterface extends utils.Interface {
     functionFragment: "transferFrom",
     values: [string, string, BigNumberish],
   ): string;
+  encodeFunctionData(
+    functionFragment: "transferWithAuthorization",
+    values: [
+      string,
+      string,
+      BigNumberish,
+      BigNumberish,
+      BigNumberish,
+      BytesLike,
+      BigNumberish,
+      BytesLike,
+      BytesLike,
+    ],
+  ): string;
+  encodeFunctionData(
+    functionFragment: "updateMinter",
+    values: [string],
+  ): string;
 
   decodeFunctionResult(
-    functionFragment: "DOMAIN_SEPARATOR",
+    functionFragment: "PERMIT_TYPEHASH",
+    data: BytesLike,
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "TRANSFER_WITH_AUTHORIZATION_TYPEHASH",
     data: BytesLike,
   ): Result;
   decodeFunctionResult(functionFragment: "allowance", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "approve", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "authorizationState",
+    data: BytesLike,
+  ): Result;
   decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "burn", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "burnFrom", data: BytesLike): Result;
@@ -127,23 +161,21 @@ export interface UnipilotVaultInterface extends utils.Interface {
     functionFragment: "decreaseAllowance",
     data: BytesLike,
   ): Result;
-  decodeFunctionResult(functionFragment: "deposit", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "fee", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "getChainId", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "getVaultInfo",
+    functionFragment: "getDomainSeparator",
     data: BytesLike,
   ): Result;
-  decodeFunctionResult(functionFragment: "governance", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "increaseAllowance",
     data: BytesLike,
   ): Result;
+  decodeFunctionResult(functionFragment: "mint", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "nonces", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "permit", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "symbol", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "token0", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "token1", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "timelock", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "totalSupply",
     data: BytesLike,
@@ -153,15 +185,23 @@ export interface UnipilotVaultInterface extends utils.Interface {
     functionFragment: "transferFrom",
     data: BytesLike,
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "transferWithAuthorization",
+    data: BytesLike,
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "updateMinter",
+    data: BytesLike,
+  ): Result;
 
   events: {
     "Approval(address,address,uint256)": EventFragment;
-    "Deposit(address,uint256,uint256,uint256)": EventFragment;
+    "AuthorizationUsed(address,bytes32)": EventFragment;
     "Transfer(address,address,uint256)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "Approval"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "Deposit"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "AuthorizationUsed"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Transfer"): EventFragment;
 }
 
@@ -172,17 +212,13 @@ export type ApprovalEvent = TypedEvent<
 
 export type ApprovalEventFilter = TypedEventFilter<ApprovalEvent>;
 
-export type DepositEvent = TypedEvent<
-  [string, BigNumber, BigNumber, BigNumber],
-  {
-    depositor: string;
-    amount0: BigNumber;
-    amount1: BigNumber;
-    lpShares: BigNumber;
-  }
+export type AuthorizationUsedEvent = TypedEvent<
+  [string, string],
+  { authorizer: string; nonce: string }
 >;
 
-export type DepositEventFilter = TypedEventFilter<DepositEvent>;
+export type AuthorizationUsedEventFilter =
+  TypedEventFilter<AuthorizationUsedEvent>;
 
 export type TransferEvent = TypedEvent<
   [string, string, BigNumber],
@@ -191,12 +227,12 @@ export type TransferEvent = TypedEvent<
 
 export type TransferEventFilter = TypedEventFilter<TransferEvent>;
 
-export interface UnipilotVault extends BaseContract {
+export interface Pilot extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
 
-  interface: UnipilotVaultInterface;
+  interface: PilotInterface;
 
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
@@ -218,7 +254,11 @@ export interface UnipilotVault extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
-    DOMAIN_SEPARATOR(overrides?: CallOverrides): Promise<[string]>;
+    PERMIT_TYPEHASH(overrides?: CallOverrides): Promise<[string]>;
+
+    TRANSFER_WITH_AUTHORIZATION_TYPEHASH(
+      overrides?: CallOverrides,
+    ): Promise<[string]>;
 
     allowance(
       owner: string,
@@ -231,6 +271,12 @@ export interface UnipilotVault extends BaseContract {
       amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
+
+    authorizationState(
+      arg0: string,
+      arg1: BytesLike,
+      overrides?: CallOverrides,
+    ): Promise<[boolean]>;
 
     balanceOf(account: string, overrides?: CallOverrides): Promise<[BigNumber]>;
 
@@ -253,21 +299,11 @@ export interface UnipilotVault extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
-    deposit(
-      depositor: string,
-      recipient: string,
-      amount0: BigNumberish,
-      amount1: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
-    ): Promise<ContractTransaction>;
-
-    fee(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    getVaultInfo(
+    getChainId(
       overrides?: CallOverrides,
-    ): Promise<[string, string, BigNumber]>;
+    ): Promise<[BigNumber] & { chainId: BigNumber }>;
 
-    governance(overrides?: CallOverrides): Promise<[string]>;
+    getDomainSeparator(overrides?: CallOverrides): Promise<[string]>;
 
     increaseAllowance(
       spender: string,
@@ -275,9 +311,15 @@ export interface UnipilotVault extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
+    mint(
+      to: string,
+      value: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> },
+    ): Promise<ContractTransaction>;
+
     name(overrides?: CallOverrides): Promise<[string]>;
 
-    nonces(owner: string, overrides?: CallOverrides): Promise<[BigNumber]>;
+    nonces(arg0: string, overrides?: CallOverrides): Promise<[BigNumber]>;
 
     permit(
       owner: string,
@@ -292,9 +334,7 @@ export interface UnipilotVault extends BaseContract {
 
     symbol(overrides?: CallOverrides): Promise<[string]>;
 
-    token0(overrides?: CallOverrides): Promise<[string]>;
-
-    token1(overrides?: CallOverrides): Promise<[string]>;
+    timelock(overrides?: CallOverrides): Promise<[string]>;
 
     totalSupply(overrides?: CallOverrides): Promise<[BigNumber]>;
 
@@ -310,9 +350,31 @@ export interface UnipilotVault extends BaseContract {
       amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
+
+    transferWithAuthorization(
+      from: string,
+      to: string,
+      value: BigNumberish,
+      validAfter: BigNumberish,
+      validBefore: BigNumberish,
+      nonce: BytesLike,
+      v: BigNumberish,
+      r: BytesLike,
+      s: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> },
+    ): Promise<ContractTransaction>;
+
+    updateMinter(
+      newMinter: string,
+      overrides?: Overrides & { from?: string | Promise<string> },
+    ): Promise<ContractTransaction>;
   };
 
-  DOMAIN_SEPARATOR(overrides?: CallOverrides): Promise<string>;
+  PERMIT_TYPEHASH(overrides?: CallOverrides): Promise<string>;
+
+  TRANSFER_WITH_AUTHORIZATION_TYPEHASH(
+    overrides?: CallOverrides,
+  ): Promise<string>;
 
   allowance(
     owner: string,
@@ -325,6 +387,12 @@ export interface UnipilotVault extends BaseContract {
     amount: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
+
+  authorizationState(
+    arg0: string,
+    arg1: BytesLike,
+    overrides?: CallOverrides,
+  ): Promise<boolean>;
 
   balanceOf(account: string, overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -347,19 +415,9 @@ export interface UnipilotVault extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
-  deposit(
-    depositor: string,
-    recipient: string,
-    amount0: BigNumberish,
-    amount1: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> },
-  ): Promise<ContractTransaction>;
+  getChainId(overrides?: CallOverrides): Promise<BigNumber>;
 
-  fee(overrides?: CallOverrides): Promise<BigNumber>;
-
-  getVaultInfo(overrides?: CallOverrides): Promise<[string, string, BigNumber]>;
-
-  governance(overrides?: CallOverrides): Promise<string>;
+  getDomainSeparator(overrides?: CallOverrides): Promise<string>;
 
   increaseAllowance(
     spender: string,
@@ -367,9 +425,15 @@ export interface UnipilotVault extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
+  mint(
+    to: string,
+    value: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> },
+  ): Promise<ContractTransaction>;
+
   name(overrides?: CallOverrides): Promise<string>;
 
-  nonces(owner: string, overrides?: CallOverrides): Promise<BigNumber>;
+  nonces(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
 
   permit(
     owner: string,
@@ -384,9 +448,7 @@ export interface UnipilotVault extends BaseContract {
 
   symbol(overrides?: CallOverrides): Promise<string>;
 
-  token0(overrides?: CallOverrides): Promise<string>;
-
-  token1(overrides?: CallOverrides): Promise<string>;
+  timelock(overrides?: CallOverrides): Promise<string>;
 
   totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -403,8 +465,30 @@ export interface UnipilotVault extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
+  transferWithAuthorization(
+    from: string,
+    to: string,
+    value: BigNumberish,
+    validAfter: BigNumberish,
+    validBefore: BigNumberish,
+    nonce: BytesLike,
+    v: BigNumberish,
+    r: BytesLike,
+    s: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> },
+  ): Promise<ContractTransaction>;
+
+  updateMinter(
+    newMinter: string,
+    overrides?: Overrides & { from?: string | Promise<string> },
+  ): Promise<ContractTransaction>;
+
   callStatic: {
-    DOMAIN_SEPARATOR(overrides?: CallOverrides): Promise<string>;
+    PERMIT_TYPEHASH(overrides?: CallOverrides): Promise<string>;
+
+    TRANSFER_WITH_AUTHORIZATION_TYPEHASH(
+      overrides?: CallOverrides,
+    ): Promise<string>;
 
     allowance(
       owner: string,
@@ -415,6 +499,12 @@ export interface UnipilotVault extends BaseContract {
     approve(
       spender: string,
       amount: BigNumberish,
+      overrides?: CallOverrides,
+    ): Promise<boolean>;
+
+    authorizationState(
+      arg0: string,
+      arg1: BytesLike,
       overrides?: CallOverrides,
     ): Promise<boolean>;
 
@@ -436,21 +526,9 @@ export interface UnipilotVault extends BaseContract {
       overrides?: CallOverrides,
     ): Promise<boolean>;
 
-    deposit(
-      depositor: string,
-      recipient: string,
-      amount0: BigNumberish,
-      amount1: BigNumberish,
-      overrides?: CallOverrides,
-    ): Promise<BigNumber>;
+    getChainId(overrides?: CallOverrides): Promise<BigNumber>;
 
-    fee(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getVaultInfo(
-      overrides?: CallOverrides,
-    ): Promise<[string, string, BigNumber]>;
-
-    governance(overrides?: CallOverrides): Promise<string>;
+    getDomainSeparator(overrides?: CallOverrides): Promise<string>;
 
     increaseAllowance(
       spender: string,
@@ -458,9 +536,15 @@ export interface UnipilotVault extends BaseContract {
       overrides?: CallOverrides,
     ): Promise<boolean>;
 
+    mint(
+      to: string,
+      value: BigNumberish,
+      overrides?: CallOverrides,
+    ): Promise<void>;
+
     name(overrides?: CallOverrides): Promise<string>;
 
-    nonces(owner: string, overrides?: CallOverrides): Promise<BigNumber>;
+    nonces(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     permit(
       owner: string,
@@ -475,9 +559,7 @@ export interface UnipilotVault extends BaseContract {
 
     symbol(overrides?: CallOverrides): Promise<string>;
 
-    token0(overrides?: CallOverrides): Promise<string>;
-
-    token1(overrides?: CallOverrides): Promise<string>;
+    timelock(overrides?: CallOverrides): Promise<string>;
 
     totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -493,6 +575,21 @@ export interface UnipilotVault extends BaseContract {
       amount: BigNumberish,
       overrides?: CallOverrides,
     ): Promise<boolean>;
+
+    transferWithAuthorization(
+      from: string,
+      to: string,
+      value: BigNumberish,
+      validAfter: BigNumberish,
+      validBefore: BigNumberish,
+      nonce: BytesLike,
+      v: BigNumberish,
+      r: BytesLike,
+      s: BytesLike,
+      overrides?: CallOverrides,
+    ): Promise<void>;
+
+    updateMinter(newMinter: string, overrides?: CallOverrides): Promise<void>;
   };
 
   filters: {
@@ -507,18 +604,14 @@ export interface UnipilotVault extends BaseContract {
       value?: null,
     ): ApprovalEventFilter;
 
-    "Deposit(address,uint256,uint256,uint256)"(
-      depositor?: null,
-      amount0?: null,
-      amount1?: null,
-      lpShares?: null,
-    ): DepositEventFilter;
-    Deposit(
-      depositor?: null,
-      amount0?: null,
-      amount1?: null,
-      lpShares?: null,
-    ): DepositEventFilter;
+    "AuthorizationUsed(address,bytes32)"(
+      authorizer?: string | null,
+      nonce?: BytesLike | null,
+    ): AuthorizationUsedEventFilter;
+    AuthorizationUsed(
+      authorizer?: string | null,
+      nonce?: BytesLike | null,
+    ): AuthorizationUsedEventFilter;
 
     "Transfer(address,address,uint256)"(
       from?: string | null,
@@ -533,7 +626,11 @@ export interface UnipilotVault extends BaseContract {
   };
 
   estimateGas: {
-    DOMAIN_SEPARATOR(overrides?: CallOverrides): Promise<BigNumber>;
+    PERMIT_TYPEHASH(overrides?: CallOverrides): Promise<BigNumber>;
+
+    TRANSFER_WITH_AUTHORIZATION_TYPEHASH(
+      overrides?: CallOverrides,
+    ): Promise<BigNumber>;
 
     allowance(
       owner: string,
@@ -545,6 +642,12 @@ export interface UnipilotVault extends BaseContract {
       spender: string,
       amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> },
+    ): Promise<BigNumber>;
+
+    authorizationState(
+      arg0: string,
+      arg1: BytesLike,
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     balanceOf(account: string, overrides?: CallOverrides): Promise<BigNumber>;
@@ -568,19 +671,9 @@ export interface UnipilotVault extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
-    deposit(
-      depositor: string,
-      recipient: string,
-      amount0: BigNumberish,
-      amount1: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
-    ): Promise<BigNumber>;
+    getChainId(overrides?: CallOverrides): Promise<BigNumber>;
 
-    fee(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getVaultInfo(overrides?: CallOverrides): Promise<BigNumber>;
-
-    governance(overrides?: CallOverrides): Promise<BigNumber>;
+    getDomainSeparator(overrides?: CallOverrides): Promise<BigNumber>;
 
     increaseAllowance(
       spender: string,
@@ -588,9 +681,15 @@ export interface UnipilotVault extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
+    mint(
+      to: string,
+      value: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> },
+    ): Promise<BigNumber>;
+
     name(overrides?: CallOverrides): Promise<BigNumber>;
 
-    nonces(owner: string, overrides?: CallOverrides): Promise<BigNumber>;
+    nonces(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     permit(
       owner: string,
@@ -605,9 +704,7 @@ export interface UnipilotVault extends BaseContract {
 
     symbol(overrides?: CallOverrides): Promise<BigNumber>;
 
-    token0(overrides?: CallOverrides): Promise<BigNumber>;
-
-    token1(overrides?: CallOverrides): Promise<BigNumber>;
+    timelock(overrides?: CallOverrides): Promise<BigNumber>;
 
     totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -623,10 +720,32 @@ export interface UnipilotVault extends BaseContract {
       amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
+
+    transferWithAuthorization(
+      from: string,
+      to: string,
+      value: BigNumberish,
+      validAfter: BigNumberish,
+      validBefore: BigNumberish,
+      nonce: BytesLike,
+      v: BigNumberish,
+      r: BytesLike,
+      s: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> },
+    ): Promise<BigNumber>;
+
+    updateMinter(
+      newMinter: string,
+      overrides?: Overrides & { from?: string | Promise<string> },
+    ): Promise<BigNumber>;
   };
 
   populateTransaction: {
-    DOMAIN_SEPARATOR(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    PERMIT_TYPEHASH(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    TRANSFER_WITH_AUTHORIZATION_TYPEHASH(
+      overrides?: CallOverrides,
+    ): Promise<PopulatedTransaction>;
 
     allowance(
       owner: string,
@@ -638,6 +757,12 @@ export interface UnipilotVault extends BaseContract {
       spender: string,
       amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> },
+    ): Promise<PopulatedTransaction>;
+
+    authorizationState(
+      arg0: string,
+      arg1: BytesLike,
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     balanceOf(
@@ -664,19 +789,11 @@ export interface UnipilotVault extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
-    deposit(
-      depositor: string,
-      recipient: string,
-      amount0: BigNumberish,
-      amount1: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+    getChainId(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    getDomainSeparator(
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
-
-    fee(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    getVaultInfo(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    governance(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     increaseAllowance(
       spender: string,
@@ -684,10 +801,16 @@ export interface UnipilotVault extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
+    mint(
+      to: string,
+      value: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> },
+    ): Promise<PopulatedTransaction>;
+
     name(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     nonces(
-      owner: string,
+      arg0: string,
       overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
@@ -704,9 +827,7 @@ export interface UnipilotVault extends BaseContract {
 
     symbol(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    token0(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    token1(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    timelock(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     totalSupply(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
@@ -720,6 +841,24 @@ export interface UnipilotVault extends BaseContract {
       sender: string,
       recipient: string,
       amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> },
+    ): Promise<PopulatedTransaction>;
+
+    transferWithAuthorization(
+      from: string,
+      to: string,
+      value: BigNumberish,
+      validAfter: BigNumberish,
+      validBefore: BigNumberish,
+      nonce: BytesLike,
+      v: BigNumberish,
+      r: BytesLike,
+      s: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> },
+    ): Promise<PopulatedTransaction>;
+
+    updateMinter(
+      newMinter: string,
       overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
   };
