@@ -38,6 +38,10 @@ describe("Initializing the testing suite", async () => {
     // USDC = await deployToken(wallet0, "Usdc", "USDC", 6);
     // USDT = await deployToken(wallet0, "Tether Stable", "USDT", 6);
     let uniswapv3Contracts = await deployUniswapContracts(wallet0, WETH9);
+    console.log(
+      "uniswapv3COntracts factory",
+      uniswapv3Contracts.factory.address,
+    );
     uniswapV3Factory = uniswapv3Contracts.factory;
     unipilotFactory = await deployUnipilotFactory(
       wallet0,
@@ -56,9 +60,9 @@ describe("Initializing the testing suite", async () => {
       // console.log("USDT", USDT.address);
       // console.log("POOL",pool);
       console.log("Unipilot Factory", unipilotFactory.address);
-      // let [wallet0, wallet1, wallet2, wallet3] = await hre.ethers.getSigners();
-      // let wallets: SignerWithAddress[] = [wallet0, wallet1, wallet2, wallet3];
-      // await shouldBehaveLikeUnipilotFunctions(walelts,uniswapV3Factory)
+      let [wallet0, wallet1, wallet2, wallet3] = await hre.ethers.getSigners();
+      let wallets: SignerWithAddress[] = [wallet0, wallet1, wallet2, wallet3];
+      await shouldBehaveLikeUnipilotFunctions(wallets, unipilotFactory);
     });
   });
 });

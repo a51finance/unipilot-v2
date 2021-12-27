@@ -1,6 +1,6 @@
 //SPDX-License-Identifier: MIT
 
-pragma solidity =0.7.6;
+pragma solidity ^0.7.6;
 
 interface IUnipilotFactory {
     event VaultCreated(
@@ -9,7 +9,10 @@ interface IUnipilotFactory {
         uint24 fee
     );
 
-    event OwnerChanged(address indexed _oldOwner, address indexed _newOwner);
+    event GovernanceChanged(
+        address indexed _oldGovernance,
+        address indexed _newGovernance
+    );
 
     function createVault(
         address _tokenA,
@@ -26,7 +29,7 @@ interface IUnipilotFactory {
         uint24 _fee
     ) external view returns (address _vault);
 
-    function setOwner(address _newOwner) external;
+    function setGovernance(address _newGovernance) external;
 
-    function owner() external view returns (address);
+    function governance() external view returns (address);
 }

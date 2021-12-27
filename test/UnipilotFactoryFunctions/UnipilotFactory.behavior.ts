@@ -17,32 +17,39 @@ export async function shouleBehaveLikePilotFactory(
       await unipilotFactory.connect(wallets[3]).governance(),
     ).to.equal(governance.address);
   });
+
   it("Governance: it should pass  reason: as it is not governance address", async () => {
     await expect(
       await unipilotFactory.connect(wallets[3]).governance(),
     ).to.not.equal(alice.address);
   });
+
   it("Governance: it should pass reason: wallet[0] is calling setgovernance to alice", async () => {
     await expect(
-      await unipilotFactory.connect(governance).setgovernance(alice.address),
+      await unipilotFactory.connect(governance).setGovernance(alice.address),
     ).to.ok;
     const newgovernance = await unipilotFactory
       .connect(governance)
       .governance();
   });
+
   it("Governance: it should pass reason: alice is the new governance", async () => {
     await expect(
       await unipilotFactory.connect(governance).governance(),
     ).to.equal(alice.address);
   });
+
   it("Governance: it should pass reason: governance is not the new governance", async () => {
     await expect(
       await unipilotFactory.connect(governance).governance(),
     ).to.not.equal(governance.address);
   });
-  // it("Governance: revert message: NO reason: failed as owner will try to setOwner", async () => {
-  //   await expect(
-  //     await unipilotFactory.connect(owner).setOwner(owner.address),
-  //   ).to.be.revertedWith("NO");
-  // });
+
+  it("Governance: revert message: NO reason: failed as owner will try to setOwner", async () => {
+    await expect(
+      await unipilotFactory
+        .connect(governance)
+        .setGovernance(governance.address),
+    ).to.be.revertedWith("NG");
+  });
 }

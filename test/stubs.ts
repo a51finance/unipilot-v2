@@ -15,7 +15,7 @@ export async function deployUniswapContracts(
   deployer: any,
   WETH9: Contract,
 ): Promise<{ [name: string]: Contract }> {
-  let uniswapV3 = UniswapV3Deployer.deploy(deployer, WETH9);
+  let uniswapV3 = await UniswapV3Deployer.deploy(deployer, WETH9);
   return uniswapV3;
 }
 

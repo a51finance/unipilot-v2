@@ -11,7 +11,7 @@ library UnipilotMaths {
     using SafeMath for uint256;
     uint256 public constant PRECISION = 1e36;
 
-    function getCurrentPrice(int24 tick) external returns (uint256 price) {
+    function getCurrentPrice(int24 tick) internal returns (uint256 price) {
         uint160 sqrtRatio = TickMath.getSqrtRatioAtTick(tick);
         price = FullMath.mulDiv(
             uint256(sqrtRatio).mul(uint256(sqrtRatio)),
@@ -21,7 +21,7 @@ library UnipilotMaths {
     }
 
     function currentTick(IUniswapV3Pool pool)
-        external
+        internal
         view
         returns (int24 tick)
     {

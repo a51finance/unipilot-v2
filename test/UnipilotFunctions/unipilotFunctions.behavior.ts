@@ -7,15 +7,13 @@ import { shouldBehaveLikeUnipilotRouterFunctions } from "../UnipilotRouterFuncti
 
 export async function shouldBehaveLikeUnipilotFunctions(
   wallets: SignerWithAddress[],
-  UniswapFactory: Contract,
   UnipilotFactory: Contract,
-  UnipilotRouter: Contract,
 ): Promise<void> {
   describe("Testing the UnipilotFactory !!", async () => {
     shouleBehaveLikePilotFactory(wallets, UnipilotFactory);
   });
 
-  describe("Testing the UnipilotRouter !!", async () => {
-    shouldBehaveLikeUnipilotRouterFunctions(wallets, UnipilotRouter);
-  });
+  // describe("Testing the UnipilotRouter !!", async () => {
+  //   shouldBehaveLikeUnipilotRouterFunctions(wallets, UnipilotRouter);
+  // });
 }

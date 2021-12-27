@@ -1,6 +1,6 @@
 //SPDX-License-Identifier: MIT
 
-pragma solidity =0.7.6;
+pragma solidity ^0.7.6;
 
 import "./interfaces/IUnipilotFactory.sol";
 
@@ -10,19 +10,19 @@ import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 import "@openzeppelin/contracts/utils/Create2.sol";
 
 contract UnipilotFactory is IUnipilotFactory {
-    address public override owner;
+    address public override governance;
     address public uniswapFactory;
 
     constructor(address _uniswapFactory, address _governance) {
-        owner = _governance;
+        governance = _governance;
         uniswapFactory = _uniswapFactory;
     }
 
     mapping(address => mapping(address => mapping(uint24 => address)))
         public vaults;
 
-    modifier isOwner() {
-        require(msg.sender == owner, "NO");
+    modifier isGovernance() {
+        require(msg.sender == governance, "NG");
         _;
     }
 
@@ -63,9 +63,13 @@ contract UnipilotFactory is IUnipilotFactory {
         _vault = vaults[_tokenA][_tokenB][_fee];
     }
 
-    function setOwner(address _newOwner) external override isOwner {
-        emit OwnerChanged(owner, _newOwner);
-        owner = _newOwner;
+    function setGovernance(address _newGovernance)
+        external
+        override
+        isGovernance
+    {
+        emit GovernanceChanged(governance, _newGovernance);
+        governance = _newGovernance;
     }
 
     function deploy(
@@ -79,7 +83,7 @@ contract UnipilotFactory is IUnipilotFactory {
         _vault = address(
             new UnipilotVault{
                 salt: keccak256(abi.encode(_tokenA, _tokenB, _fee))
-            }(owner, _pool, _name, _symbol)
+            }(governance, _pool, _name, _symbol)
         );
     }
 }
