@@ -8,9 +8,20 @@ import { shouldBehaveLikeUnipilotRouterFunctions } from "../UnipilotRouterFuncti
 export async function shouldBehaveLikeUnipilotFunctions(
   wallets: SignerWithAddress[],
   UnipilotFactory: Contract,
+  UniswapV3Factory: Contract,
+  WETH9: Contract,
+  PILOT: Contract,
+  pool: string,
 ): Promise<void> {
   describe("Testing the UnipilotFactory !!", async () => {
-    shouleBehaveLikePilotFactory(wallets, UnipilotFactory);
+    shouleBehaveLikePilotFactory(
+      wallets,
+      UnipilotFactory,
+      UniswapV3Factory,
+      WETH9,
+      PILOT,
+      pool,
+    );
   });
 
   // describe("Testing the UnipilotRouter !!", async () => {

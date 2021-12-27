@@ -47,22 +47,36 @@ describe("Initializing the testing suite", async () => {
       wallet0,
       uniswapV3Factory.address,
     );
-    // uniswapPositionManager = uniswapv3Contracts.positionManager;
-    // swapRouter = uniswapv3Contracts.router;
-    //PILOT = await deployPilot(wallet0);
+    uniswapPositionManager = uniswapv3Contracts.positionManager;
+    swapRouter = uniswapv3Contracts.router;
+    PILOT = await deployPilot(wallet0);
 
-    //pool= await createPoolOnUniswap(wallet0,uniswapV3Factory,PILOT.address,WETH9.address,3000,"79228162514264337593543950336")
+    pool = await createPoolOnUniswap(
+      wallet0,
+      uniswapV3Factory,
+      PILOT.address,
+      WETH9.address,
+      3000,
+      "79228162514264337593543950336",
+    );
   });
   describe("Running the pilot functions", async () => {
     it("Runs Unipilot Functions", async function () {
-      // console.log("WETH9", WETH9.address);
-      // console.log("UNISWAP FACTORY", uniswapV3Factory.address);
+      console.log("WETH9", WETH9.address);
+      console.log("UNISWAP FACTORY", uniswapV3Factory.address);
       // console.log("USDT", USDT.address);
-      // console.log("POOL",pool);
+      console.log("POOL", pool);
       console.log("Unipilot Factory", unipilotFactory.address);
       let [wallet0, wallet1, wallet2, wallet3] = await hre.ethers.getSigners();
       let wallets: SignerWithAddress[] = [wallet0, wallet1, wallet2, wallet3];
-      await shouldBehaveLikeUnipilotFunctions(wallets, unipilotFactory);
+      await shouldBehaveLikeUnipilotFunctions(
+        wallets,
+        unipilotFactory,
+        uniswapV3Factory,
+        WETH9,
+        PILOT,
+        pool,
+      );
     });
   });
 });

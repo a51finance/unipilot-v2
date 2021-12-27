@@ -49,7 +49,7 @@ contract UnipilotFactory is IUnipilotFactory {
             );
             IUniswapV3Pool(pool).initialize(_sqrtPriceX96);
         }
-        _vault = deploy(_tokenA, _tokenB, _fee, pool, _name, _symbol);
+        _vault = _deploy(_tokenA, _tokenB, _fee, pool, _name, _symbol);
         vaults[_tokenA][_tokenB][_fee] = _vault;
         vaults[_tokenB][_tokenA][_fee] = _vault;
         emit VaultCreated(_tokenA, _tokenB, _fee);
@@ -72,7 +72,7 @@ contract UnipilotFactory is IUnipilotFactory {
         governance = _newGovernance;
     }
 
-    function deploy(
+    function _deploy(
         address _tokenA,
         address _tokenB,
         uint24 _fee,
