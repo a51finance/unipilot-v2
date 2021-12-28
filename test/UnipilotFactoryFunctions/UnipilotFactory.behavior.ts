@@ -57,15 +57,15 @@ export async function shouleBehaveLikePilotFactory(
   // });
 
   it("Vault deployent(cool shit): Will deploy new vault of a uniswap pool", async () => {
-    await expect(
-      await UnipilotFactory.connect(governance).createVault(
-        WETH9.address,
-        PILOT.address,
-        3000,
-        128,
-        "unipilot PILOT-WETH",
-        "PILOT-WETH",
-      ),
-    ).to.be.ok;
+    const vault = await UnipilotFactory.connect(governance).createVault(
+      WETH9.address,
+      PILOT.address,
+      3000,
+      42951287100,
+      "unipilot PILOT-WETH",
+      "PILOT-WETH",
+    );
+    console.log("vault deployed address", vault);
+    await expect(vault).to.be.ok;
   });
 }
