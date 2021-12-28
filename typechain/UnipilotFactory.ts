@@ -19,9 +19,10 @@ import { TypedEventFilter, TypedEvent, TypedListener, OnEvent } from "./common";
 
 export interface UnipilotFactoryInterface extends utils.Interface {
   functions: {
-    "createVault(address,address,uint24,uint160)": FunctionFragment;
+    "createVault(address,address,uint24,uint160,string,string)": FunctionFragment;
     "getVaults(address,address,uint24)": FunctionFragment;
     "owner()": FunctionFragment;
+    "parameters()": FunctionFragment;
     "setOwner(address)": FunctionFragment;
     "uniswapFactory()": FunctionFragment;
     "vaults(address,address,uint24)": FunctionFragment;
@@ -29,13 +30,17 @@ export interface UnipilotFactoryInterface extends utils.Interface {
 
   encodeFunctionData(
     functionFragment: "createVault",
-    values: [string, string, BigNumberish, BigNumberish],
+    values: [string, string, BigNumberish, BigNumberish, string, string],
   ): string;
   encodeFunctionData(
     functionFragment: "getVaults",
     values: [string, string, BigNumberish],
   ): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "parameters",
+    values?: undefined,
+  ): string;
   encodeFunctionData(functionFragment: "setOwner", values: [string]): string;
   encodeFunctionData(
     functionFragment: "uniswapFactory",
@@ -52,6 +57,7 @@ export interface UnipilotFactoryInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "getVaults", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "parameters", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "setOwner", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "uniswapFactory",
@@ -114,6 +120,8 @@ export interface UnipilotFactory extends BaseContract {
       _tokenB: string,
       _fee: BigNumberish,
       _sqrtPriceX96: BigNumberish,
+      _name: string,
+      _symbol: string,
       overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
@@ -125,6 +133,15 @@ export interface UnipilotFactory extends BaseContract {
     ): Promise<[string] & { _vault: string }>;
 
     owner(overrides?: CallOverrides): Promise<[string]>;
+
+    parameters(overrides?: CallOverrides): Promise<
+      [string, string, string, number] & {
+        factory: string;
+        tokenA: string;
+        tokenB: string;
+        fee: number;
+      }
+    >;
 
     setOwner(
       _newOwner: string,
@@ -146,6 +163,8 @@ export interface UnipilotFactory extends BaseContract {
     _tokenB: string,
     _fee: BigNumberish,
     _sqrtPriceX96: BigNumberish,
+    _name: string,
+    _symbol: string,
     overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
@@ -157,6 +176,15 @@ export interface UnipilotFactory extends BaseContract {
   ): Promise<string>;
 
   owner(overrides?: CallOverrides): Promise<string>;
+
+  parameters(overrides?: CallOverrides): Promise<
+    [string, string, string, number] & {
+      factory: string;
+      tokenA: string;
+      tokenB: string;
+      fee: number;
+    }
+  >;
 
   setOwner(
     _newOwner: string,
@@ -178,6 +206,8 @@ export interface UnipilotFactory extends BaseContract {
       _tokenB: string,
       _fee: BigNumberish,
       _sqrtPriceX96: BigNumberish,
+      _name: string,
+      _symbol: string,
       overrides?: CallOverrides,
     ): Promise<string>;
 
@@ -189,6 +219,15 @@ export interface UnipilotFactory extends BaseContract {
     ): Promise<string>;
 
     owner(overrides?: CallOverrides): Promise<string>;
+
+    parameters(overrides?: CallOverrides): Promise<
+      [string, string, string, number] & {
+        factory: string;
+        tokenA: string;
+        tokenB: string;
+        fee: number;
+      }
+    >;
 
     setOwner(_newOwner: string, overrides?: CallOverrides): Promise<void>;
 
@@ -230,6 +269,8 @@ export interface UnipilotFactory extends BaseContract {
       _tokenB: string,
       _fee: BigNumberish,
       _sqrtPriceX96: BigNumberish,
+      _name: string,
+      _symbol: string,
       overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
@@ -241,6 +282,8 @@ export interface UnipilotFactory extends BaseContract {
     ): Promise<BigNumber>;
 
     owner(overrides?: CallOverrides): Promise<BigNumber>;
+
+    parameters(overrides?: CallOverrides): Promise<BigNumber>;
 
     setOwner(
       _newOwner: string,
@@ -263,6 +306,8 @@ export interface UnipilotFactory extends BaseContract {
       _tokenB: string,
       _fee: BigNumberish,
       _sqrtPriceX96: BigNumberish,
+      _name: string,
+      _symbol: string,
       overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
@@ -274,6 +319,8 @@ export interface UnipilotFactory extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    parameters(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     setOwner(
       _newOwner: string,

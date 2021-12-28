@@ -4,7 +4,8 @@ pragma solidity ^0.7.6;
 
 import "./interfaces/IUnipilotFactory.sol";
 
-import { UnipilotVault } from "./UnipilotVault.sol";
+import "./UnipilotVault.sol";
+import "./UnipilotDeployer.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 import "@openzeppelin/contracts/utils/Create2.sol";

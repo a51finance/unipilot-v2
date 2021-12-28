@@ -17,17 +17,11 @@ import { TypedEventFilter, TypedEvent, TypedListener, OnEvent } from "./common";
 export interface UnipilotMathsInterface extends utils.Interface {
   functions: {
     "PRECISION()": FunctionFragment;
-    "currentTick(IUniswapV3Pool)": FunctionFragment;
   };
 
   encodeFunctionData(functionFragment: "PRECISION", values?: undefined): string;
-  encodeFunctionData(functionFragment: "currentTick", values: [string]): string;
 
   decodeFunctionResult(functionFragment: "PRECISION", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "currentTick",
-    data: BytesLike,
-  ): Result;
 
   events: {};
 }
@@ -60,37 +54,21 @@ export interface UnipilotMaths extends BaseContract {
 
   functions: {
     PRECISION(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    currentTick(
-      pool: string,
-      overrides?: CallOverrides,
-    ): Promise<[number] & { tick: number }>;
   };
 
   PRECISION(overrides?: CallOverrides): Promise<BigNumber>;
 
-  currentTick(pool: string, overrides?: CallOverrides): Promise<number>;
-
   callStatic: {
     PRECISION(overrides?: CallOverrides): Promise<BigNumber>;
-
-    currentTick(pool: string, overrides?: CallOverrides): Promise<number>;
   };
 
   filters: {};
 
   estimateGas: {
     PRECISION(overrides?: CallOverrides): Promise<BigNumber>;
-
-    currentTick(pool: string, overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
     PRECISION(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    currentTick(
-      pool: string,
-      overrides?: CallOverrides,
-    ): Promise<PopulatedTransaction>;
   };
 }
