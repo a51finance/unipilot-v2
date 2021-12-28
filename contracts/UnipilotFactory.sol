@@ -4,12 +4,13 @@ pragma solidity =0.7.6;
 
 import "./interfaces/IUnipilotFactory.sol";
 
-import { UnipilotVault } from "./UnipilotVault.sol";
+import "./UnipilotVault.sol";
+import "./UnipilotDeployer.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 import "@openzeppelin/contracts/utils/Create2.sol";
 
-contract UnipilotFactory is IUnipilotFactory {
+contract UnipilotFactory is IUnipilotFactory, UnipilotDeployer {
     address public override owner;
     address public uniswapFactory;
 
@@ -41,17 +42,10 @@ contract UnipilotFactory is IUnipilotFactory {
             _tokenB,
             _fee
         );
-        if (pool == address(0)) {
-            pool = IUniswapV3Factory(uniswapFactory).createPool(
-                _tokenA,
-                _tokenB,
-                _fee
-            );
-            IUniswapV3Pool(pool).initialize(_sqrtPriceX96);
-        }
-        _vault = deploy(_tokenA, _tokenB, _fee, pool, _name, _symbol);
-        vaults[_tokenA][_tokenB][_fee] = _vault;
-        vaults[_tokenB][_tokenA][_fee] = _vault;
+        IUniswapV3Pool(pool).initialize(_sqrtPriceX96);
+        _vault = deploy(owner, pool, _name, _symbol); //name and symbols will be decided later
+        // vaults[_tokenA][_tokenB][_fee] = _vault;
+        // vaults[_tokenB][_tokenA][_fee] = _vault;
         emit VaultCreated(_tokenA, _tokenB, _fee);
     }
 
@@ -68,18 +62,7 @@ contract UnipilotFactory is IUnipilotFactory {
         owner = _newOwner;
     }
 
-    function deploy(
-        address _tokenA,
-        address _tokenB,
-        uint24 _fee,
-        address _pool,
-        string memory _name,
-        string memory _symbol
-    ) private returns (address _vault) {
-        _vault = address(
-            new UnipilotVault{
-                salt: keccak256(abi.encode(_tokenA, _tokenB, _fee))
-            }(owner, _pool, _name, _symbol)
-        );
-    }
+    //getVaults
+
+    //setOwner
 }
