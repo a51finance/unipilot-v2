@@ -68,14 +68,13 @@ describe("Initializing the testing suite", async () => {
     mockVault = await deployUnipilotVault(wallet0, pool);
     await PILOT.approve(mockVault.address, MaxUint256);
     await USDT.approve(mockVault.address, MaxUint256);
-    lpShares = await mockVault.deposit(
-      wallet0.address,
-      wallet0.address,
-      parseUnits("2", "18"),
-      parseUnits("2", "18"),
-    );
+    // lpShares = await mockVault.deposit(
+    //   wallet0.address,
+    //   wallet0.address,
+    //   parseUnits("2", "18"),
+    //   parseUnits("2", "18"),
+    // );
     vaultSupply = await mockVault.totalSupply();
-    walletVaultSupply = await mockVault.balanceOf(wallet0.address);
     // await shouldBehaveLikeTokenApproval(PILOT, mockVault.address);
     // await shouldBehaveLikeTokenApproval(WETH9, mockVault.address);
     // vault = await unipilotFactory.callStatic.createVault(
@@ -98,6 +97,9 @@ describe("Initializing the testing suite", async () => {
       // console.log("USDT", USDT.address);
       console.log("POOL", pool);
       console.log("Unipilot Factory", unipilotFactory.address);
+      console.log("Vault name", (await mockVault.name()).toString());
+      console.log("Vault supply", (await vaultSupply).toString());
+      console.log("Vault symbol", (await mockVault.symbol()).toString());
       let [wallet0, wallet1, wallet2, wallet3] = await hre.ethers.getSigners();
       let wallets: SignerWithAddress[] = [wallet0, wallet1, wallet2, wallet3];
       await shouldBehaveLikeUnipilotFunctions(

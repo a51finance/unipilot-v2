@@ -56,7 +56,7 @@ export async function shouleBehaveLikePilotFactory(
   //   ).to.be.revertedWith("NG");
   // });
 
-  it("Vault deployent(cool shit): Will deploy new vault of a uniswap pool", async () => {
+  it("Vault deployment(cool shit): Will deploy new vault of a uniswap pool", async () => {
     const vault = await UnipilotFactory.connect(governance).createVault(
       WETH9.address,
       PILOT.address,
@@ -65,7 +65,6 @@ export async function shouleBehaveLikePilotFactory(
       "unipilot PILOT-WETH",
       "PILOT-WETH",
     );
-    console.log("vault deployed address", vault);
     await expect(vault).to.be.ok;
   });
 }

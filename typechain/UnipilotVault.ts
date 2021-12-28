@@ -38,6 +38,8 @@ export interface UnipilotVaultInterface extends utils.Interface {
     "symbol()": FunctionFragment;
     "token0()": FunctionFragment;
     "token1()": FunctionFragment;
+    "totalAmount0()": FunctionFragment;
+    "totalAmount1()": FunctionFragment;
     "totalSupply()": FunctionFragment;
     "transfer(address,uint256)": FunctionFragment;
     "transferFrom(address,address,uint256)": FunctionFragment;
@@ -101,6 +103,14 @@ export interface UnipilotVaultInterface extends utils.Interface {
   encodeFunctionData(functionFragment: "token0", values?: undefined): string;
   encodeFunctionData(functionFragment: "token1", values?: undefined): string;
   encodeFunctionData(
+    functionFragment: "totalAmount0",
+    values?: undefined,
+  ): string;
+  encodeFunctionData(
+    functionFragment: "totalAmount1",
+    values?: undefined,
+  ): string;
+  encodeFunctionData(
     functionFragment: "totalSupply",
     values?: undefined,
   ): string;
@@ -144,6 +154,14 @@ export interface UnipilotVaultInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "symbol", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "token0", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "token1", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "totalAmount0",
+    data: BytesLike,
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "totalAmount1",
+    data: BytesLike,
+  ): Result;
   decodeFunctionResult(
     functionFragment: "totalSupply",
     data: BytesLike,
@@ -254,10 +272,10 @@ export interface UnipilotVault extends BaseContract {
     ): Promise<ContractTransaction>;
 
     deposit(
-      depositor: string,
-      recipient: string,
-      amount0: BigNumberish,
-      amount1: BigNumberish,
+      _depositor: string,
+      _recipient: string,
+      _amount0Desired: BigNumberish,
+      _amount1Desired: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
@@ -295,6 +313,10 @@ export interface UnipilotVault extends BaseContract {
     token0(overrides?: CallOverrides): Promise<[string]>;
 
     token1(overrides?: CallOverrides): Promise<[string]>;
+
+    totalAmount0(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    totalAmount1(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     totalSupply(overrides?: CallOverrides): Promise<[BigNumber]>;
 
@@ -348,10 +370,10 @@ export interface UnipilotVault extends BaseContract {
   ): Promise<ContractTransaction>;
 
   deposit(
-    depositor: string,
-    recipient: string,
-    amount0: BigNumberish,
-    amount1: BigNumberish,
+    _depositor: string,
+    _recipient: string,
+    _amount0Desired: BigNumberish,
+    _amount1Desired: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
@@ -387,6 +409,10 @@ export interface UnipilotVault extends BaseContract {
   token0(overrides?: CallOverrides): Promise<string>;
 
   token1(overrides?: CallOverrides): Promise<string>;
+
+  totalAmount0(overrides?: CallOverrides): Promise<BigNumber>;
+
+  totalAmount1(overrides?: CallOverrides): Promise<BigNumber>;
 
   totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -437,10 +463,10 @@ export interface UnipilotVault extends BaseContract {
     ): Promise<boolean>;
 
     deposit(
-      depositor: string,
-      recipient: string,
-      amount0: BigNumberish,
-      amount1: BigNumberish,
+      _depositor: string,
+      _recipient: string,
+      _amount0Desired: BigNumberish,
+      _amount1Desired: BigNumberish,
       overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
@@ -478,6 +504,10 @@ export interface UnipilotVault extends BaseContract {
     token0(overrides?: CallOverrides): Promise<string>;
 
     token1(overrides?: CallOverrides): Promise<string>;
+
+    totalAmount0(overrides?: CallOverrides): Promise<BigNumber>;
+
+    totalAmount1(overrides?: CallOverrides): Promise<BigNumber>;
 
     totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -569,10 +599,10 @@ export interface UnipilotVault extends BaseContract {
     ): Promise<BigNumber>;
 
     deposit(
-      depositor: string,
-      recipient: string,
-      amount0: BigNumberish,
-      amount1: BigNumberish,
+      _depositor: string,
+      _recipient: string,
+      _amount0Desired: BigNumberish,
+      _amount1Desired: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
@@ -608,6 +638,10 @@ export interface UnipilotVault extends BaseContract {
     token0(overrides?: CallOverrides): Promise<BigNumber>;
 
     token1(overrides?: CallOverrides): Promise<BigNumber>;
+
+    totalAmount0(overrides?: CallOverrides): Promise<BigNumber>;
+
+    totalAmount1(overrides?: CallOverrides): Promise<BigNumber>;
 
     totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -665,10 +699,10 @@ export interface UnipilotVault extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     deposit(
-      depositor: string,
-      recipient: string,
-      amount0: BigNumberish,
-      amount1: BigNumberish,
+      _depositor: string,
+      _recipient: string,
+      _amount0Desired: BigNumberish,
+      _amount1Desired: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
@@ -707,6 +741,10 @@ export interface UnipilotVault extends BaseContract {
     token0(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     token1(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    totalAmount0(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    totalAmount1(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     totalSupply(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
