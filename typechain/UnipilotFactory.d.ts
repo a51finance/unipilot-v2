@@ -25,8 +25,6 @@ interface UnipilotFactoryInterface extends ethers.utils.Interface {
     "getVaults(address,address,uint24)": FunctionFragment;
     "governance()": FunctionFragment;
     "setGovernance(address)": FunctionFragment;
-    "uniswapFactory()": FunctionFragment;
-    "vaults(address,address,uint24)": FunctionFragment;
   };
 
   encodeFunctionData(
@@ -45,14 +43,6 @@ interface UnipilotFactoryInterface extends ethers.utils.Interface {
     functionFragment: "setGovernance",
     values: [string],
   ): string;
-  encodeFunctionData(
-    functionFragment: "uniswapFactory",
-    values?: undefined,
-  ): string;
-  encodeFunctionData(
-    functionFragment: "vaults",
-    values: [string, string, BigNumberish],
-  ): string;
 
   decodeFunctionResult(
     functionFragment: "createVault",
@@ -64,11 +54,6 @@ interface UnipilotFactoryInterface extends ethers.utils.Interface {
     functionFragment: "setGovernance",
     data: BytesLike,
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "uniswapFactory",
-    data: BytesLike,
-  ): Result;
-  decodeFunctionResult(functionFragment: "vaults", data: BytesLike): Result;
 
   events: {
     "GovernanceChanged(address,address)": EventFragment;
@@ -154,15 +139,6 @@ export class UnipilotFactory extends BaseContract {
       _newGovernance: string,
       overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
-
-    uniswapFactory(overrides?: CallOverrides): Promise<[string]>;
-
-    vaults(
-      arg0: string,
-      arg1: string,
-      arg2: BigNumberish,
-      overrides?: CallOverrides,
-    ): Promise<[string]>;
   };
 
   createVault(
@@ -189,15 +165,6 @@ export class UnipilotFactory extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
-  uniswapFactory(overrides?: CallOverrides): Promise<string>;
-
-  vaults(
-    arg0: string,
-    arg1: string,
-    arg2: BigNumberish,
-    overrides?: CallOverrides,
-  ): Promise<string>;
-
   callStatic: {
     createVault(
       _tokenA: string,
@@ -222,15 +189,6 @@ export class UnipilotFactory extends BaseContract {
       _newGovernance: string,
       overrides?: CallOverrides,
     ): Promise<void>;
-
-    uniswapFactory(overrides?: CallOverrides): Promise<string>;
-
-    vaults(
-      arg0: string,
-      arg1: string,
-      arg2: BigNumberish,
-      overrides?: CallOverrides,
-    ): Promise<string>;
   };
 
   filters: {
@@ -293,15 +251,6 @@ export class UnipilotFactory extends BaseContract {
       _newGovernance: string,
       overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
-
-    uniswapFactory(overrides?: CallOverrides): Promise<BigNumber>;
-
-    vaults(
-      arg0: string,
-      arg1: string,
-      arg2: BigNumberish,
-      overrides?: CallOverrides,
-    ): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -327,15 +276,6 @@ export class UnipilotFactory extends BaseContract {
     setGovernance(
       _newGovernance: string,
       overrides?: Overrides & { from?: string | Promise<string> },
-    ): Promise<PopulatedTransaction>;
-
-    uniswapFactory(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    vaults(
-      arg0: string,
-      arg1: string,
-      arg2: BigNumberish,
-      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
   };
 }
