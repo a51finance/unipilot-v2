@@ -28,25 +28,25 @@ interface IUnipilotTokenProxyInterface extends ethers.utils.Interface {
 
   encodeFunctionData(
     functionFragment: "mint",
-    values: [string, BigNumberish],
+    values: [string, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "updateMinter",
-    values: [string],
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "updateTimelock",
-    values: [string],
+    values: [string]
   ): string;
 
   decodeFunctionResult(functionFragment: "mint", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "updateMinter",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "updateTimelock",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
 
   events: {
@@ -72,26 +72,26 @@ export class IUnipilotTokenProxy extends BaseContract {
   deployed(): Promise<this>;
 
   listeners<EventArgsArray extends Array<any>, EventArgsObject>(
-    eventFilter?: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    eventFilter?: TypedEventFilter<EventArgsArray, EventArgsObject>
   ): Array<TypedListener<EventArgsArray, EventArgsObject>>;
   off<EventArgsArray extends Array<any>, EventArgsObject>(
     eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
-    listener: TypedListener<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
   ): this;
   on<EventArgsArray extends Array<any>, EventArgsObject>(
     eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
-    listener: TypedListener<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
   ): this;
   once<EventArgsArray extends Array<any>, EventArgsObject>(
     eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
-    listener: TypedListener<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
   ): this;
   removeListener<EventArgsArray extends Array<any>, EventArgsObject>(
     eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
-    listener: TypedListener<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
   ): this;
   removeAllListeners<EventArgsArray extends Array<any>, EventArgsObject>(
-    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>
   ): this;
 
   listeners(eventName?: string): Array<Listener>;
@@ -104,7 +104,7 @@ export class IUnipilotTokenProxy extends BaseContract {
   queryFilter<EventArgsArray extends Array<any>, EventArgsObject>(
     event: TypedEventFilter<EventArgsArray, EventArgsObject>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined,
+    toBlock?: string | number | undefined
   ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
   interface: IUnipilotTokenProxyInterface;
@@ -113,41 +113,41 @@ export class IUnipilotTokenProxy extends BaseContract {
     mint(
       _to: string,
       _value: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     updateMinter(
       _minter: string,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     updateTimelock(
       _timelock: string,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
 
   mint(
     _to: string,
     _value: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   updateMinter(
     _minter: string,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   updateTimelock(
     _timelock: string,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   callStatic: {
     mint(
       _to: string,
       _value: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     updateMinter(_minter: string, overrides?: CallOverrides): Promise<void>;
@@ -158,17 +158,17 @@ export class IUnipilotTokenProxy extends BaseContract {
   filters: {
     "MinterUpdated(address,bool)"(
       minter?: null,
-      status?: null,
+      status?: null
     ): TypedEventFilter<[string, boolean], { minter: string; status: boolean }>;
 
     MinterUpdated(
       minter?: null,
-      status?: null,
+      status?: null
     ): TypedEventFilter<[string, boolean], { minter: string; status: boolean }>;
 
     "TimelockUpdated(address,address)"(
       previousTimelock?: null,
-      newTimelock?: null,
+      newTimelock?: null
     ): TypedEventFilter<
       [string, string],
       { previousTimelock: string; newTimelock: string }
@@ -176,7 +176,7 @@ export class IUnipilotTokenProxy extends BaseContract {
 
     TimelockUpdated(
       previousTimelock?: null,
-      newTimelock?: null,
+      newTimelock?: null
     ): TypedEventFilter<
       [string, string],
       { previousTimelock: string; newTimelock: string }
@@ -187,17 +187,17 @@ export class IUnipilotTokenProxy extends BaseContract {
     mint(
       _to: string,
       _value: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     updateMinter(
       _minter: string,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     updateTimelock(
       _timelock: string,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
 
@@ -205,17 +205,17 @@ export class IUnipilotTokenProxy extends BaseContract {
     mint(
       _to: string,
       _value: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     updateMinter(
       _minter: string,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     updateTimelock(
       _timelock: string,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };
 }

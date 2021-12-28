@@ -40,7 +40,7 @@ export class IERC1271__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): IERC1271 {
     return new Contract(address, _abi, signerOrProvider) as IERC1271;
   }

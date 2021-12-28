@@ -101,7 +101,7 @@ export class IUnipilotTokenProxy__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): IUnipilotTokenProxy {
     return new Contract(address, _abi, signerOrProvider) as IUnipilotTokenProxy;
   }

@@ -2,6 +2,7 @@ pragma solidity ^0.7.6;
 
 import "./interfaces/IUnipilotFactory.sol";
 import "./interfaces/IUnipilotVault.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract UnipilotRouter {
     address public unipilotFactory;
@@ -21,14 +22,8 @@ contract UnipilotRouter {
         (address token0, address token1, uint256 fee) = IUnipilotVault(_vault)
             .getVaultInfo();
 
-        // require(
-        //     IUnipilotFactory(unipilotFactory).getVaults(
-        //         token0,
-        //         token1,
-        //         uint24(fee)
-        //     ) != address(0),
-        //     "NVA"
-        // );
+        IERC20(token0).transferFrom(msg.sender, _vault,_amount0);
+        IERC20(token1).transferFrom(msg.sender, _vault,_amount1);
 
         lpShares = IUnipilotVault(_vault).deposit(
             msg.sender,
@@ -39,6 +34,11 @@ contract UnipilotRouter {
     }
 
     // Withdraw goes to here...
+    // function withdraw(address _vault,uint256 desiredAmount ) external returns (uint256 amount, uint256 lpShares){
+    //     require(_vault != address(0) && desiredAmount > 0, "NA");
+
+    //     (amount, lpShares) = IUnipilotVault(_vault).withdraw(desiredAmount);
+    // }
 
     // Rebase goes to here...
 }

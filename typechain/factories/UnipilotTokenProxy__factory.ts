@@ -153,16 +153,16 @@ export class UnipilotTokenProxy__factory extends ContractFactory {
 
   deploy(
     _timelock: string,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<UnipilotTokenProxy> {
     return super.deploy(
       _timelock,
-      overrides || {},
+      overrides || {}
     ) as Promise<UnipilotTokenProxy>;
   }
   getDeployTransaction(
     _timelock: string,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): TransactionRequest {
     return super.getDeployTransaction(_timelock, overrides || {});
   }
@@ -179,7 +179,7 @@ export class UnipilotTokenProxy__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): UnipilotTokenProxy {
     return new Contract(address, _abi, signerOrProvider) as UnipilotTokenProxy;
   }
