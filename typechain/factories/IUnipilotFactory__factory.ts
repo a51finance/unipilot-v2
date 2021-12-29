@@ -94,6 +94,11 @@ const _abi = [
         name: "_vault",
         type: "address",
       },
+      {
+        internalType: "address",
+        name: "_pool",
+        type: "address",
+      },
     ],
     stateMutability: "nonpayable",
     type: "function",

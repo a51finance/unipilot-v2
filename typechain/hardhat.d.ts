@@ -65,9 +65,17 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions,
     ): Promise<Contracts.IUniswapV3PoolState__factory>;
     getContractFactory(
+      name: "IOracle",
+      signerOrOptions?: ethers.Signer | FactoryOptions,
+    ): Promise<Contracts.IOracle__factory>;
+    getContractFactory(
       name: "PeripheryPayments",
       signerOrOptions?: ethers.Signer | FactoryOptions,
     ): Promise<Contracts.PeripheryPayments__factory>;
+    getContractFactory(
+      name: "UniStrategy",
+      signerOrOptions?: ethers.Signer | FactoryOptions,
+    ): Promise<Contracts.UniStrategy__factory>;
     getContractFactory(
       name: "IERC1271",
       signerOrOptions?: ethers.Signer | FactoryOptions,
@@ -92,6 +100,10 @@ declare module "hardhat/types/runtime" {
       name: "IUnipilotVault",
       signerOrOptions?: ethers.Signer | FactoryOptions,
     ): Promise<Contracts.IUnipilotVault__factory>;
+    getContractFactory(
+      name: "IUniStrategy",
+      signerOrOptions?: ethers.Signer | FactoryOptions,
+    ): Promise<Contracts.IUniStrategy__factory>;
     getContractFactory(
       name: "UnipilotMaths",
       signerOrOptions?: ethers.Signer | FactoryOptions,
@@ -207,10 +219,20 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer,
     ): Promise<Contracts.IUniswapV3PoolState>;
     getContractAt(
+      name: "IOracle",
+      address: string,
+      signer?: ethers.Signer,
+    ): Promise<Contracts.IOracle>;
+    getContractAt(
       name: "PeripheryPayments",
       address: string,
       signer?: ethers.Signer,
     ): Promise<Contracts.PeripheryPayments>;
+    getContractAt(
+      name: "UniStrategy",
+      address: string,
+      signer?: ethers.Signer,
+    ): Promise<Contracts.UniStrategy>;
     getContractAt(
       name: "IERC1271",
       address: string,
@@ -241,6 +263,11 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer,
     ): Promise<Contracts.IUnipilotVault>;
+    getContractAt(
+      name: "IUniStrategy",
+      address: string,
+      signer?: ethers.Signer,
+    ): Promise<Contracts.IUniStrategy>;
     getContractAt(
       name: "UnipilotMaths",
       address: string,

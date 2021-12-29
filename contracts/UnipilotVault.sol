@@ -10,6 +10,8 @@ import "./base/PeripheryPayments.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 import "./interfaces/IUnipilotVault.sol";
+import "./interfaces/IUniStrategy.sol";
+
 import "./libraries/UnipilotMaths.sol";
 
 contract UnipilotVault is
@@ -23,14 +25,16 @@ contract UnipilotVault is
     address public token1;
     IUniswapV3Pool private pool;
     address public governance;
-    address private router;
+    address private strategy;
     uint256 public fee;
     uint256 public totalAmount0;
     uint256 public totalAmount1;
     int24 private baseTickLower;
     int24 private baseTickUpper;
-    int24 private rangeTickLower;
-    int24 private rangeTickUpper;
+    int24 private askTickLower;
+    int24 private askTickUpper;
+    int24 private bidTickLower;
+    int24 private bidTickUpper;
 
     //mappings
     // mapping(address=>UserPosition) public userPosition;
@@ -40,23 +44,28 @@ contract UnipilotVault is
         _;
     }
 
-    modifier onlyRouter() {
-        require(msg.sender == router, "NR");
-        _;
-    }
-
     constructor(
         address _governance,
         address _pool,
+        address _strategy,
         string memory _name,
         string memory _symbol
     ) ERC20Permit(_name) ERC20(_name, _symbol) {
         governance = _governance;
-        pool = IUniswapV3Pool(_pool);
-        initializeVault(pool);
+        strategy = _strategy;
+        initializeVault(_pool);
     }
 
-    function initializeVault(IUniswapV3Pool pool) internal {
+    function initializeVault(address _pool) internal {
+        (
+            baseTickLower,
+            baseTickUpper,
+            bidTickLower,
+            bidTickUpper,
+            askTickLower,
+            askTickUpper
+        ) = IUniStrategy(strategy).getTicks(_pool);
+        pool = IUniswapV3Pool(_pool);
         token0 = pool.token0();
         token1 = pool.token1();
         fee = pool.fee();

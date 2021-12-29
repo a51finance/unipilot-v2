@@ -29,13 +29,16 @@ contract UnipilotDeployer is IUnipilotDeployer {
     function deploy(
         address _governance,
         address _pool,
+        address _uniStrategy,
         string memory _name,
         string memory _symbol
     ) internal returns (address _vault) {
         _vault = address(
             new UnipilotVault{
-                salt: keccak256(abi.encode(_governance, _pool, _name, _symbol))
-            }(_governance, _pool, _name, _symbol)
+                salt: keccak256(
+                    abi.encode(_governance, _pool, _uniStrategy, _name, _symbol)
+                )
+            }(_governance, _pool, _uniStrategy, _name, _symbol)
         );
     }
 }

@@ -12,10 +12,16 @@ import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 contract UnipilotFactory is IUnipilotFactory {
     address public override governance;
     address private uniswapFactory;
+    address private uniStrategy;
 
-    constructor(address _uniswapFactory, address _governance) {
+    constructor(
+        address _uniswapFactory,
+        address _governance,
+        address _uniStrategy
+    ) {
         governance = _governance;
         uniswapFactory = _uniswapFactory;
+        uniStrategy = _uniStrategy;
     }
 
     mapping(address => mapping(address => mapping(uint24 => address)))
@@ -34,7 +40,7 @@ contract UnipilotFactory is IUnipilotFactory {
         uint160 _sqrtPriceX96,
         string memory _name,
         string memory _symbol
-    ) external override returns (address _vault) {
+    ) external override returns (address _vault, address _pool) {
         require(_tokenA != _tokenB, "TE");
         (address token0, address token1) = _tokenA < _tokenB
             ? (_tokenA, _tokenB)
@@ -53,7 +59,16 @@ contract UnipilotFactory is IUnipilotFactory {
             );
             IUniswapV3Pool(pool).initialize(_sqrtPriceX96);
         }
-        _vault = _deploy(token0, token1, _fee, pool, _name, _symbol);
+        _pool = pool;
+        _vault = _deploy(
+            token0,
+            token1,
+            _fee,
+            pool,
+            uniStrategy,
+            _name,
+            _symbol
+        );
         vaults[token0][token1][_fee] = _vault;
         emit VaultCreated(token0, token1, _fee);
     }
@@ -83,13 +98,14 @@ contract UnipilotFactory is IUnipilotFactory {
         address _tokenB,
         uint24 _fee,
         address _pool,
+        address _unistrategy,
         string memory _name,
         string memory _symbol
     ) private returns (address _vault) {
         _vault = address(
             new UnipilotVault{
                 salt: keccak256(abi.encode(_tokenA, _tokenB, _fee))
-            }(governance, _pool, _name, _symbol)
+            }(governance, _pool, _unistrategy, _name, _symbol)
         );
     }
 }
