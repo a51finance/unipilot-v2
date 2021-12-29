@@ -25,14 +25,15 @@ contract UnipilotVault is
     address public governance;
     address private router;
     uint256 public fee;
-    uint256 private amount0;
-    uint256 private amount1;
+    uint256 public totalAmount0;
+    uint256 public totalAmount1;
     int24 private baseTickLower;
     int24 private baseTickUpper;
     int24 private rangeTickLower;
     int24 private rangeTickUpper;
 
     //mappings
+    // mapping(address=>UserPosition) public userPosition;
     //modifiers
     modifier onlyGovernance() {
         require(msg.sender == governance, "NG");
@@ -62,28 +63,28 @@ contract UnipilotVault is
     }
 
     function deposit(
-        address depositor,
-        address recipient,
-        uint256 amount0,
-        uint256 amount1
+        address _depositor,
+        address _recipient,
+        uint256 _amount0Desired,
+        uint256 _amount1Desired
     ) external override returns (uint256 lpShares) {
-        uint256 currentPrice = UnipilotMaths.getCurrentPrice(
-            UnipilotMaths.currentTick(pool)
+        require(_amount0Desired > 0 && _amount1Desired > 0, "IL");
+        require(_depositor != address(0) && _recipient != address(0), "IA");
+        lpShares = UnipilotMaths.getShares(
+            totalAmount0,
+            totalAmount1,
+            totalSupply(),
+            _amount0Desired,
+            _amount1Desired
         );
-        uint256 token0PriceInToken1 = FullMath.mulDiv(
-            amount0,
-            currentPrice,
-            UnipilotMaths.PRECISION
-        );
-        lpShares = amount1.add(token0PriceInToken1);
 
-        _mint(recipient, lpShares);
+        _mint(_recipient, lpShares);
 
-        pay(token0, depositor, address(this), amount0);
+        pay(token0, _depositor, address(this), _amount0Desired);
 
-        pay(token1, depositor, address(this), amount1);
+        pay(token1, _depositor, address(this), _amount1Desired);
 
-        emit Deposit(depositor, amount0, amount1, lpShares);
+        emit Deposit(_depositor, _amount0Desired, _amount1Desired, lpShares);
     }
 
     function getVaultInfo()
