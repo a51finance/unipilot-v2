@@ -174,7 +174,7 @@ export class IUnipilotFactory extends BaseContract {
       _name: string,
       _symbol: string,
       overrides?: CallOverrides,
-    ): Promise<string>;
+    ): Promise<[string, string] & { _vault: string; _pool: string }>;
 
     getVaults(
       _tokenA: string,

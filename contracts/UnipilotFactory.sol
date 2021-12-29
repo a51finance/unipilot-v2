@@ -34,7 +34,7 @@ contract UnipilotFactory is IUnipilotFactory {
         uint160 _sqrtPriceX96,
         string memory _name,
         string memory _symbol
-    ) external override returns (address _vault) {
+    ) external override returns (address _vault, address _pool) {
         require(_tokenA != _tokenB, "TE");
         (address token0, address token1) = _tokenA < _tokenB
             ? (_tokenA, _tokenB)
@@ -54,6 +54,7 @@ contract UnipilotFactory is IUnipilotFactory {
             IUniswapV3Pool(pool).initialize(_sqrtPriceX96);
         }
         _vault = _deploy(token0, token1, _fee, pool, _name, _symbol);
+        _pool = pool;
         vaults[token0][token1][_fee] = _vault;
         emit VaultCreated(token0, token1, _fee);
     }
