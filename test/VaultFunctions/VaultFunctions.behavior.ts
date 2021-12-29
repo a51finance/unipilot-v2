@@ -23,20 +23,22 @@ export async function shouldBehaveLikeVaultFunctions(
     console.log("Vault name", (await vault.name()).toString());
     console.log("Vault symbol", (await vault.symbol()).toString());
     console.log("Vault supply", (await vault.totalSupply()).toString());
-    expect(
-      await vault.deposit(
-        wallets[0].address,
-        wallets[0].address,
-        parseUnits("2", "18"),
-        parseUnits("2", "18"),
-      ),
+    let simulatedLpShares = await getShares(
+      parseUnits("2", "18"),
+      parseUnits("2", "18"),
+      vault,
     );
-    // let simulatedLpShares = await getShares(
-    //   parseUnits("2", "18"),
-    //   parseUnits("2", "18"),
-    //   vault,
-    // );
-    // expect(lpShares).to.be.equal(simulatedLpShares.toString());
+
+    let lpShares = (
+      await vault.callStatic.deposit(
+        wallets[0].address,
+        wallets[0].address,
+        parseUnits("2", "18"),
+        parseUnits("2", "18"),
+      )
+    ).toString();
+
+    expect(lpShares).to.be.equal(simulatedLpShares.toString());
   });
 }
 
@@ -50,9 +52,8 @@ async function getShares(
   let totalAmount1 = await vault.totalAmount1();
   let lpShares: any;
   if (totalSupply == 0) {
-    lpShares = amount0Desired
-      ? amount0Desired > amount1Desired
-      : amount1Desired;
+    lpShares =
+      amount0Desired > amount1Desired ? amount0Desired : amount1Desired;
     console.log("INSIDE SIMULATED GET SHARES", lpShares);
   } else if (totalAmount0 == 0) {
     lpShares = (amount1Desired * totalSupply) / totalAmount1;
