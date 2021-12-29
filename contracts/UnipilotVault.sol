@@ -35,7 +35,7 @@ contract UnipilotVault is
     int24 private askTickUpper;
     int24 private bidTickLower;
     int24 private bidTickUpper;
-
+    address private router = 0x0000000000000000000000000000000000000000;
     //mappings
     // mapping(address=>UserPosition) public userPosition;
     //modifiers
@@ -88,11 +88,11 @@ contract UnipilotVault is
         );
 
         _mint(_recipient, lpShares);
+        if (msg.sender != router) {
+            pay(token0, _depositor, address(this), _amount0Desired);
 
-        pay(token0, _depositor, address(this), _amount0Desired);
-
-        pay(token1, _depositor, address(this), _amount1Desired);
-
+            pay(token1, _depositor, address(this), _amount1Desired);
+        }
         emit Deposit(_depositor, _amount0Desired, _amount1Desired, lpShares);
     }
 

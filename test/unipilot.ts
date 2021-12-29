@@ -71,8 +71,8 @@ describe("Initializing the testing suite", async () => {
       "42951287100",
     );
     // mockVault = await deployUnipilotVault(wallet0, pool, uniStrategy.address);
-    // await PILOT.approve(mockVault.address, MaxUint256);
-    // await USDT.approve(mockVault.address, MaxUint256);
+    await PILOT.approve(mockVault.address, MaxUint256);
+    await USDT.approve(mockVault.address, MaxUint256);
     // // lpShares = await mockVault.deposit(
     // //   wallet0.address,
     // //   wallet0.address,
