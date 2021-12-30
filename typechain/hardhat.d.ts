@@ -81,10 +81,6 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions,
     ): Promise<Contracts.IWETH9__factory>;
     getContractFactory(
-      name: "IUnipilotDeployer",
-      signerOrOptions?: ethers.Signer | FactoryOptions,
-    ): Promise<Contracts.IUnipilotDeployer__factory>;
-    getContractFactory(
       name: "IUnipilotFactory",
       signerOrOptions?: ethers.Signer | FactoryOptions,
     ): Promise<Contracts.IUnipilotFactory__factory>;
@@ -124,10 +120,6 @@ declare module "hardhat/types/runtime" {
       name: "UnipilotTokenProxy",
       signerOrOptions?: ethers.Signer | FactoryOptions,
     ): Promise<Contracts.UnipilotTokenProxy__factory>;
-    getContractFactory(
-      name: "UnipilotDeployer",
-      signerOrOptions?: ethers.Signer | FactoryOptions,
-    ): Promise<Contracts.UnipilotDeployer__factory>;
     getContractFactory(
       name: "UnipilotFactory",
       signerOrOptions?: ethers.Signer | FactoryOptions,
@@ -227,11 +219,6 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer,
     ): Promise<Contracts.IWETH9>;
     getContractAt(
-      name: "IUnipilotDeployer",
-      address: string,
-      signer?: ethers.Signer,
-    ): Promise<Contracts.IUnipilotDeployer>;
-    getContractAt(
       name: "IUnipilotFactory",
       address: string,
       signer?: ethers.Signer,
@@ -281,11 +268,6 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer,
     ): Promise<Contracts.UnipilotTokenProxy>;
-    getContractAt(
-      name: "UnipilotDeployer",
-      address: string,
-      signer?: ethers.Signer,
-    ): Promise<Contracts.UnipilotDeployer>;
     getContractAt(
       name: "UnipilotFactory",
       address: string,
