@@ -16,9 +16,9 @@ export async function shouleBehaveLikePilotFactory(
   const alice = wallets[1];
   it("Governance: it should pass reason: as the governance is wallet[0]", async () => {
     // console.log("governance address", governanceAddress, governance.address);
-    await expect(
-      await UnipilotFactory.connect(wallets[3]).governance(),
-    ).to.equal(governance.address);
+    expect(await UnipilotFactory.connect(wallets[0]).governance()).to.equal(
+      governance.address,
+    );
   });
 
   it("Governance: it should pass  reason: as it is not governance address", async () => {
@@ -56,16 +56,26 @@ export async function shouleBehaveLikePilotFactory(
   //   ).to.be.revertedWith("NG");
   // });
 
-  it("Vault deployent(cool shit): Will deploy new vault of a uniswap pool", async () => {
-    await expect(
-      await UnipilotFactory.connect(governance).createVault(
-        WETH9.address,
-        PILOT.address,
-        3000,
-        128,
-        "unipilot PILOT-WETH",
-        "PILOT-WETH",
-      ),
-    ).to.be.ok;
+  it("Vault deployment(cool shit): Will deploy new vault of a uniswap pool", async () => {
+    const vaultStatic = await UnipilotFactory.connect(
+      governance,
+    ).callStatic.createVault(
+      WETH9.address,
+      PILOT.address,
+      3000,
+      42951287100,
+      "unipilot PILOT-WETH",
+      "PILOT-WETH",
+    );
+    console.log("Create Vault", vaultStatic._pool.toString());
+    const vault = await UnipilotFactory.connect(governance).createVault(
+      WETH9.address,
+      PILOT.address,
+      3000,
+      42951287100,
+      "unipilot PILOT-WETH",
+      "PILOT-WETH",
+    );
+    await expect(vault).to.be.ok;
   });
 }

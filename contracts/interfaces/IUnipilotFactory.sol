@@ -21,7 +21,7 @@ interface IUnipilotFactory {
         uint160 _sqrtPriceX96,
         string memory _name,
         string memory _symbol
-    ) external returns (address _vault);
+    ) external returns (address _vault, address _pool);
 
     function getVaults(
         address _tokenA,

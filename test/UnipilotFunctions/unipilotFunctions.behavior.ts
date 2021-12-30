@@ -35,11 +35,11 @@ export async function shouldBehaveLikeUnipilotFunctions(
   //   shouldBehaveLikeUnipilotRouterFunctions(wallets, UnipilotRouter);
   // });
 
-  describe("Testing Unipilot Vault", async () => {
-    await shouldBehaveLikeVaultFunctions(
-      wallets,
-      UnipilotVault,
-      UniswapV3Factory,
-    );
-  });
+  // describe("Testing Unipilot Vault", async () => {
+  //   await shouldBehaveLikeVaultFunctions(
+  //     wallets,
+  //     UnipilotVault,
+  //     UniswapV3Factory,
+  //   );
+  // });
 }

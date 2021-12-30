@@ -21,8 +21,8 @@ export interface IUnipilotFactoryInterface extends utils.Interface {
   functions: {
     "createVault(address,address,uint24,uint160,string,string)": FunctionFragment;
     "getVaults(address,address,uint24)": FunctionFragment;
-    "owner()": FunctionFragment;
-    "setOwner(address)": FunctionFragment;
+    "governance()": FunctionFragment;
+    "setGovernance(address)": FunctionFragment;
   };
 
   encodeFunctionData(
@@ -33,32 +33,42 @@ export interface IUnipilotFactoryInterface extends utils.Interface {
     functionFragment: "getVaults",
     values: [string, string, BigNumberish],
   ): string;
-  encodeFunctionData(functionFragment: "owner", values?: undefined): string;
-  encodeFunctionData(functionFragment: "setOwner", values: [string]): string;
+  encodeFunctionData(
+    functionFragment: "governance",
+    values?: undefined,
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setGovernance",
+    values: [string],
+  ): string;
 
   decodeFunctionResult(
     functionFragment: "createVault",
     data: BytesLike,
   ): Result;
   decodeFunctionResult(functionFragment: "getVaults", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "setOwner", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "governance", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "setGovernance",
+    data: BytesLike,
+  ): Result;
 
   events: {
-    "OwnerChanged(address,address)": EventFragment;
+    "GovernanceChanged(address,address)": EventFragment;
     "VaultCreated(address,address,uint24)": EventFragment;
   };
 
-  getEvent(nameOrSignatureOrTopic: "OwnerChanged"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "GovernanceChanged"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "VaultCreated"): EventFragment;
 }
 
-export type OwnerChangedEvent = TypedEvent<
+export type GovernanceChangedEvent = TypedEvent<
   [string, string],
-  { _oldOwner: string; _newOwner: string }
+  { _oldGovernance: string; _newGovernance: string }
 >;
 
-export type OwnerChangedEventFilter = TypedEventFilter<OwnerChangedEvent>;
+export type GovernanceChangedEventFilter =
+  TypedEventFilter<GovernanceChangedEvent>;
 
 export type VaultCreatedEvent = TypedEvent<
   [string, string, number],
@@ -111,10 +121,10 @@ export interface IUnipilotFactory extends BaseContract {
       overrides?: CallOverrides,
     ): Promise<[string] & { _vault: string }>;
 
-    owner(overrides?: CallOverrides): Promise<[string]>;
+    governance(overrides?: CallOverrides): Promise<[string]>;
 
-    setOwner(
-      _newOwner: string,
+    setGovernance(
+      _newGovernance: string,
       overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
   };
@@ -136,10 +146,10 @@ export interface IUnipilotFactory extends BaseContract {
     overrides?: CallOverrides,
   ): Promise<string>;
 
-  owner(overrides?: CallOverrides): Promise<string>;
+  governance(overrides?: CallOverrides): Promise<string>;
 
-  setOwner(
-    _newOwner: string,
+  setGovernance(
+    _newGovernance: string,
     overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
@@ -152,7 +162,7 @@ export interface IUnipilotFactory extends BaseContract {
       _name: string,
       _symbol: string,
       overrides?: CallOverrides,
-    ): Promise<string>;
+    ): Promise<[string, string] & { _vault: string; _pool: string }>;
 
     getVaults(
       _tokenA: string,
@@ -161,20 +171,23 @@ export interface IUnipilotFactory extends BaseContract {
       overrides?: CallOverrides,
     ): Promise<string>;
 
-    owner(overrides?: CallOverrides): Promise<string>;
+    governance(overrides?: CallOverrides): Promise<string>;
 
-    setOwner(_newOwner: string, overrides?: CallOverrides): Promise<void>;
+    setGovernance(
+      _newGovernance: string,
+      overrides?: CallOverrides,
+    ): Promise<void>;
   };
 
   filters: {
-    "OwnerChanged(address,address)"(
-      _oldOwner?: string | null,
-      _newOwner?: string | null,
-    ): OwnerChangedEventFilter;
-    OwnerChanged(
-      _oldOwner?: string | null,
-      _newOwner?: string | null,
-    ): OwnerChangedEventFilter;
+    "GovernanceChanged(address,address)"(
+      _oldGovernance?: string | null,
+      _newGovernance?: string | null,
+    ): GovernanceChangedEventFilter;
+    GovernanceChanged(
+      _oldGovernance?: string | null,
+      _newGovernance?: string | null,
+    ): GovernanceChangedEventFilter;
 
     "VaultCreated(address,address,uint24)"(
       _tokenA?: string | null,
@@ -206,10 +219,10 @@ export interface IUnipilotFactory extends BaseContract {
       overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
-    owner(overrides?: CallOverrides): Promise<BigNumber>;
+    governance(overrides?: CallOverrides): Promise<BigNumber>;
 
-    setOwner(
-      _newOwner: string,
+    setGovernance(
+      _newGovernance: string,
       overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
   };
@@ -232,10 +245,10 @@ export interface IUnipilotFactory extends BaseContract {
       overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
-    owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    governance(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    setOwner(
-      _newOwner: string,
+    setGovernance(
+      _newGovernance: string,
       overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
   };

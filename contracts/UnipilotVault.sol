@@ -5,6 +5,8 @@ pragma solidity ^0.7.6;
 import "./base/PeripheryPayments.sol";
 
 import "./interfaces/IUnipilotVault.sol";
+import "./interfaces/IUniStrategy.sol";
+
 import "./libraries/UnipilotMaths.sol";
 import "./libraries/UniswapPoolActions.sol";
 import "./libraries/SafeCast.sol";
@@ -29,73 +31,81 @@ contract UnipilotVault is
     IERC20 private token0;
     IERC20 private token1;
     IUniswapV3Pool private pool;
+    address private strategy;
     address public governance;
+
+    address private router = 0x0000000000000000000000000000000000000000;
 
     address private router;
     uint256 private fee;
-    uint256 private amount0;
-    uint256 private amount1;
+    uint256 private totalAmount0;
+    uint256 private totalAmount1;
 
     int24 private baseTickLower;
     int24 private baseTickUpper;
-    int24 private rangeTickLower;
-    int24 private rangeTickUpper;
+    int24 private askTickLower;
+    int24 private askTickUpper;
+    int24 private bidTickLower;
+    int24 private bidTickUpper;
     int24 private tickSpacing;
 
-    //mappings
-    //modifiers
     modifier onlyGovernance() {
         require(msg.sender == governance, "NG");
-        _;
-    }
-
-    modifier onlyRouter() {
-        require(msg.sender == router, "NR");
         _;
     }
 
     constructor(
         address _governance,
         address _pool,
+        address _strategy,
         string memory _name,
         string memory _symbol
     ) ERC20Permit(_name) ERC20(_name, _symbol) {
         governance = _governance;
-        pool = IUniswapV3Pool(_pool);
-        initializeVault(pool);
+        strategy = _strategy;
+        initializeVault(_pool);
     }
 
-    function initializeVault(IUniswapV3Pool pool) private {
-        token0 = IERC20(pool.token0());
-        token1 = IERC20(pool.token1());
+    function initializeVault(address _pool) internal {
+        (
+            baseTickLower,
+            baseTickUpper,
+            bidTickLower,
+            bidTickUpper,
+            askTickLower,
+            askTickUpper
+        ) = IUniStrategy(strategy).getTicks(_pool);
+        pool = IUniswapV3Pool(_pool);
+        token0 = pool.token0();
+        token1 = pool.token1();
         fee = pool.fee();
         tickSpacing = pool.tickSpacing();
     }
 
     function deposit(
-        address depositor,
-        address recipient,
-        uint256 amount0,
-        uint256 amount1
+        address _depositor,
+        address _recipient,
+        uint256 _amount0Desired,
+        uint256 _amount1Desired
     ) external override returns (uint256 lpShares) {
-        uint256 currentPrice = UnipilotMaths.getCurrentPrice(
-            UnipilotMaths.currentTick(pool)
+        require(_amount0Desired > 0 && _amount1Desired > 0, "IL");
+        require(_depositor != address(0) && _recipient != address(0), "IA");
+
+        lpShares = UnipilotMaths.getShares(
+            totalAmount0,
+            totalAmount1,
+            totalSupply(),
+            _amount0Desired,
+            _amount1Desired
         );
 
-        uint256 token0PriceInToken1 = FullMath.mulDiv(
-            amount0,
-            currentPrice,
-            UnipilotMaths.PRECISION
-        );
+        if (msg.sender != router) {
+            pay(token0, _depositor, address(this), _amount0Desired);
+            pay(token1, _depositor, address(this), _amount1Desired);
+        }
 
-        lpShares = amount1.add(token0PriceInToken1);
-
-        pay(address(token0), depositor, address(this), amount0);
-        pay(address(token1), depositor, address(this), amount1);
-
-        _mint(recipient, lpShares);
-
-        emit Deposit(depositor, amount0, amount1, lpShares);
+        _mint(_recipient, lpShares);
+        emit Deposit(_depositor, _amount0Desired, _amount1Desired, lpShares);
     }
 
     function readjustLiquidity(int24 baseThreshold, address indexFund)
