@@ -2,14 +2,14 @@
 pragma solidity >=0.5.0;
 
 import "./SafeCastExtended.sol";
-import "./UniswapLiquidityManagment.sol";
+import "./UniswapLiquidityManagement.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 
 /// @title Liquidity and ticks functions
 /// @notice Provides functions for computing liquidity and ticks for token amounts and prices
 library UniswapPoolActions {
     using SafeCastExtended for uint256;
-    using UniswapLiquidityManagment for IUniswapV3Pool;
+    using UniswapLiquidityManagement for IUniswapV3Pool;
 
     function updatePosition(
         IUniswapV3Pool pool,

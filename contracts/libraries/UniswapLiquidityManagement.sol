@@ -10,7 +10,7 @@ import "@uniswap/v3-periphery/contracts/libraries/PositionKey.sol";
 
 /// @title Liquidity and ticks functions
 /// @notice Provides functions for computing liquidity and ticks for token amounts and prices
-library UniswapLiquidityManagment {
+library UniswapLiquidityManagement {
     using LowGasSafeMath for uint256;
 
     struct Info {
