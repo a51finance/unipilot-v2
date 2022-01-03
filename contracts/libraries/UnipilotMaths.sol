@@ -53,4 +53,26 @@ library UnipilotMaths {
             shares = cross.mul(totalSupply).div(totalAmount0).div(totalAmount1);
         }
     }
+
+    function _position(
+        IUniswapV3Pool pool,
+        address vaultAddress,
+        int24 lower,
+        int24 upper
+    )
+        internal
+        view
+        returns (
+            uint128, // liquidity
+            uint256, // feeGrowthInside0LastX128
+            uint256, // feeGrowthInside1LastX128
+            uint128, // tokensOwed0
+            uint128 // tokensOwed1
+        )
+    {
+        return
+            pool.positions(
+                keccak256(abi.encodePacked(vaultAddress, lower, upper))
+            );
+    }
 }
