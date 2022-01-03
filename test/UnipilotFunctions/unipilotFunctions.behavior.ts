@@ -15,6 +15,7 @@ export async function shouldBehaveLikeUnipilotFunctions(
   UnipilotRouter: Contract,
   WETH9: Contract,
   PILOT: Contract,
+  USDT: Contract,
   pool: string,
 ): Promise<void> {
   // describe("Testing the UnipilotFactory !!", async () => {
@@ -33,7 +34,14 @@ export async function shouldBehaveLikeUnipilotFunctions(
   });
 
   describe("Testing the UnipilotRouter !!", async () => {
-    shouldBehaveLikeUnipilotRouterFunctions(wallets, UnipilotRouter, pool);
+    await shouldBehaveLikeUnipilotRouterFunctions(
+      wallets,
+      UniswapV3Factory,
+      UnipilotRouter,
+      UnipilotVault,
+      PILOT,
+      USDT,
+    );
   });
 
   // describe("Testing Unipilot Vault", async () => {

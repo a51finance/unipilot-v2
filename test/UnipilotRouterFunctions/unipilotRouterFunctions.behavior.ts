@@ -1,16 +1,16 @@
-import { AbiCoder } from "@ethersproject/abi";
 import { parseUnits } from "@ethersproject/units";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { Contract } from "ethers";
-import { deployPilot, deployToken } from "../TokenDeployer/TokenStubs";
-import { ApprovalForContract, Mint } from "./helper/Mint";
+import { MaxUint256 } from "@ethersproject/constants";
 const { expect } = require("chai");
 
 export async function shouldBehaveLikeUnipilotRouterFunctions(
   wallets: SignerWithAddress[],
-  // UniswapFactory: Contract,
+  UniswapV3Factory: Contract,
   UnipilotRouter: Contract,
-  vault: String,
+  UnipilotVault: Contract,
+  PILOT: Contract,
+  USDT: Contract,
 ): Promise<void> {
   const owner = wallets[0];
   const alice = wallets[1];
@@ -28,20 +28,33 @@ export async function shouldBehaveLikeUnipilotRouterFunctions(
   });
 
   it("Deposit: it should be pass", async () => {
-    let pilot: Contract = await deployPilot(owner);
-    let usdt: Contract = await deployToken(owner, "Tether Stable", "USDT", 6);
+    // console.log(
+    //   "Token o Alice Balance : ",
+    //   await PILOT.balanceOf(owner.address),
+    // );
 
-    Mint(pilot, usdt, alice, 1000, 1);
-    ApprovalForContract(pilot, UnipilotRouter.address, 1000);
-    ApprovalForContract(usdt, UnipilotRouter.address, 1);
+    await PILOT.connect(owner).approve(UnipilotRouter.address, MaxUint256);
+    await USDT.connect(owner).approve(UnipilotRouter.address, MaxUint256);
 
-    await expect(
-      UnipilotRouter.connect(alice).deposit(
-        vault,
-        alice.address,
-        parseUnits("1000", "18"),
-        parseUnits("1", "6"),
-      ),
-    ).to.be.ok;
+    // console.log(
+    //   "Allowance pilot",
+    //   await PILOT.allowance(owner.address, UnipilotRouter.address),
+    // );
+
+    // let staticCall = await UnipilotRouter.connect(owner).callStatic.deposit(
+    //   UnipilotVault.address,
+    //   alice.address,
+    //   parseUnits("1000", "18"),
+    //   parseUnits("1", "6"),
+    // );
+
+    let result = await UnipilotRouter.connect(owner).deposit(
+      UnipilotVault.address,
+      alice.address,
+      parseUnits("1000", "18"),
+      parseUnits("1", "6"),
+    );
+
+    expect(result).to.be.ok;
   });
 }

@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20Burnable.sol";
 import "@openzeppelin/contracts/drafts/ERC20Permit.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./base/PeripheryPayments.sol";
+import "hardhat/console.sol";
 
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
@@ -97,6 +98,7 @@ contract UnipilotVault is
             uint256
         )
     {
+        console.log("Calling Vault",token0,fee);
         return (token0, token1, fee);
     }
 }

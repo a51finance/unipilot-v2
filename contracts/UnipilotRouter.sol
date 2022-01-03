@@ -2,9 +2,11 @@ pragma solidity ^0.7.6;
 
 import "./interfaces/IUnipilotFactory.sol";
 import "./interfaces/IUnipilotVault.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "./base/PeripheryPayments.sol";
 
-contract UnipilotRouter {
+import "hardhat/console.sol";
+
+contract UnipilotRouter is PeripheryPayments {
     address public unipilotFactory;
 
     constructor(address _unipilotFactory) {
@@ -18,12 +20,13 @@ contract UnipilotRouter {
         uint256 _amount1
     ) external returns (uint256 lpShares) {
         require(_vault != address(0) && _recipient != address(0), "NA");
+        require(_amount0 > 0 && _amount1 > 0, "IF");
 
         (address token0, address token1, uint256 fee) = IUnipilotVault(_vault)
             .getVaultInfo();
 
-        IERC20(token0).transferFrom(msg.sender, _vault,_amount0);
-        IERC20(token1).transferFrom(msg.sender, _vault,_amount1);
+        pay(token0, msg.sender, _vault, _amount0);
+        pay(token1, msg.sender, _vault, _amount1); 
 
         lpShares = IUnipilotVault(_vault).deposit(
             msg.sender,

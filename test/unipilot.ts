@@ -77,7 +77,6 @@ describe("Initializing the testing suite", async () => {
     //   parseUnits("2", "18"),
     // );
     vaultSupply = await mockVault.totalSupply();
-    walletVaultSupply = await mockVault.balanceOf(wallet0.address);
 
     unipilotRouter = await deployUnipilotRouter(wallet0);
     // await shouldBehaveLikeTokenApproval(PILOT, mockVault.address);
@@ -113,10 +112,11 @@ describe("Initializing the testing suite", async () => {
         wallets,
         unipilotFactory,
         mockVault,
-        uniswapV3Factory,
+        uniswapV3Factory, 
         unipilotRouter,
         WETH9,
         PILOT,
+        USDT,
         pool,
       );
     });

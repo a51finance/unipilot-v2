@@ -49,8 +49,7 @@ library UnipilotMaths {
                 amount0Desired.mul(totalAmount1),
                 amount1Desired.mul(totalAmount0)
             );
-            require(cross > 0, "CRS");
-            shares = cross.mul(totalSupply).div(totalAmount0).div(totalAmount1);
+             
         }
     }
 }

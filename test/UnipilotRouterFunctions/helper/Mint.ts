@@ -1,12 +1,10 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { Contract } from "ethers";
+import { BigNumber, Contract } from "ethers";
 
 export async function Mint(
-  token0: Contract,
-  token1: Contract,
+  token: Contract,
   recipient: SignerWithAddress,
-  amount1: Number,
-  amount2: Number,
+  amount: BigNumber,
 ) {
   // console.log(
   //   `Contract Address: ${contract.address} + recipient:${recipient} + amount ${amount}`,
@@ -20,17 +18,24 @@ export async function Mint(
 
   // console.log(WETH9);
 
-  await token0.connect(recipient).mint(recipient.address, amount1);
-  console.log(await token0.balanceOf(recipient.address));
-
-  await token1.connect(recipient).mint(recipient.address, amount2);
-  console.log(await token1.balanceOf(recipient.address));
+  await token.connect(recipient)._mint(recipient.address, amount);
+  console.log(
+    "Balance of alice token0",
+    await token.balanceOf(recipient.address),
+  );
 }
 
 export async function ApprovalForContract(
   contract: Contract,
+  sender: SignerWithAddress,
   recipient: String,
-  amount: Number,
+  amount: BigNumber,
 ) {
-  await contract.approve(recipient, amount);
+  let result = await contract.connect(sender).approve(recipient, amount);
+  console.log(
+    "Allowance: ",
+    await contract.allowance(sender.address, recipient),
+  );
+
+  // console.log("Approved:", result.hash);
 }
