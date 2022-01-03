@@ -3,6 +3,7 @@ pragma solidity >=0.5.0;
 
 import "@uniswap/v3-core/contracts/libraries/TickMath.sol";
 import "@uniswap/v3-core/contracts/libraries/LowGasSafeMath.sol";
+import "@uniswap/v3-core/contracts/libraries/SqrtPriceMath.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 import "@uniswap/v3-periphery/contracts/libraries/LiquidityAmounts.sol";
 import "@uniswap/v3-periphery/contracts/libraries/PositionKey.sol";
@@ -11,6 +12,16 @@ import "@uniswap/v3-periphery/contracts/libraries/PositionKey.sol";
 /// @notice Provides functions for computing liquidity and ticks for token amounts and prices
 library UniswapLiquidityManagment {
     using LowGasSafeMath for uint256;
+
+    struct Info {
+        uint256 amount0Desired;
+        uint256 amount1Desired;
+        uint256 amount0;
+        uint256 amount1;
+        uint128 liquidity;
+        int24 tickLower;
+        int24 tickUpper;
+    }
 
     /// @dev Wrapper around `LiquidityAmounts.getAmountsForLiquidity()`.
     /// @param pool Uniswap V3 pool
@@ -99,7 +110,7 @@ library UniswapLiquidityManagment {
     }
 
     /// @dev Calc base ticks depending on base threshold and tickspacing
-    function baseTicks(
+    function getBaseTicks(
         int24 currentTick,
         int24 baseThreshold,
         int24 tickSpacing
@@ -108,5 +119,144 @@ library UniswapLiquidityManagment {
 
         tickLower = tickFloor - baseThreshold;
         tickUpper = tickFloor + baseThreshold;
+    }
+
+    /// @dev Gets ticks with proportion equivalent to desired amount
+    /// @param pool Uniswap V3 pool
+    /// @param amount0Desired The desired amount of token0
+    /// @param amount1Desired The desired amount of token1
+    /// @param baseThreshold The range for upper and lower ticks
+    /// @param tickSpacing The pool tick spacing
+    /// @return tickLower The lower tick of the range
+    /// @return tickUpper The upper tick of the range
+    function getPositionTicks(
+        IUniswapV3Pool pool,
+        uint256 amount0Desired,
+        uint256 amount1Desired,
+        int24 baseThreshold,
+        int24 tickSpacing
+    ) internal view returns (int24 tickLower, int24 tickUpper) {
+        Info memory cache = Info(amount0Desired, amount1Desired, 0, 0, 0, 0, 0);
+        // Get current price and tick from the pool
+        (uint160 sqrtPriceX96, int24 currentTick, , , , , ) = pool.slot0();
+        //Calc base ticks
+        (cache.tickLower, cache.tickUpper) = getBaseTicks(
+            currentTick,
+            baseThreshold,
+            tickSpacing
+        );
+        //Calc amounts of token0 and token1 that can be stored in base range
+        (cache.amount0, cache.amount1) = getAmountsForTicks(
+            pool,
+            cache.amount0Desired,
+            cache.amount1Desired,
+            cache.tickLower,
+            cache.tickUpper
+        );
+        //Liquidity that can be stored in base range
+        cache.liquidity = getLiquidityForAmounts(
+            pool,
+            cache.amount0,
+            cache.amount1,
+            cache.tickLower,
+            cache.tickUpper
+        );
+        //Get imbalanced token
+        bool zeroGreaterOne = amountsDirection(
+            cache.amount0Desired,
+            cache.amount1Desired,
+            cache.amount0,
+            cache.amount1
+        );
+        //Calc new tick(upper or lower) for imbalanced token
+        if (zeroGreaterOne) {
+            uint160 nextSqrtPrice0 = SqrtPriceMath
+                .getNextSqrtPriceFromAmount0RoundingUp(
+                    sqrtPriceX96,
+                    cache.liquidity,
+                    cache.amount0Desired,
+                    false
+                );
+            cache.tickUpper = floor(
+                TickMath.getTickAtSqrtRatio(nextSqrtPrice0),
+                tickSpacing
+            );
+        } else {
+            uint160 nextSqrtPrice1 = SqrtPriceMath
+                .getNextSqrtPriceFromAmount1RoundingDown(
+                    sqrtPriceX96,
+                    cache.liquidity,
+                    cache.amount1Desired,
+                    false
+                );
+
+            cache.tickLower = floor(
+                TickMath.getTickAtSqrtRatio(nextSqrtPrice1),
+                tickSpacing
+            );
+        }
+
+        checkRange(cache.tickLower, cache.tickUpper);
+
+        tickLower = cache.tickLower;
+        tickUpper = cache.tickUpper;
+    }
+
+    /// @dev Gets amounts of token0 and token1 that can be stored in range of upper and lower ticks
+    /// @param pool Uniswap V3 pool
+    /// @param amount0Desired The desired amount of token0
+    /// @param amount1Desired The desired amount of token1
+    /// @param _tickLower The lower tick of the range
+    /// @param _tickUpper The upper tick of the range
+    /// @return amount0 amounts of token0 that can be stored in range
+    /// @return amount1 amounts of token1 that can be stored in range
+    function getAmountsForTicks(
+        IUniswapV3Pool pool,
+        uint256 amount0Desired,
+        uint256 amount1Desired,
+        int24 _tickLower,
+        int24 _tickUpper
+    ) internal view returns (uint256 amount0, uint256 amount1) {
+        uint128 liquidity = getLiquidityForAmounts(
+            pool,
+            amount0Desired,
+            amount1Desired,
+            _tickLower,
+            _tickUpper
+        );
+
+        (amount0, amount1) = getAmountsForLiquidity(
+            pool,
+            liquidity,
+            _tickLower,
+            _tickUpper
+        );
+    }
+
+    /// @dev Common checks for valid tick inputs.
+    /// @param tickLower The lower tick of the range
+    /// @param tickUpper The upper tick of the range
+    function checkRange(int24 tickLower, int24 tickUpper) internal pure {
+        require(tickLower < tickUpper, "TLU");
+        require(tickLower >= TickMath.MIN_TICK, "TLM");
+        require(tickUpper <= TickMath.MAX_TICK, "TUM");
+    }
+
+    /// @dev Get imbalanced token
+    /// @param amount0Desired The desired amount of token0
+    /// @param amount1Desired The desired amount of token1
+    /// @param amount0 Amounts of token0 that can be stored in base range
+    /// @param amount1 Amounts of token1 that can be stored in base range
+    /// @return zeroGreaterOne true if token0 is imbalanced. False if token1 is imbalanced
+    function amountsDirection(
+        uint256 amount0Desired,
+        uint256 amount1Desired,
+        uint256 amount0,
+        uint256 amount1
+    ) internal pure returns (bool zeroGreaterOne) {
+        zeroGreaterOne = amount0Desired.sub(amount0).mul(amount1Desired) >
+            amount1Desired.sub(amount1).mul(amount0Desired)
+            ? true
+            : false;
     }
 }
