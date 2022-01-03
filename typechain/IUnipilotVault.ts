@@ -21,6 +21,8 @@ export interface IUnipilotVaultInterface extends utils.Interface {
   functions: {
     "deposit(address,address,uint256,uint256)": FunctionFragment;
     "getVaultInfo()": FunctionFragment;
+    "uniswapV3MintCallback(uint256,uint256,bytes)": FunctionFragment;
+    "uniswapV3SwapCallback(int256,int256,bytes)": FunctionFragment;
   };
 
   encodeFunctionData(
@@ -31,18 +33,38 @@ export interface IUnipilotVaultInterface extends utils.Interface {
     functionFragment: "getVaultInfo",
     values?: undefined,
   ): string;
+  encodeFunctionData(
+    functionFragment: "uniswapV3MintCallback",
+    values: [BigNumberish, BigNumberish, BytesLike],
+  ): string;
+  encodeFunctionData(
+    functionFragment: "uniswapV3SwapCallback",
+    values: [BigNumberish, BigNumberish, BytesLike],
+  ): string;
 
   decodeFunctionResult(functionFragment: "deposit", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getVaultInfo",
     data: BytesLike,
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "uniswapV3MintCallback",
+    data: BytesLike,
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "uniswapV3SwapCallback",
+    data: BytesLike,
+  ): Result;
 
   events: {
     "Deposit(address,uint256,uint256,uint256)": EventFragment;
+    "FeesSnapshot(int24,uint256,uint256,uint256,uint256,uint256)": EventFragment;
+    "Withdraw(address,address,uint256,uint256,uint256)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "Deposit"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "FeesSnapshot"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Withdraw"): EventFragment;
 }
 
 export type DepositEvent = TypedEvent<
@@ -56,6 +78,33 @@ export type DepositEvent = TypedEvent<
 >;
 
 export type DepositEventFilter = TypedEventFilter<DepositEvent>;
+
+export type FeesSnapshotEvent = TypedEvent<
+  [number, BigNumber, BigNumber, BigNumber, BigNumber, BigNumber],
+  {
+    currentTick: number;
+    fees0: BigNumber;
+    fees1: BigNumber;
+    balance0: BigNumber;
+    balance1: BigNumber;
+    totalSupply: BigNumber;
+  }
+>;
+
+export type FeesSnapshotEventFilter = TypedEventFilter<FeesSnapshotEvent>;
+
+export type WithdrawEvent = TypedEvent<
+  [string, string, BigNumber, BigNumber, BigNumber],
+  {
+    sender: string;
+    recipient: string;
+    shares: BigNumber;
+    amount0: BigNumber;
+    amount1: BigNumber;
+  }
+>;
+
+export type WithdrawEventFilter = TypedEventFilter<WithdrawEvent>;
 
 export interface IUnipilotVault extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
@@ -95,6 +144,20 @@ export interface IUnipilotVault extends BaseContract {
     getVaultInfo(
       overrides?: CallOverrides,
     ): Promise<[string, string, BigNumber]>;
+
+    uniswapV3MintCallback(
+      amount0Owed: BigNumberish,
+      amount1Owed: BigNumberish,
+      data: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> },
+    ): Promise<ContractTransaction>;
+
+    uniswapV3SwapCallback(
+      amount0Delta: BigNumberish,
+      amount1Delta: BigNumberish,
+      data: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> },
+    ): Promise<ContractTransaction>;
   };
 
   deposit(
@@ -106,6 +169,20 @@ export interface IUnipilotVault extends BaseContract {
   ): Promise<ContractTransaction>;
 
   getVaultInfo(overrides?: CallOverrides): Promise<[string, string, BigNumber]>;
+
+  uniswapV3MintCallback(
+    amount0Owed: BigNumberish,
+    amount1Owed: BigNumberish,
+    data: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> },
+  ): Promise<ContractTransaction>;
+
+  uniswapV3SwapCallback(
+    amount0Delta: BigNumberish,
+    amount1Delta: BigNumberish,
+    data: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> },
+  ): Promise<ContractTransaction>;
 
   callStatic: {
     deposit(
@@ -119,6 +196,20 @@ export interface IUnipilotVault extends BaseContract {
     getVaultInfo(
       overrides?: CallOverrides,
     ): Promise<[string, string, BigNumber]>;
+
+    uniswapV3MintCallback(
+      amount0Owed: BigNumberish,
+      amount1Owed: BigNumberish,
+      data: BytesLike,
+      overrides?: CallOverrides,
+    ): Promise<void>;
+
+    uniswapV3SwapCallback(
+      amount0Delta: BigNumberish,
+      amount1Delta: BigNumberish,
+      data: BytesLike,
+      overrides?: CallOverrides,
+    ): Promise<void>;
   };
 
   filters: {
@@ -134,6 +225,38 @@ export interface IUnipilotVault extends BaseContract {
       amount1?: null,
       lpShares?: null,
     ): DepositEventFilter;
+
+    "FeesSnapshot(int24,uint256,uint256,uint256,uint256,uint256)"(
+      currentTick?: null,
+      fees0?: null,
+      fees1?: null,
+      balance0?: null,
+      balance1?: null,
+      totalSupply?: null,
+    ): FeesSnapshotEventFilter;
+    FeesSnapshot(
+      currentTick?: null,
+      fees0?: null,
+      fees1?: null,
+      balance0?: null,
+      balance1?: null,
+      totalSupply?: null,
+    ): FeesSnapshotEventFilter;
+
+    "Withdraw(address,address,uint256,uint256,uint256)"(
+      sender?: string | null,
+      recipient?: string | null,
+      shares?: null,
+      amount0?: null,
+      amount1?: null,
+    ): WithdrawEventFilter;
+    Withdraw(
+      sender?: string | null,
+      recipient?: string | null,
+      shares?: null,
+      amount0?: null,
+      amount1?: null,
+    ): WithdrawEventFilter;
   };
 
   estimateGas: {
@@ -146,6 +269,20 @@ export interface IUnipilotVault extends BaseContract {
     ): Promise<BigNumber>;
 
     getVaultInfo(overrides?: CallOverrides): Promise<BigNumber>;
+
+    uniswapV3MintCallback(
+      amount0Owed: BigNumberish,
+      amount1Owed: BigNumberish,
+      data: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> },
+    ): Promise<BigNumber>;
+
+    uniswapV3SwapCallback(
+      amount0Delta: BigNumberish,
+      amount1Delta: BigNumberish,
+      data: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> },
+    ): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -158,5 +295,19 @@ export interface IUnipilotVault extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     getVaultInfo(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    uniswapV3MintCallback(
+      amount0Owed: BigNumberish,
+      amount1Owed: BigNumberish,
+      data: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> },
+    ): Promise<PopulatedTransaction>;
+
+    uniswapV3SwapCallback(
+      amount0Delta: BigNumberish,
+      amount1Delta: BigNumberish,
+      data: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> },
+    ): Promise<PopulatedTransaction>;
   };
 }
