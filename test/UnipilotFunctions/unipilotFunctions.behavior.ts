@@ -10,10 +10,12 @@ import { shouldBehaveLikeVaultFunctions } from "../VaultFunctions/VaultFunctions
 export async function shouldBehaveLikeUnipilotFunctions(
   wallets: SignerWithAddress[],
   UnipilotFactory: Contract,
-  UnipilotVault: Contract,
+  // UnipilotVault: Contract,
   UniswapV3Factory: Contract,
+  UnipilotRouter: Contract,
   WETH9: Contract,
   PILOT: Contract,
+  USDT: Contract,
   pool: string,
 ): Promise<void> {
   // describe("Testing the UnipilotFactory !!", async () => {
@@ -31,9 +33,15 @@ export async function shouldBehaveLikeUnipilotFunctions(
     );
   });
 
-  // describe("Testing the UnipilotRouter !!", async () => {
-  //   shouldBehaveLikeUnipilotRouterFunctions(wallets, UnipilotRouter);
-  // });
+  describe("Testing the UnipilotRouter !!", async () => {
+    await shouldBehaveLikeUnipilotRouterFunctions(
+      wallets,
+      UnipilotFactory,
+      UnipilotRouter,
+      PILOT,
+      USDT,
+    );
+  });
 
   // describe("Testing Unipilot Vault", async () => {
   //   await shouldBehaveLikeVaultFunctions(

@@ -4,6 +4,7 @@ pragma solidity >=0.5.0;
 import "./SafeCast.sol";
 import "./UniswapLiquidityManagement.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
+import "@uniswap/v3-core/contracts/libraries/FullMath.sol";
 
 /// @title Liquidity and ticks functions
 /// @notice Provides functions for computing liquidity and ticks for token amounts and prices
@@ -15,11 +16,8 @@ library UniswapPoolActions {
         IUniswapV3Pool pool,
         int24 tickLower,
         int24 tickUpper
-    ) internal {
-        (uint128 liquidity, , ) = pool.getPositionLiquidity(
-            tickLower,
-            tickUpper
-        );
+    ) internal returns (uint128 liquidity) {
+        (liquidity, , ) = pool.getPositionLiquidity(tickLower, tickUpper);
 
         if (liquidity > 0) {
             pool.burn(tickLower, tickUpper, 0);

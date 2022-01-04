@@ -105,7 +105,7 @@ contract UnipilotFactory is IUnipilotFactory {
         _vault = address(
             new UnipilotVault{
                 salt: keccak256(abi.encode(_tokenA, _tokenB, _fee))
-            }(governance, _pool, _unistrategy, _name, _symbol)
+            }(governance, address(this), _pool, _unistrategy, _name, _symbol)
         );
     }
 }

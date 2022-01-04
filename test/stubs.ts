@@ -63,8 +63,14 @@ export async function deployUnipilotVault(
   pool: string,
   uniStrategy: string,
 ): Promise<Contract> {
+  // address _governance,
+  // address _pool,
+  // address _strategy,
+  // string memory _name,
+  // string memory _symbol
   let vault: Contract = await deployContract(deployer, VaultArtifact, [
     deployer.address,
+    "0x2A7007d59465F567dB2A6D730D16B874ca2E5c46",
     pool,
     uniStrategy,
     "Vault",
