@@ -21,7 +21,6 @@ contract UnipilotRouter is PeripheryPayments {
     ) external returns (uint256 lpShares) {
         require(_vault != address(0) && _recipient != address(0), "NA");
         require(_amount0 > 0 && _amount1 > 0, "IF");
-
         (address token0, address token1, uint256 fee) = IUnipilotVault(_vault)
             .getVaultInfo();
 

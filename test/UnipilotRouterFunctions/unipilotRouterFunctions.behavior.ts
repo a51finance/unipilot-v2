@@ -6,14 +6,15 @@ const { expect } = require("chai");
 
 export async function shouldBehaveLikeUnipilotRouterFunctions(
   wallets: SignerWithAddress[],
-  UniswapV3Factory: Contract,
+  UnipilotFactory: Contract,
   UnipilotRouter: Contract,
-  UnipilotVault: Contract,
+  // UnipilotVault: Contract,
   PILOT: Contract,
   USDT: Contract,
 ): Promise<void> {
   const owner = wallets[0];
   const alice = wallets[1];
+  let UnipilotVault: String;
 
   it("Deposit: it should be fail  reason: Zero address !!", async () => {
     let _vault: String = "0x0000000000000000000000000000000000000000";
@@ -28,6 +29,28 @@ export async function shouldBehaveLikeUnipilotRouterFunctions(
   });
 
   it("Deposit: it should be pass", async () => {
+    const vaultStatic = await UnipilotFactory.connect(
+      owner,
+    ).callStatic.createVault(
+      PILOT.address,
+      USDT.address,
+      3000,
+      42951287100,
+      "unipilot PILOT-USDT",
+      "PILOT-USDT",
+    );
+    console.log("Create Vault", vaultStatic._pool.toString());
+    UnipilotVault = await UnipilotFactory.connect(owner).createVault(
+      PILOT.address,
+      USDT.address,
+      3000,
+      42951287100,
+      "unipilot PILOT-USDT",
+      "PILOT-USDT",
+    );
+    // console.log("vault deployed address", UnipilotVault);
+    // await expect(vault).to.be.ok;
+
     // console.log(
     //   "Token o Alice Balance : ",
     //   await PILOT.balanceOf(owner.address),
@@ -35,6 +58,8 @@ export async function shouldBehaveLikeUnipilotRouterFunctions(
 
     await PILOT.connect(owner).approve(UnipilotRouter.address, MaxUint256);
     await USDT.connect(owner).approve(UnipilotRouter.address, MaxUint256);
+
+    console.log("Approve done");
 
     // console.log(
     //   "Allowance pilot",
@@ -48,9 +73,18 @@ export async function shouldBehaveLikeUnipilotRouterFunctions(
     //   parseUnits("1", "6"),
     // );
 
-    let result = await UnipilotRouter.connect(owner).deposit(
-      UnipilotVault.address,
-      alice.address,
+    let result = await UnipilotRouter.connect(owner).callStatic.deposit(
+      vaultStatic._vault,
+      owner.address,
+      parseUnits("1000", "18"),
+      parseUnits("1", "6"),
+    );
+
+    console.log("Lp Share", result.toString());
+
+    await UnipilotRouter.connect(owner).deposit(
+      vaultStatic._vault,
+      owner.address,
       parseUnits("1000", "18"),
       parseUnits("1", "6"),
     );

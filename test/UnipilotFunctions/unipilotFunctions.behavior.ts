@@ -10,7 +10,7 @@ import { shouldBehaveLikeVaultFunctions } from "../VaultFunctions/VaultFunctions
 export async function shouldBehaveLikeUnipilotFunctions(
   wallets: SignerWithAddress[],
   UnipilotFactory: Contract,
-  UnipilotVault: Contract,
+  // UnipilotVault: Contract,
   UniswapV3Factory: Contract,
   UnipilotRouter: Contract,
   WETH9: Contract,
@@ -36,9 +36,8 @@ export async function shouldBehaveLikeUnipilotFunctions(
   describe("Testing the UnipilotRouter !!", async () => {
     await shouldBehaveLikeUnipilotRouterFunctions(
       wallets,
-      UniswapV3Factory,
+      UnipilotFactory,
       UnipilotRouter,
-      UnipilotVault,
       PILOT,
       USDT,
     );

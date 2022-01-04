@@ -22,6 +22,8 @@ import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 interface UnipilotVaultInterface extends ethers.utils.Interface {
   functions: {
     "DOMAIN_SEPARATOR()": FunctionFragment;
+    "_collectableAmountsAsOfLastPoke(int24,int24)": FunctionFragment;
+    "_readjustLiquidity(int24,address)": FunctionFragment;
     "allowance(address,address)": FunctionFragment;
     "approve(address,uint256)": FunctionFragment;
     "balanceOf(address)": FunctionFragment;
@@ -30,7 +32,7 @@ interface UnipilotVaultInterface extends ethers.utils.Interface {
     "decimals()": FunctionFragment;
     "decreaseAllowance(address,uint256)": FunctionFragment;
     "deposit(address,address,uint256,uint256)": FunctionFragment;
-    "fee()": FunctionFragment;
+    "getReserves()": FunctionFragment;
     "getVaultInfo()": FunctionFragment;
     "governance()": FunctionFragment;
     "increaseAllowance(address,uint256)": FunctionFragment;
@@ -38,18 +40,25 @@ interface UnipilotVaultInterface extends ethers.utils.Interface {
     "nonces(address)": FunctionFragment;
     "permit(address,address,uint256,uint256,uint8,bytes32,bytes32)": FunctionFragment;
     "symbol()": FunctionFragment;
-    "token0()": FunctionFragment;
-    "token1()": FunctionFragment;
-    "totalAmount0()": FunctionFragment;
-    "totalAmount1()": FunctionFragment;
     "totalSupply()": FunctionFragment;
     "transfer(address,uint256)": FunctionFragment;
     "transferFrom(address,address,uint256)": FunctionFragment;
+    "uniswapV3MintCallback(uint256,uint256,bytes)": FunctionFragment;
+    "uniswapV3SwapCallback(int256,int256,bytes)": FunctionFragment;
+    "withdraw(uint256,address)": FunctionFragment;
   };
 
   encodeFunctionData(
     functionFragment: "DOMAIN_SEPARATOR",
     values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "_collectableAmountsAsOfLastPoke",
+    values: [BigNumberish, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "_readjustLiquidity",
+    values: [BigNumberish, string]
   ): string;
   encodeFunctionData(
     functionFragment: "allowance",
@@ -74,7 +83,10 @@ interface UnipilotVaultInterface extends ethers.utils.Interface {
     functionFragment: "deposit",
     values: [string, string, BigNumberish, BigNumberish]
   ): string;
-  encodeFunctionData(functionFragment: "fee", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "getReserves",
+    values?: undefined
+  ): string;
   encodeFunctionData(
     functionFragment: "getVaultInfo",
     values?: undefined
@@ -102,16 +114,6 @@ interface UnipilotVaultInterface extends ethers.utils.Interface {
     ]
   ): string;
   encodeFunctionData(functionFragment: "symbol", values?: undefined): string;
-  encodeFunctionData(functionFragment: "token0", values?: undefined): string;
-  encodeFunctionData(functionFragment: "token1", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "totalAmount0",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "totalAmount1",
-    values?: undefined
-  ): string;
   encodeFunctionData(
     functionFragment: "totalSupply",
     values?: undefined
@@ -124,9 +126,29 @@ interface UnipilotVaultInterface extends ethers.utils.Interface {
     functionFragment: "transferFrom",
     values: [string, string, BigNumberish]
   ): string;
+  encodeFunctionData(
+    functionFragment: "uniswapV3MintCallback",
+    values: [BigNumberish, BigNumberish, BytesLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "uniswapV3SwapCallback",
+    values: [BigNumberish, BigNumberish, BytesLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "withdraw",
+    values: [BigNumberish, string]
+  ): string;
 
   decodeFunctionResult(
     functionFragment: "DOMAIN_SEPARATOR",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "_collectableAmountsAsOfLastPoke",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "_readjustLiquidity",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "allowance", data: BytesLike): Result;
@@ -140,7 +162,10 @@ interface UnipilotVaultInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "deposit", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "fee", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "getReserves",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "getVaultInfo",
     data: BytesLike
@@ -154,16 +179,6 @@ interface UnipilotVaultInterface extends ethers.utils.Interface {
   decodeFunctionResult(functionFragment: "nonces", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "permit", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "symbol", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "token0", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "token1", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "totalAmount0",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "totalAmount1",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(
     functionFragment: "totalSupply",
     data: BytesLike
@@ -173,16 +188,29 @@ interface UnipilotVaultInterface extends ethers.utils.Interface {
     functionFragment: "transferFrom",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "uniswapV3MintCallback",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "uniswapV3SwapCallback",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "withdraw", data: BytesLike): Result;
 
   events: {
     "Approval(address,address,uint256)": EventFragment;
     "Deposit(address,uint256,uint256,uint256)": EventFragment;
+    "FeesSnapshot(int24,uint256,uint256,uint256,uint256,uint256)": EventFragment;
     "Transfer(address,address,uint256)": EventFragment;
+    "Withdraw(address,address,uint256,uint256,uint256)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "Approval"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Deposit"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "FeesSnapshot"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Transfer"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Withdraw"): EventFragment;
 }
 
 export type ApprovalEvent = TypedEvent<
@@ -202,8 +230,29 @@ export type DepositEvent = TypedEvent<
   }
 >;
 
+export type FeesSnapshotEvent = TypedEvent<
+  [number, BigNumber, BigNumber, BigNumber, BigNumber, BigNumber] & {
+    currentTick: number;
+    fees0: BigNumber;
+    fees1: BigNumber;
+    balance0: BigNumber;
+    balance1: BigNumber;
+    totalSupply: BigNumber;
+  }
+>;
+
 export type TransferEvent = TypedEvent<
   [string, string, BigNumber] & { from: string; to: string; value: BigNumber }
+>;
+
+export type WithdrawEvent = TypedEvent<
+  [string, string, BigNumber, BigNumber, BigNumber] & {
+    sender: string;
+    recipient: string;
+    shares: BigNumber;
+    amount0: BigNumber;
+    amount1: BigNumber;
+  }
 >;
 
 export class UnipilotVault extends BaseContract {
@@ -252,6 +301,18 @@ export class UnipilotVault extends BaseContract {
   functions: {
     DOMAIN_SEPARATOR(overrides?: CallOverrides): Promise<[string]>;
 
+    _collectableAmountsAsOfLastPoke(
+      _lowerTick: BigNumberish,
+      _upperTick: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber, BigNumber]>;
+
+    _readjustLiquidity(
+      baseThreshold: BigNumberish,
+      indexFund: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     allowance(
       owner: string,
       spender: string,
@@ -293,7 +354,11 @@ export class UnipilotVault extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    fee(overrides?: CallOverrides): Promise<[BigNumber]>;
+    getReserves(
+      overrides?: CallOverrides
+    ): Promise<
+      [BigNumber, BigNumber] & { reserve0: BigNumber; reserve1: BigNumber }
+    >;
 
     getVaultInfo(
       overrides?: CallOverrides
@@ -324,14 +389,6 @@ export class UnipilotVault extends BaseContract {
 
     symbol(overrides?: CallOverrides): Promise<[string]>;
 
-    token0(overrides?: CallOverrides): Promise<[string]>;
-
-    token1(overrides?: CallOverrides): Promise<[string]>;
-
-    totalAmount0(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    totalAmount1(overrides?: CallOverrides): Promise<[BigNumber]>;
-
     totalSupply(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     transfer(
@@ -346,9 +403,41 @@ export class UnipilotVault extends BaseContract {
       amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
+
+    uniswapV3MintCallback(
+      amount0Owed: BigNumberish,
+      amount1Owed: BigNumberish,
+      data: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    uniswapV3SwapCallback(
+      amount0: BigNumberish,
+      amount1: BigNumberish,
+      data: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    withdraw(
+      liquidity: BigNumberish,
+      recipient: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
   };
 
   DOMAIN_SEPARATOR(overrides?: CallOverrides): Promise<string>;
+
+  _collectableAmountsAsOfLastPoke(
+    _lowerTick: BigNumberish,
+    _upperTick: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<[BigNumber, BigNumber]>;
+
+  _readjustLiquidity(
+    baseThreshold: BigNumberish,
+    indexFund: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   allowance(
     owner: string,
@@ -391,7 +480,11 @@ export class UnipilotVault extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  fee(overrides?: CallOverrides): Promise<BigNumber>;
+  getReserves(
+    overrides?: CallOverrides
+  ): Promise<
+    [BigNumber, BigNumber] & { reserve0: BigNumber; reserve1: BigNumber }
+  >;
 
   getVaultInfo(overrides?: CallOverrides): Promise<[string, string, BigNumber]>;
 
@@ -420,14 +513,6 @@ export class UnipilotVault extends BaseContract {
 
   symbol(overrides?: CallOverrides): Promise<string>;
 
-  token0(overrides?: CallOverrides): Promise<string>;
-
-  token1(overrides?: CallOverrides): Promise<string>;
-
-  totalAmount0(overrides?: CallOverrides): Promise<BigNumber>;
-
-  totalAmount1(overrides?: CallOverrides): Promise<BigNumber>;
-
   totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
 
   transfer(
@@ -443,8 +528,42 @@ export class UnipilotVault extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  uniswapV3MintCallback(
+    amount0Owed: BigNumberish,
+    amount1Owed: BigNumberish,
+    data: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  uniswapV3SwapCallback(
+    amount0: BigNumberish,
+    amount1: BigNumberish,
+    data: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  withdraw(
+    liquidity: BigNumberish,
+    recipient: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   callStatic: {
     DOMAIN_SEPARATOR(overrides?: CallOverrides): Promise<string>;
+
+    _collectableAmountsAsOfLastPoke(
+      _lowerTick: BigNumberish,
+      _upperTick: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber, BigNumber]>;
+
+    _readjustLiquidity(
+      baseThreshold: BigNumberish,
+      indexFund: string,
+      overrides?: CallOverrides
+    ): Promise<
+      [BigNumber, BigNumber] & { amount0: BigNumber; amount1: BigNumber }
+    >;
 
     allowance(
       owner: string,
@@ -484,7 +603,11 @@ export class UnipilotVault extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    fee(overrides?: CallOverrides): Promise<BigNumber>;
+    getReserves(
+      overrides?: CallOverrides
+    ): Promise<
+      [BigNumber, BigNumber] & { reserve0: BigNumber; reserve1: BigNumber }
+    >;
 
     getVaultInfo(
       overrides?: CallOverrides
@@ -515,14 +638,6 @@ export class UnipilotVault extends BaseContract {
 
     symbol(overrides?: CallOverrides): Promise<string>;
 
-    token0(overrides?: CallOverrides): Promise<string>;
-
-    token1(overrides?: CallOverrides): Promise<string>;
-
-    totalAmount0(overrides?: CallOverrides): Promise<BigNumber>;
-
-    totalAmount1(overrides?: CallOverrides): Promise<BigNumber>;
-
     totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
 
     transfer(
@@ -537,6 +652,28 @@ export class UnipilotVault extends BaseContract {
       amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<boolean>;
+
+    uniswapV3MintCallback(
+      amount0Owed: BigNumberish,
+      amount1Owed: BigNumberish,
+      data: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    uniswapV3SwapCallback(
+      amount0: BigNumberish,
+      amount1: BigNumberish,
+      data: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    withdraw(
+      liquidity: BigNumberish,
+      recipient: string,
+      overrides?: CallOverrides
+    ): Promise<
+      [BigNumber, BigNumber] & { amount0: BigNumber; amount1: BigNumber }
+    >;
   };
 
   filters: {
@@ -588,6 +725,44 @@ export class UnipilotVault extends BaseContract {
       }
     >;
 
+    "FeesSnapshot(int24,uint256,uint256,uint256,uint256,uint256)"(
+      currentTick?: null,
+      fees0?: null,
+      fees1?: null,
+      balance0?: null,
+      balance1?: null,
+      totalSupply?: null
+    ): TypedEventFilter<
+      [number, BigNumber, BigNumber, BigNumber, BigNumber, BigNumber],
+      {
+        currentTick: number;
+        fees0: BigNumber;
+        fees1: BigNumber;
+        balance0: BigNumber;
+        balance1: BigNumber;
+        totalSupply: BigNumber;
+      }
+    >;
+
+    FeesSnapshot(
+      currentTick?: null,
+      fees0?: null,
+      fees1?: null,
+      balance0?: null,
+      balance1?: null,
+      totalSupply?: null
+    ): TypedEventFilter<
+      [number, BigNumber, BigNumber, BigNumber, BigNumber, BigNumber],
+      {
+        currentTick: number;
+        fees0: BigNumber;
+        fees1: BigNumber;
+        balance0: BigNumber;
+        balance1: BigNumber;
+        totalSupply: BigNumber;
+      }
+    >;
+
     "Transfer(address,address,uint256)"(
       from?: string | null,
       to?: string | null,
@@ -605,10 +780,56 @@ export class UnipilotVault extends BaseContract {
       [string, string, BigNumber],
       { from: string; to: string; value: BigNumber }
     >;
+
+    "Withdraw(address,address,uint256,uint256,uint256)"(
+      sender?: string | null,
+      recipient?: string | null,
+      shares?: null,
+      amount0?: null,
+      amount1?: null
+    ): TypedEventFilter<
+      [string, string, BigNumber, BigNumber, BigNumber],
+      {
+        sender: string;
+        recipient: string;
+        shares: BigNumber;
+        amount0: BigNumber;
+        amount1: BigNumber;
+      }
+    >;
+
+    Withdraw(
+      sender?: string | null,
+      recipient?: string | null,
+      shares?: null,
+      amount0?: null,
+      amount1?: null
+    ): TypedEventFilter<
+      [string, string, BigNumber, BigNumber, BigNumber],
+      {
+        sender: string;
+        recipient: string;
+        shares: BigNumber;
+        amount0: BigNumber;
+        amount1: BigNumber;
+      }
+    >;
   };
 
   estimateGas: {
     DOMAIN_SEPARATOR(overrides?: CallOverrides): Promise<BigNumber>;
+
+    _collectableAmountsAsOfLastPoke(
+      _lowerTick: BigNumberish,
+      _upperTick: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    _readjustLiquidity(
+      baseThreshold: BigNumberish,
+      indexFund: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
 
     allowance(
       owner: string,
@@ -651,7 +872,7 @@ export class UnipilotVault extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    fee(overrides?: CallOverrides): Promise<BigNumber>;
+    getReserves(overrides?: CallOverrides): Promise<BigNumber>;
 
     getVaultInfo(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -680,14 +901,6 @@ export class UnipilotVault extends BaseContract {
 
     symbol(overrides?: CallOverrides): Promise<BigNumber>;
 
-    token0(overrides?: CallOverrides): Promise<BigNumber>;
-
-    token1(overrides?: CallOverrides): Promise<BigNumber>;
-
-    totalAmount0(overrides?: CallOverrides): Promise<BigNumber>;
-
-    totalAmount1(overrides?: CallOverrides): Promise<BigNumber>;
-
     totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
 
     transfer(
@@ -702,10 +915,42 @@ export class UnipilotVault extends BaseContract {
       amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
+
+    uniswapV3MintCallback(
+      amount0Owed: BigNumberish,
+      amount1Owed: BigNumberish,
+      data: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    uniswapV3SwapCallback(
+      amount0: BigNumberish,
+      amount1: BigNumberish,
+      data: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    withdraw(
+      liquidity: BigNumberish,
+      recipient: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
   };
 
   populateTransaction: {
     DOMAIN_SEPARATOR(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    _collectableAmountsAsOfLastPoke(
+      _lowerTick: BigNumberish,
+      _upperTick: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    _readjustLiquidity(
+      baseThreshold: BigNumberish,
+      indexFund: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
 
     allowance(
       owner: string,
@@ -751,7 +996,7 @@ export class UnipilotVault extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    fee(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    getReserves(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getVaultInfo(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
@@ -783,14 +1028,6 @@ export class UnipilotVault extends BaseContract {
 
     symbol(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    token0(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    token1(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    totalAmount0(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    totalAmount1(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     totalSupply(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     transfer(
@@ -803,6 +1040,26 @@ export class UnipilotVault extends BaseContract {
       sender: string,
       recipient: string,
       amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    uniswapV3MintCallback(
+      amount0Owed: BigNumberish,
+      amount1Owed: BigNumberish,
+      data: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    uniswapV3SwapCallback(
+      amount0: BigNumberish,
+      amount1: BigNumberish,
+      data: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    withdraw(
+      liquidity: BigNumberish,
+      recipient: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };

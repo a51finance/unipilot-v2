@@ -1,12 +1,12 @@
 //SPDX-License-Identifier: MIT
-
 pragma solidity ^0.7.6;
+
+import "./TransferHelper.sol";
+import "@openzeppelin/contracts/math/Math.sol";
+import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@uniswap/v3-core/contracts/libraries/TickMath.sol";
 import "@uniswap/v3-core/contracts/libraries/FullMath.sol";
-import "./TransferHelper.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
-import "@openzeppelin/contracts/math/SafeMath.sol";
-import "@openzeppelin/contracts/math/Math.sol";
 
 library UnipilotMaths {
     using SafeMath for uint256;
@@ -19,14 +19,6 @@ library UnipilotMaths {
             PRECISION,
             2**(96 * 2)
         );
-    }
-
-    function currentTick(IUniswapV3Pool pool)
-        internal
-        view
-        returns (int24 tick)
-    {
-        (, tick, , , , , ) = pool.slot0();
     }
 
     function getShares(
@@ -51,5 +43,27 @@ library UnipilotMaths {
             );
              
         }
+    }
+
+    function _position(
+        IUniswapV3Pool pool,
+        address vaultAddress,
+        int24 lower,
+        int24 upper
+    )
+        internal
+        view
+        returns (
+            uint128, // liquidity
+            uint256, // feeGrowthInside0LastX128
+            uint256, // feeGrowthInside1LastX128
+            uint128, // tokensOwed0
+            uint128 // tokensOwed1
+        )
+    {
+        return
+            pool.positions(
+                keccak256(abi.encodePacked(vaultAddress, lower, upper))
+            );
     }
 }
