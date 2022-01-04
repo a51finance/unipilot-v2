@@ -3,6 +3,33 @@
 pragma solidity ^0.7.6;
 
 interface IUnipilotVault {
+    struct ReadjustVars {
+        uint256 fees0;
+        uint256 fees1;
+        uint160 sqrtPriceX96;
+        int24 currentTick;
+        int24 tickLower;
+        int24 tickUpper;
+        uint256 amount0Desired;
+        uint256 amount1Desired;
+        uint128 liquidity;
+        uint256 amount0;
+        uint256 amount1;
+        bool zeroForOne;
+        int256 amountSpecified;
+        uint160 exactSqrtPriceImpact;
+        uint160 sqrtPriceLimitX96;
+    }
+
+    struct Tick {
+        int24 baseTickLower;
+        int24 baseTickUpper;
+        int24 bidTickLower;
+        int24 bidTickUpper;
+        int24 rangeTickLower;
+        int24 rangeTickUpper;
+    }
+
     event Deposit(
         address depositor,
         uint256 amount0,

@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
-
 pragma solidity >=0.7.6;
 pragma abicoder v2;
 
-interface IUniStrategy {
+interface IUnipilotStrategy {
     struct PoolStrategy {
         int24 baseThreshold;
         int24 rangeThreshold;
@@ -42,4 +41,9 @@ interface IUniStrategy {
         external
         view
         returns (PoolStrategy memory strategy);
+
+    function getBaseThreshold(address _pool)
+        external
+        view
+        returns (int24 baseThreshold);
 }

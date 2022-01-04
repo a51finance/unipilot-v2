@@ -9,6 +9,7 @@ import { config as dotenvConfig } from "dotenv";
 import { resolve } from "path";
 
 import UnipilotFactoryArtifacts from "../artifacts/contracts/UnipilotFactory.sol/UnipilotFactory.json";
+import UnipilotVaultArtifacts from "../artifacts/contracts/UnipilotVault.sol/UnipilotVault.json";
 
 dotenvConfig({ path: resolve(__dirname, "../.env") });
 
@@ -41,10 +42,12 @@ const deployUnipilotFactory = async () => {
     UnipilotFactoryArtifacts.bytecode,
     wallet,
   );
+  const walletAddress = await wallet.getAddress();
   const UnipilotFactoryContract = await UnipilotFactory.deploy(
     "0x1F98431c8aD98523631AE4a59f267346ea31F984",
+    walletAddress,
+    walletAddress,
   );
-  const walletAddress = await wallet.getAddress();
   console.log(
     "UnipilotFactory deployed to:",
     UnipilotFactoryContract.address,
@@ -80,8 +83,8 @@ const checkGovernance = async (contractAddress: string) => {
 const main = async () => {
   await updateStateVariables();
   await updateStateVariables2();
-  // await deployUnipilotFactory();
-  await checkGovernance("0xcE8f9628aD97D45ee6B7088ccd316D11B37cce71");
+  await deployUnipilotFactory();
+  // await checkGovernance("0xcE8f9628aD97D45ee6B7088ccd316D11B37cce71");
 };
 
 main()
