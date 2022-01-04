@@ -4,7 +4,7 @@ import { Contract } from "ethers";
 import { ethers } from "hardhat";
 import { UnipilotFactory, UnipilotVault } from "../../typechain";
 import { UniswapV3Deployer } from "../UniswapV3Deployer";
-import { deployUniswapContracts, deployWETH9 } from "../stubs";
+import { deployStrategy, deployUniswapContracts, deployWETH9 } from "../stubs";
 import hre from "hardhat";
 
 const deployWeth9 = async (wallet0: SignerWithAddress) => {
@@ -52,10 +52,16 @@ export const unipilotVaultFixture: Fixture<UNIPILOT_VAULT_FIXTURE> =
   async function (): Promise<UNIPILOT_VAULT_FIXTURE> {
     let [wallet0, wallet1] = await hre.ethers.getSigners();
     const uniswapV3Factory = await deployUniswapFactory(wallet0);
+    const uniStrategy = await deployStrategy(wallet0);
     const { unipilotFactory } = await unipilotFactoryFixture(
       wallet0,
       uniswapV3Factory,
-      "",
+      uniStrategy.address,
+    );
+
+    console.log(
+      "UnipilorFactory deployed inside fixture",
+      unipilotFactory.address,
     );
 
     const unipilotVaultDep = await ethers.getContractFactory("UnipilotVault");
@@ -78,8 +84,14 @@ export const unipilotVaultFixture: Fixture<UNIPILOT_VAULT_FIXTURE> =
           tokenName,
           tokenSymbol,
         );
-        const receipt = await tx.wait();
-        const vaultAddress = receipt.events?.[0].args?._vault as string;
+
+        const vaultAddress = await unipilotFactory.getVaults(
+          tokenA,
+          tokenB,
+          fee,
+        );
+
+        console.log("Vault address inside fixture", vaultAddress);
         return unipilotVaultDep.attach(vaultAddress) as UnipilotVault;
       },
     };

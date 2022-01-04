@@ -1,12 +1,15 @@
 import { AbiCoder } from "@ethersproject/abi";
 import { parseUnits } from "@ethersproject/units";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { loadFixture } from "ethereum-waffle";
-import { BigNumber, Contract } from "ethers";
+import { expect } from "chai";
+import { createFixtureLoader, loadFixture } from "ethereum-waffle";
+import { BigNumber, Contract, Wallet } from "ethers";
+import { ethers } from "hardhat";
+import { UnipilotFactory, UnipilotVault } from "../../typechain";
 import { shouldBehaveLikeTokenApproval } from "../TokenApproval/tokenApprove.behavior";
 import { shouleBehaveLikePilotFactory } from "../UnipilotFactoryFunctions/UnipilotFactory.behavior";
 import { shouldBehaveLikeUnipilotRouterFunctions } from "../UnipilotRouterFunctions/unipilotRouterFunctions.behavior";
-import { unipilotFixtures } from "../utils/fixtures";
+import { unipilotVaultFixture } from "../utils/fixtures";
 import { shouldBehaveLikeVaultFunctions } from "../VaultFunctions/VaultFunctions.behavior";
 
 export async function shouldBehaveLikeUnipilotFunctions(
@@ -34,17 +37,49 @@ export async function shouldBehaveLikeUnipilotFunctions(
   // describe("Testing the UnipilotRouter !!", async () => {
   //   shouldBehaveLikeUnipilotRouterFunctions(wallets, UnipilotRouter);
   // });
+  type ThenArg<T> = T extends PromiseLike<infer U> ? U : T;
 
-  // describe("Testing Unipilot Vault", async () => {
-  //   const {} = loadFixture(
-  //     unipilotFixtures(wallets, UnipilotFactory.address, ""),
-  //   );
-  //   await shouldBehaveLikeVaultFunctions(
-  //     wallets,
-  //     UnipilotVault,
-  //     UniswapV3Factory,
-  //     20,
-  //     wallets[0].address,
-  //   );
-  // });
+  describe("Testing Unipilot Vault", async () => {
+    let wallet: Wallet, other: Wallet;
+    let unipilotFactory: UnipilotFactory;
+    let unipilotVault: UnipilotVault;
+    let loadFixture: ReturnType<typeof createFixtureLoader>;
+    let createVault: ThenArg<
+      ReturnType<typeof unipilotVaultFixture>
+    >["createVault"];
+
+    before("create fixture loader", async () => {
+      [wallet, other] = await (ethers as any).getSigners();
+      loadFixture = createFixtureLoader([wallet, other]);
+    });
+
+    beforeEach("deploy fixtures", async () => {
+      ({ unipilotFactory, createVault } = await loadFixture(
+        unipilotVaultFixture,
+      ));
+      unipilotVault = await createVault(
+        WETH9.address,
+        PILOT.address,
+        3000,
+        42951287100,
+        "unipilot PILOT-WETH",
+        "PILOT-WETH",
+      );
+
+      console.log("vault address", unipilotVault.address);
+    });
+
+    it("get Reserves", async () => {
+      const reserves = await unipilotVault.getReserves();
+      console.log("reserves", reserves);
+    });
+
+    // await shouldBehaveLikeVaultFunctions(
+    //   wallets,
+    //   unipilotVault,
+    //   UniswapV3Factory,
+    //   20,
+    //   wallets[0].address,
+    // );
+  });
 }
