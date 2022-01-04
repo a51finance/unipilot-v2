@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity >=0.5.0;
 
-import "./SafeCast.sol";
+import "./SafeCastExtended.sol";
 import "./UniswapLiquidityManagement.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 
 /// @title Liquidity and ticks functions
 /// @notice Provides functions for computing liquidity and ticks for token amounts and prices
 library UniswapPoolActions {
+    using SafeCastExtended for uint256;
     using UniswapLiquidityManagement for IUniswapV3Pool;
-    using SafeCast for uint256;
 
     function updatePosition(
         IUniswapV3Pool pool,
@@ -37,16 +37,18 @@ library UniswapPoolActions {
             tickUpper
         );
 
-        (amount0, amount1) = pool.burn(tickLower, tickUpper, liquidity);
+        if (liquidity > 0) {
+            (amount0, amount1) = pool.burn(tickLower, tickUpper, liquidity);
 
-        if (amount0 > 0 || amount1 > 0) {
-            (amount0, amount0) = pool.collect(
-                recipient,
-                tickLower,
-                tickUpper,
-                amount0.toUint128(),
-                amount1.toUint128()
-            );
+            if (amount0 > 0 || amount1 > 0) {
+                (amount0, amount0) = pool.collect(
+                    recipient,
+                    tickLower,
+                    tickUpper,
+                    amount0.toUint128(),
+                    amount1.toUint128()
+                );
+            }
         }
     }
 

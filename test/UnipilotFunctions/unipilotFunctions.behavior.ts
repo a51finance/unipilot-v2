@@ -1,10 +1,12 @@
 import { AbiCoder } from "@ethersproject/abi";
 import { parseUnits } from "@ethersproject/units";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { Contract } from "ethers";
+import { loadFixture } from "ethereum-waffle";
+import { BigNumber, Contract } from "ethers";
 import { shouldBehaveLikeTokenApproval } from "../TokenApproval/tokenApprove.behavior";
 import { shouleBehaveLikePilotFactory } from "../UnipilotFactoryFunctions/UnipilotFactory.behavior";
 import { shouldBehaveLikeUnipilotRouterFunctions } from "../UnipilotRouterFunctions/unipilotRouterFunctions.behavior";
+import { unipilotFixtures } from "../utils/fixtures";
 import { shouldBehaveLikeVaultFunctions } from "../VaultFunctions/VaultFunctions.behavior";
 
 export async function shouldBehaveLikeUnipilotFunctions(
@@ -14,7 +16,6 @@ export async function shouldBehaveLikeUnipilotFunctions(
   UniswapV3Factory: Contract,
   WETH9: Contract,
   PILOT: Contract,
-  pool: string,
 ): Promise<void> {
   // describe("Testing the UnipilotFactory !!", async () => {
   //   shouleBehaveLikePilotFactory(wallets, UnipilotFactory);
@@ -27,7 +28,6 @@ export async function shouldBehaveLikeUnipilotFunctions(
       UniswapV3Factory,
       WETH9,
       PILOT,
-      pool,
     );
   });
 
@@ -36,10 +36,15 @@ export async function shouldBehaveLikeUnipilotFunctions(
   // });
 
   // describe("Testing Unipilot Vault", async () => {
+  //   const {} = loadFixture(
+  //     unipilotFixtures(wallets, UnipilotFactory.address, ""),
+  //   );
   //   await shouldBehaveLikeVaultFunctions(
   //     wallets,
   //     UnipilotVault,
   //     UniswapV3Factory,
+  //     20,
+  //     wallets[0].address,
   //   );
   // });
 }

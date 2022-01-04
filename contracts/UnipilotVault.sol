@@ -10,7 +10,6 @@ import "./interfaces/IUniStrategy.sol";
 import "./libraries/UnipilotMaths.sol";
 import "./libraries/UniswapLiquidityManagement.sol";
 import "./libraries/UniswapPoolActions.sol";
-import "./libraries/SafeCast.sol";
 
 import "@uniswap/v3-core/contracts/libraries/LowGasSafeMath.sol";
 import "@openzeppelin/contracts/drafts/ERC20Permit.sol";
@@ -37,16 +36,10 @@ contract UnipilotVault is
 
     address private router = 0x0000000000000000000000000000000000000000;
     uint256 private fee;
-    uint256 private totalAmount0;
-    uint256 private totalAmount1;
 
+    int24 private tickSpacing;
     int24 private baseTickLower;
     int24 private baseTickUpper;
-    int24 private askTickLower;
-    int24 private askTickUpper;
-    int24 private bidTickLower;
-    int24 private bidTickUpper;
-    int24 private tickSpacing;
 
     modifier onlyGovernance() {
         require(msg.sender == governance, "NG");
@@ -66,14 +59,6 @@ contract UnipilotVault is
     }
 
     function initializeVault(address _pool) internal {
-        (
-            baseTickLower,
-            baseTickUpper,
-            bidTickLower,
-            bidTickUpper,
-            askTickLower,
-            askTickUpper
-        ) = IUniStrategy(strategy).getTicks(_pool);
         pool = IUniswapV3Pool(_pool);
         token0 = IERC20(pool.token0());
         token1 = IERC20(pool.token1());
@@ -88,6 +73,7 @@ contract UnipilotVault is
         uint256 _amount1Desired
     ) external override returns (uint256) {
         require(_depositor != address(0) && _recipient != address(0), "IAD");
+
         (uint256 lpShares, uint256 amount0, uint256 amount1) = _computeLPShares(
             _amount0Desired,
             _amount1Desired,
@@ -98,14 +84,6 @@ contract UnipilotVault is
             amount0 >= _amount0Desired && amount1 >= _amount1Desired,
             "IAM"
         );
-
-        // lpShares = UnipilotMaths.getShares(
-        //     totalAmount0,
-        //     totalAmount1,
-        //     totalSupply(),
-        //     _amount0Desired,
-        //     _amount1Desired
-        // );
 
         if (msg.sender != router) {
             pay(address(token0), _depositor, address(this), _amount0Desired);
@@ -170,7 +148,7 @@ contract UnipilotVault is
         reserve0 = _balance0();
         reserve1 = _balance1();
 
-        if (totalAmount0 == 0 && totalAmount1 == 0) {
+        if (reserve0 == 0 && reserve1 == 0) {
             uint256 temp0;
             uint256 temp1;
             (temp0, temp1) = _collectableAmountsAsOfLastPoke(
@@ -205,49 +183,106 @@ contract UnipilotVault is
         return (burnable0 + earnable0, burnable1 + earnable1);
     }
 
-    function readjustLiquidity(int24 baseThreshold, address indexFund)
+    function _readjustLiquidity(int24 baseThreshold, address indexFund)
         external
+        returns (uint256 amount0, uint256 amount1)
     {
+        ReadjustVars memory a;
         pool.updatePosition(baseTickLower, baseTickUpper);
 
-        (, uint256 fees0, uint256 fees1) = pool.getPositionLiquidity(
+        (, a.fees0, a.fees1) = pool.getPositionLiquidity(
             baseTickLower,
             baseTickUpper
         );
 
-        if (fees0 > 0) token0.transfer(indexFund, fees0 / 10);
-        if (fees1 > 0) token1.transfer(indexFund, fees1 / 10);
+        (a.sqrtPriceX96, a.currentTick, , , , , ) = pool.slot0();
 
-        (, int24 currentTick, , , , , ) = pool.slot0();
+        pool.burnLiquidity(baseTickLower, baseTickUpper, address(this));
+
+        if (a.fees0 > 0)
+            token0.transfer(indexFund, FullMath.mulDiv(a.fees0, 10, 100));
+        if (a.fees1 > 0)
+            token1.transfer(indexFund, FullMath.mulDiv(a.fees1, 10, 100));
 
         emit FeesSnapshot(
-            currentTick,
-            fees0,
-            fees1,
+            a.currentTick,
+            a.fees0,
+            a.fees1,
             _balance0(),
             _balance1(),
             totalSupply()
         );
 
-        pool.burnLiquidity(baseTickLower, baseTickUpper, address(this));
-
-        uint256 balance0 = _balance0();
-        uint256 balance1 = _balance1();
-
-        (int24 tickLower, int24 tickUpper) = UniswapLiquidityManagement
-            .baseTicks(currentTick, baseThreshold, tickSpacing);
-
-        uint128 liquidity = pool.getLiquidityForAmounts(
-            balance0,
-            balance1,
-            tickLower,
-            tickUpper
+        (a.tickLower, a.tickUpper) = UniswapLiquidityManagement.getBaseTicks(
+            a.currentTick,
+            baseThreshold,
+            tickSpacing
         );
 
-        (uint256 amount0, uint256 amount1) = pool.getAmountsForLiquidity(
-            liquidity,
-            tickLower,
-            tickUpper
+        a.amount0Desired = _balance0();
+        a.amount1Desired = _balance1();
+
+        a.liquidity = pool.getLiquidityForAmounts(
+            a.amount0Desired,
+            a.amount1Desired,
+            a.tickLower,
+            a.tickUpper
+        );
+
+        (a.amount0, a.amount1) = pool.getAmountsForLiquidity(
+            a.liquidity,
+            a.tickLower,
+            a.tickUpper
+        );
+
+        a.zeroForOne = UniswapLiquidityManagement.amountsDirection(
+            a.amount0Desired,
+            a.amount1Desired,
+            a.amount0,
+            a.amount1
+        );
+
+        a.amountSpecified = a.zeroForOne
+            ? int256(FullMath.mulDiv(a.amount0Desired.sub(a.amount0), 50, 100))
+            : int256(FullMath.mulDiv(a.amount1Desired.sub(a.amount1), 50, 100));
+
+        a.exactSqrtPriceImpact = (a.sqrtPriceX96 * (1e5 / 2)) / 1e6;
+
+        a.sqrtPriceLimitX96 = a.zeroForOne
+            ? a.sqrtPriceX96 - a.exactSqrtPriceImpact
+            : a.sqrtPriceX96 + a.exactSqrtPriceImpact;
+
+        pool.swap(
+            address(this),
+            a.zeroForOne,
+            a.amountSpecified,
+            a.sqrtPriceLimitX96,
+            abi.encode(a.zeroForOne)
+        );
+
+        a.amount0Desired = _balance0();
+        a.amount1Desired = _balance1();
+
+        (baseTickLower, baseTickUpper) = pool.getPositionTicks(
+            a.amount0Desired,
+            a.amount1Desired,
+            baseThreshold,
+            tickSpacing
+        );
+
+        a.liquidity = pool.getLiquidityForAmounts(
+            a.amount0Desired,
+            a.amount1Desired,
+            baseTickLower,
+            baseTickUpper
+        );
+
+        (amount0, amount1) = pool.mint(
+            address(this),
+            baseTickLower,
+            baseTickUpper,
+            a.liquidity,
+            abi.encode(address(this))
         );
     }
 
@@ -355,18 +390,17 @@ contract UnipilotVault is
 
     /// @inheritdoc IUnipilotVault
     function uniswapV3SwapCallback(
-        int256 amount0Delta,
-        int256 amount1Delta,
+        int256 amount0,
+        int256 amount1,
         bytes calldata data
     ) external override {
         _verifyCallback();
-        address recipient = msg.sender;
-        address payer = abi.decode(data, (address));
+        require(amount0 > 0 || amount1 > 0);
+        bool zeroForOne = abi.decode(data, (bool));
 
-        if (amount0Delta > 0)
-            pay(address(token0), payer, recipient, uint256(amount0Delta));
-        if (amount1Delta > 0)
-            pay(address(token1), payer, recipient, uint256(amount1Delta));
+        if (zeroForOne)
+            pay(address(token0), address(this), msg.sender, uint256(amount0));
+        else pay(address(token1), address(this), msg.sender, uint256(amount1));
     }
 
     /// @notice Verify that caller should be the address of a valid Uniswap V3 Pool

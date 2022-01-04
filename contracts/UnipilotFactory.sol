@@ -8,6 +8,7 @@ import "./UnipilotVault.sol";
 
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
+import "hardhat/console.sol";
 
 contract UnipilotFactory is IUnipilotFactory {
     address public override governance;
@@ -51,12 +52,16 @@ contract UnipilotFactory is IUnipilotFactory {
             token1,
             _fee
         );
+        console.log("pool 1", pool);
+
         if (pool == address(0)) {
             pool = IUniswapV3Factory(uniswapFactory).createPool(
                 token0,
                 token1,
                 _fee
             );
+            console.log("pool 2", pool);
+
             IUniswapV3Pool(pool).initialize(_sqrtPriceX96);
         }
         _pool = pool;
