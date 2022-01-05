@@ -197,13 +197,7 @@ contract UnipilotVault is
     }
 
     function readjustLiquidity() external {
-        (, bool isWhitelisted) = IUnipilotFactory(unipilotFactory).getVaults(
-            address(token0),
-            address(token1),
-            fee
-        );
-
-        if (isWhitelisted) {
+        if (_isPoolWhitelisted()) {
             readjustLiquidityForActive();
         } else {
             readjustLiquidityForPassive();
@@ -453,6 +447,17 @@ contract UnipilotVault is
             recipient
         );
 
+        if (!_isPoolWhitelisted()) {
+            (uint256 range0, uint256 range1) = pool.burnUserLiquidity(
+                baseTickLower,
+                baseTickUpper,
+                liquidityShare(liquidity),
+                recipient
+            );
+            amount0 = amount0.add(range0);
+            amount1 = amount1.add(range1);
+        }
+
         uint256 totalSupply = totalSupply();
 
         uint256 unusedAmount0 = FullMath.mulDiv(
@@ -503,6 +508,14 @@ contract UnipilotVault is
         )
     {
         return IUnipilotStrategy(strategy).getTicks(pool);
+    }
+
+    function _isPoolWhitelisted() private returns (bool isWhitelisted) {
+        (, isWhitelisted) = IUnipilotFactory(unipilotFactory).getVaults(
+            address(token0),
+            address(token1),
+            fee
+        );
     }
 
     /// @dev Amount of token0 held as unused balance.
