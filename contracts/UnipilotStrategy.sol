@@ -1,16 +1,14 @@
 pragma solidity =0.7.6;
 pragma abicoder v2;
 
-// import "./interfaces/IUnipilot.sol";
-import "../interfaces/IUniStrategy.sol";
-import "./oracle/libraries/OracleLibrary.sol";
+import "./interfaces/IUnipilotStrategy.sol";
+import "./base/oracle/libraries/OracleLibrary.sol";
 
 import "@uniswap/v3-core/contracts/libraries/TickMath.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 
 /**
- * @title UniStrategy.
- * @author Mubashir-ali-baig.
+ *
  * @notice
  *   This contract calculates suitable tick ranges to fully deposit liquidity asset.
  *   It maintains two strategies for unipilot vaults
@@ -22,7 +20,7 @@ import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
  *   Ask => Upper and lower ticks ahead of the current tick and base upper
  *   Bid => Upper and lower ticks behind the current and base lower
  **/
-contract UniStrategy is IUniStrategy {
+contract UnipilotStrategy is IUnipilotStrategy {
     /// @dev governance address is set on deployment for the governance based functions
     address public governance;
     /// @dev unipilot address;
@@ -57,11 +55,6 @@ contract UniStrategy is IUniStrategy {
         require(msg.sender == governance, "NG");
         _;
     }
-
-    // modifier onlyExchange() {
-    //     require(IUnipilot(unipilot).exchangeManagerWhitelist(msg.sender), "ENW");
-    //     _;
-    // }
 
     function setGovernance(address _governance) external onlyGovernance {
         require(_governance != address(0), "IGA");
@@ -255,6 +248,15 @@ contract UniStrategy is IUniStrategy {
         returns (int24 readjustThreshold)
     {
         readjustThreshold = poolStrategy[_pool].readjustThreshold;
+    }
+
+    function getBaseThreshold(address _pool)
+        external
+        view
+        override
+        returns (int24 baseThreshold)
+    {
+        baseThreshold = poolStrategy[_pool].baseThreshold;
     }
 
     /**

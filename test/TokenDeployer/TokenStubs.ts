@@ -22,7 +22,7 @@ export async function deployPilot(deployer: any): Promise<Contract> {
   let pilot = await deployContract(deployer, PilotArtifact, [
     deployer.address,
     [deployer.address],
-    [parseUnits("5000", "18")],
+    [parseUnits("50000", "18")],
   ]);
   return pilot;
 }

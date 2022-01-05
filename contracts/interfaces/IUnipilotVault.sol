@@ -21,6 +21,15 @@ interface IUnipilotVault {
         uint160 sqrtPriceLimitX96;
     }
 
+    struct Tick {
+        int24 baseTickLower;
+        int24 baseTickUpper;
+        int24 bidTickLower;
+        int24 bidTickUpper;
+        int24 rangeTickLower;
+        int24 rangeTickUpper;
+    }
+
     event Deposit(
         address depositor,
         uint256 amount0,

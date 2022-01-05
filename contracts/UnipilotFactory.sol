@@ -27,12 +27,13 @@ contract UnipilotFactory is IUnipilotFactory {
     mapping(address => mapping(address => mapping(uint24 => address)))
         private vaults;
 
+    mapping(address => bool) private whitelistedVaults;
+
     modifier isGovernance() {
         require(msg.sender == governance, "NG");
         _;
     }
 
-    //createVault
     function createVault(
         address _tokenA,
         address _tokenB,
@@ -77,11 +78,12 @@ contract UnipilotFactory is IUnipilotFactory {
         address _tokenA,
         address _tokenB,
         uint24 _fee
-    ) external view override returns (address _vault) {
+    ) external view override returns (address _vault, bool _whitelisted) {
         (address token0, address token1) = _tokenA < _tokenB
             ? (_tokenA, _tokenB)
             : (_tokenB, _tokenA);
         _vault = vaults[token0][token1][_fee];
+        _whitelisted = whitelistedVaults[_vault];
     }
 
     function setGovernance(address _newGovernance)
@@ -91,6 +93,15 @@ contract UnipilotFactory is IUnipilotFactory {
     {
         emit GovernanceChanged(governance, _newGovernance);
         governance = _newGovernance;
+    }
+
+    function whitelistVaults(address[] memory vaults) external {
+        for (uint256 i = 0; i < vaults.length; i++) {
+            address toggleAddress = vaults[i];
+            whitelistedVaults[toggleAddress] = !whitelistedVaults[
+                toggleAddress
+            ];
+        }
     }
 
     function _deploy(
@@ -105,7 +116,7 @@ contract UnipilotFactory is IUnipilotFactory {
         _vault = address(
             new UnipilotVault{
                 salt: keccak256(abi.encode(_tokenA, _tokenB, _fee))
-            }(governance, _pool, _unistrategy, _name, _symbol)
+            }(governance, address(this), _pool, _unistrategy, _name, _symbol)
         );
     }
 }

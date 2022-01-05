@@ -128,6 +128,11 @@ const _abi = [
         name: "_vault",
         type: "address",
       },
+      {
+        internalType: "bool",
+        name: "_whitelisted",
+        type: "bool",
+      },
     ],
     stateMutability: "view",
     type: "function",

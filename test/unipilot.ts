@@ -64,14 +64,14 @@ describe("Initializing the testing suite", async () => {
     swapRouter = uniswapv3Contracts.router;
 
     PILOT = await deployPilot(wallet0);
-    pool = await createPoolOnUniswap(
-      wallet0,
-      uniswapV3Factory,
-      PILOT.address,
-      USDT.address,
-      3000,
-      "42951287100",
-    );
+    // pool = await createPoolOnUniswap(
+    //   wallet0,
+    //   uniswapV3Factory,
+    //   PILOT.address,
+    //   USDT.address,
+    //   3000,
+    //   "42951287100",
+    // );
     // mockVault = await deployUnipilotVault(wallet0, pool, uniStrategy.address);
     // await PILOT.approve(mockVault.address, MaxUint256);
     // await USDT.approve(mockVault.address, MaxUint256);

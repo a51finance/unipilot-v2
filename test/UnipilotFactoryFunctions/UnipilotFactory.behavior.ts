@@ -63,16 +63,16 @@ export async function shouleBehaveLikePilotFactory(
       WETH9.address,
       PILOT.address,
       3000,
-      42951287100,
+      "42951287100",
       "unipilot PILOT-WETH",
       "PILOT-WETH",
     );
-    console.log("Create Vault", vaultStatic._pool.toString());
+    console.log("Create Vault", vaultStatic._vault.toString());
     const vault = await UnipilotFactory.connect(governance).createVault(
       WETH9.address,
       PILOT.address,
       3000,
-      42951287100,
+      "42951287100",
       "unipilot PILOT-WETH",
       "PILOT-WETH",
     );

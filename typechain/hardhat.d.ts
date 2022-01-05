@@ -73,10 +73,6 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.PeripheryPayments__factory>;
     getContractFactory(
-      name: "UniStrategy",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.UniStrategy__factory>;
-    getContractFactory(
       name: "IERC1271",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IERC1271__factory>;
@@ -93,13 +89,13 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IUnipilotFactory__factory>;
     getContractFactory(
+      name: "IUnipilotStrategy",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IUnipilotStrategy__factory>;
+    getContractFactory(
       name: "IUnipilotVault",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IUnipilotVault__factory>;
-    getContractFactory(
-      name: "IUniStrategy",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.IUniStrategy__factory>;
     getContractFactory(
       name: "UnipilotMaths",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -140,6 +136,10 @@ declare module "hardhat/types/runtime" {
       name: "UnipilotRouter",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.UnipilotRouter__factory>;
+    getContractFactory(
+      name: "UnipilotStrategy",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.UnipilotStrategy__factory>;
     getContractFactory(
       name: "UnipilotVault",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -221,11 +221,6 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.PeripheryPayments>;
     getContractAt(
-      name: "UniStrategy",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.UniStrategy>;
-    getContractAt(
       name: "IERC1271",
       address: string,
       signer?: ethers.Signer
@@ -246,15 +241,15 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.IUnipilotFactory>;
     getContractAt(
+      name: "IUnipilotStrategy",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IUnipilotStrategy>;
+    getContractAt(
       name: "IUnipilotVault",
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.IUnipilotVault>;
-    getContractAt(
-      name: "IUniStrategy",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.IUniStrategy>;
     getContractAt(
       name: "UnipilotMaths",
       address: string,
@@ -305,6 +300,11 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.UnipilotRouter>;
+    getContractAt(
+      name: "UnipilotStrategy",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.UnipilotStrategy>;
     getContractAt(
       name: "UnipilotVault",
       address: string,
