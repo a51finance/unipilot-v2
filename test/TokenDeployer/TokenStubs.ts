@@ -4,6 +4,7 @@ import { deployContract } from "ethereum-waffle";
 import { Contract } from "ethers";
 import Erc20Artifact from "../../artifacts/contracts/test/ERC20.sol/ERC20.json";
 import PilotArtifact from "../../artifacts/contracts/test/PilotToken.sol/Pilot.json";
+
 export async function deployToken(
   deployer: any,
   name: String,

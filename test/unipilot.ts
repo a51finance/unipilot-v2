@@ -61,42 +61,8 @@ describe("Initializing the testing suite", async () => {
     );
     uniswapPositionManager = uniswapv3Contracts.positionManager;
     swapRouter = uniswapv3Contracts.router;
-
     PILOT = await deployPilot(wallet0);
-    // pool = await createPoolOnUniswap(
-    //   wallet0,
-    //   uniswapV3Factory,
-    //   PILOT.address,
-    //   USDT.address,
-    //   3000,
-    //   "42951287100",
-    // );
-    // mockVault = await deployUnipilotVault(wallet0, pool, uniStrategy.address);
-    // await PILOT.approve(mockVault.address, MaxUint256);
-    // await USDT.approve(mockVault.address, MaxUint256);
-    // lpShares = await mockVault.deposit(
-    //   wallet0.address,
-    //   wallet0.address,
-    //   parseUnits("2", "18"),
-    //   parseUnits("2", "18"),
-    // );
-    // vaultSupply = await mockVault.totalSupply();
-
     unipilotRouter = await deployUnipilotRouter(wallet0);
-    // await shouldBehaveLikeTokenApproval(PILOT, mockVault.address);
-    // await shouldBehaveLikeTokenApproval(WETH9, mockVault.address);
-    // vault = await unipilotFactory.callStatic.createVault(
-    //   PILOT.address,
-    //   WETH9.address,
-    //   3000,
-    //   "79228162514264337593543950336",
-    // );
-    // await unipilotFactory.createVault(
-    //   PILOT.address,
-    //   WETH9.address,
-    //   3000,
-    //   "79228162514264337593543950336",
-    // );
   });
 
   describe("Running the pilot functions", async () => {
@@ -116,7 +82,6 @@ describe("Initializing the testing suite", async () => {
       await shouldBehaveLikeUnipilotFunctions(
         wallets,
         unipilotFactory,
-        // mockVault,
         uniswapV3Factory,
         unipilotRouter,
         WETH9,
