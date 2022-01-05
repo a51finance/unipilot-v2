@@ -4,6 +4,7 @@ import { MaxUint256 } from "@ethersproject/constants";
 import {
   deployStrategy,
   deployUnipilotFactory,
+  deployUnipilotRouter,
   deployUnipilotVault,
   deployUniswapContracts,
   deployWETH9,
@@ -27,6 +28,7 @@ describe("Initializing the testing suite", async () => {
   let uniswapPositionManager: Contract;
   let unipilotFactory: Contract;
   let swapRouter: Contract;
+  let unipilotRouter: Contract;
   let uniStrategy: Contract;
   let WETH9: Contract;
   let PILOT: Contract;
@@ -61,6 +63,40 @@ describe("Initializing the testing suite", async () => {
     swapRouter = uniswapv3Contracts.router;
 
     PILOT = await deployPilot(wallet0);
+    // pool = await createPoolOnUniswap(
+    //   wallet0,
+    //   uniswapV3Factory,
+    //   PILOT.address,
+    //   USDT.address,
+    //   3000,
+    //   "42951287100",
+    // );
+    // mockVault = await deployUnipilotVault(wallet0, pool, uniStrategy.address);
+    // await PILOT.approve(mockVault.address, MaxUint256);
+    // await USDT.approve(mockVault.address, MaxUint256);
+    // lpShares = await mockVault.deposit(
+    //   wallet0.address,
+    //   wallet0.address,
+    //   parseUnits("2", "18"),
+    //   parseUnits("2", "18"),
+    // );
+    // vaultSupply = await mockVault.totalSupply();
+
+    unipilotRouter = await deployUnipilotRouter(wallet0);
+    // await shouldBehaveLikeTokenApproval(PILOT, mockVault.address);
+    // await shouldBehaveLikeTokenApproval(WETH9, mockVault.address);
+    // vault = await unipilotFactory.callStatic.createVault(
+    //   PILOT.address,
+    //   WETH9.address,
+    //   3000,
+    //   "79228162514264337593543950336",
+    // );
+    // await unipilotFactory.createVault(
+    //   PILOT.address,
+    //   WETH9.address,
+    //   3000,
+    //   "79228162514264337593543950336",
+    // );
   });
 
   describe("Running the pilot functions", async () => {
@@ -69,16 +105,23 @@ describe("Initializing the testing suite", async () => {
       console.log("UNISWAP FACTORY", uniswapV3Factory.address);
       console.log("USDT", USDT.address);
       console.log("Unipilot Factory", unipilotFactory.address);
+      console.log("Unipilot Router", unipilotRouter.address);
+
+      // console.log("Vault name", (await mockVault.name()).toString());
+      // console.log("Vault supply", (await vaultSupply).toString());
+      // console.log("Vault symbol", (await mockVault.symbol()).toString());
       console.log("Strategy", uniStrategy.address);
       let [wallet0, wallet1, wallet2, wallet3] = await hre.ethers.getSigners();
       let wallets: SignerWithAddress[] = [wallet0, wallet1, wallet2, wallet3];
       await shouldBehaveLikeUnipilotFunctions(
         wallets,
         unipilotFactory,
-        mockVault,
+        // mockVault,
         uniswapV3Factory,
+        unipilotRouter,
         WETH9,
         PILOT,
+        USDT,
       );
     });
   });

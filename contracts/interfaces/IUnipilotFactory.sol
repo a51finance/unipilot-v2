@@ -27,7 +27,7 @@ interface IUnipilotFactory {
         address _tokenA,
         address _tokenB,
         uint24 _fee
-    ) external view returns (address _vault);
+    ) external view returns (address _vault, bool _whitelisted);
 
     function setGovernance(address _newGovernance) external;
 

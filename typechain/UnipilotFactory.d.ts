@@ -25,6 +25,7 @@ interface UnipilotFactoryInterface extends ethers.utils.Interface {
     "getVaults(address,address,uint24)": FunctionFragment;
     "governance()": FunctionFragment;
     "setGovernance(address)": FunctionFragment;
+    "whitelistVaults(address[])": FunctionFragment;
   };
 
   encodeFunctionData(
@@ -43,6 +44,10 @@ interface UnipilotFactoryInterface extends ethers.utils.Interface {
     functionFragment: "setGovernance",
     values: [string],
   ): string;
+  encodeFunctionData(
+    functionFragment: "whitelistVaults",
+    values: [string[]],
+  ): string;
 
   decodeFunctionResult(
     functionFragment: "createVault",
@@ -52,6 +57,10 @@ interface UnipilotFactoryInterface extends ethers.utils.Interface {
   decodeFunctionResult(functionFragment: "governance", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "setGovernance",
+    data: BytesLike,
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "whitelistVaults",
     data: BytesLike,
   ): Result;
 
@@ -131,12 +140,17 @@ export class UnipilotFactory extends BaseContract {
       _tokenB: string,
       _fee: BigNumberish,
       overrides?: CallOverrides,
-    ): Promise<[string] & { _vault: string }>;
+    ): Promise<[string, boolean] & { _vault: string; _whitelisted: boolean }>;
 
     governance(overrides?: CallOverrides): Promise<[string]>;
 
     setGovernance(
       _newGovernance: string,
+      overrides?: Overrides & { from?: string | Promise<string> },
+    ): Promise<ContractTransaction>;
+
+    whitelistVaults(
+      vaults: string[],
       overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
   };
@@ -156,12 +170,17 @@ export class UnipilotFactory extends BaseContract {
     _tokenB: string,
     _fee: BigNumberish,
     overrides?: CallOverrides,
-  ): Promise<string>;
+  ): Promise<[string, boolean] & { _vault: string; _whitelisted: boolean }>;
 
   governance(overrides?: CallOverrides): Promise<string>;
 
   setGovernance(
     _newGovernance: string,
+    overrides?: Overrides & { from?: string | Promise<string> },
+  ): Promise<ContractTransaction>;
+
+  whitelistVaults(
+    vaults: string[],
     overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
@@ -181,7 +200,7 @@ export class UnipilotFactory extends BaseContract {
       _tokenB: string,
       _fee: BigNumberish,
       overrides?: CallOverrides,
-    ): Promise<string>;
+    ): Promise<[string, boolean] & { _vault: string; _whitelisted: boolean }>;
 
     governance(overrides?: CallOverrides): Promise<string>;
 
@@ -189,6 +208,8 @@ export class UnipilotFactory extends BaseContract {
       _newGovernance: string,
       overrides?: CallOverrides,
     ): Promise<void>;
+
+    whitelistVaults(vaults: string[], overrides?: CallOverrides): Promise<void>;
   };
 
   filters: {
@@ -251,6 +272,11 @@ export class UnipilotFactory extends BaseContract {
       _newGovernance: string,
       overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
+
+    whitelistVaults(
+      vaults: string[],
+      overrides?: Overrides & { from?: string | Promise<string> },
+    ): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -275,6 +301,11 @@ export class UnipilotFactory extends BaseContract {
 
     setGovernance(
       _newGovernance: string,
+      overrides?: Overrides & { from?: string | Promise<string> },
+    ): Promise<PopulatedTransaction>;
+
+    whitelistVaults(
+      vaults: string[],
       overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
   };

@@ -131,7 +131,7 @@ export class IUnipilotFactory extends BaseContract {
       _tokenB: string,
       _fee: BigNumberish,
       overrides?: CallOverrides,
-    ): Promise<[string] & { _vault: string }>;
+    ): Promise<[string, boolean] & { _vault: string; _whitelisted: boolean }>;
 
     governance(overrides?: CallOverrides): Promise<[string]>;
 
@@ -156,7 +156,7 @@ export class IUnipilotFactory extends BaseContract {
     _tokenB: string,
     _fee: BigNumberish,
     overrides?: CallOverrides,
-  ): Promise<string>;
+  ): Promise<[string, boolean] & { _vault: string; _whitelisted: boolean }>;
 
   governance(overrides?: CallOverrides): Promise<string>;
 
@@ -181,7 +181,7 @@ export class IUnipilotFactory extends BaseContract {
       _tokenB: string,
       _fee: BigNumberish,
       overrides?: CallOverrides,
-    ): Promise<string>;
+    ): Promise<[string, boolean] & { _vault: string; _whitelisted: boolean }>;
 
     governance(overrides?: CallOverrides): Promise<string>;
 

@@ -92,7 +92,7 @@ export const unipilotVaultFixture: Fixture<UNIPILOT_VAULT_FIXTURE> =
         );
 
         console.log("Vault address inside fixture", vaultAddress);
-        return unipilotVaultDep.attach(vaultAddress) as UnipilotVault;
+        return unipilotVaultDep.attach(vaultAddress._vault) as UnipilotVault;
       },
     };
   };
