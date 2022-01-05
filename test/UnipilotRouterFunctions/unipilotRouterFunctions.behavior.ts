@@ -48,8 +48,6 @@ export async function shouldBehaveLikeUnipilotRouterFunctions(
       "unipilot PILOT-USDT",
       "PILOT-USDT",
     );
-    // console.log("vault deployed address", UnipilotVault);
-    // await expect(vault).to.be.ok;
 
     // console.log(
     //   "Token o Alice Balance : ",
@@ -73,22 +71,22 @@ export async function shouldBehaveLikeUnipilotRouterFunctions(
     //   parseUnits("1", "6"),
     // );
 
-    let result = await UnipilotRouter.connect(owner).callStatic.deposit(
+    let staticDeposit = await UnipilotRouter.connect(owner).callStatic.deposit(
       vaultStatic._vault,
       owner.address,
       parseUnits("1000", "18"),
       parseUnits("1", "6"),
     );
 
-    console.log("Lp Share", result.toString());
+    console.log("Lp Share", staticDeposit.toString());
 
-    await UnipilotRouter.connect(owner).deposit(
+    let deposit = await UnipilotRouter.connect(owner).deposit(
       vaultStatic._vault,
       owner.address,
       parseUnits("1000", "18"),
       parseUnits("1", "6"),
     );
 
-    expect(result).to.be.ok;
+    expect(deposit).to.be.ok;
   });
 }
