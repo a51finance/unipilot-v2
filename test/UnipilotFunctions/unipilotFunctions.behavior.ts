@@ -23,7 +23,6 @@ export async function shouldBehaveLikeUnipilotFunctions(
   // describe("Testing the UnipilotFactory !!", async () => {
   //   shouleBehaveLikePilotFactory(wallets, UnipilotFactory);
   // });
-
   describe("Testing the UnipilotFactory !!", async () => {
     shouleBehaveLikePilotFactory(
       wallets,
@@ -39,21 +38,19 @@ export async function shouldBehaveLikeUnipilotFunctions(
   // });
   type ThenArg<T> = T extends PromiseLike<infer U> ? U : T;
 
-  describe("Testing Unipilot Vault", async () => {
-    let wallet: Wallet, other: Wallet;
-    let unipilotFactory: UnipilotFactory;
-    let unipilotVault: UnipilotVault;
+  describe("Unipilot Vault Skeleton", async () => {
     let loadFixture: ReturnType<typeof createFixtureLoader>;
     let createVault: ThenArg<
       ReturnType<typeof unipilotVaultFixture>
     >["createVault"];
+    let unipilotVault: UnipilotVault;
+    let wallet: Wallet, other: Wallet;
+    let unipilotFactory: UnipilotFactory;
 
     before("create fixture loader", async () => {
       [wallet, other] = await (ethers as any).getSigners();
       loadFixture = createFixtureLoader([wallet, other]);
-    });
 
-    beforeEach("deploy fixtures", async () => {
       ({ unipilotFactory, createVault } = await loadFixture(
         unipilotVaultFixture,
       ));
@@ -65,21 +62,16 @@ export async function shouldBehaveLikeUnipilotFunctions(
         "unipilot PILOT-WETH",
         "PILOT-WETH",
       );
-
-      console.log("vault address", unipilotVault.address);
     });
 
-    it("get Reserves", async () => {
-      const reserves = await unipilotVault.getReserves();
-      console.log("reserves", reserves);
+    it("Vault functions to be executed", async () => {
+      await shouldBehaveLikeVaultFunctions(
+        wallets,
+        unipilotVault,
+        UniswapV3Factory,
+        20,
+        wallets[0].address,
+      );
     });
-
-    // await shouldBehaveLikeVaultFunctions(
-    //   wallets,
-    //   unipilotVault,
-    //   UniswapV3Factory,
-    //   20,
-    //   wallets[0].address,
-    // );
   });
 }

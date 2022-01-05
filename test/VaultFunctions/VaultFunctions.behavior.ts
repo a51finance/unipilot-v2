@@ -2,11 +2,12 @@ import { parseUnits } from "@ethersproject/units";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { expect } from "chai";
 import { BigNumber, BigNumberish, Contract } from "ethers";
+import { UnipilotVault } from "../../typechain";
 import { shouldBehaveLikeTokenApproval } from "../TokenApproval/tokenApprove.behavior";
 
 export async function shouldBehaveLikeVaultFunctions(
   wallets: SignerWithAddress[],
-  vault: Contract,
+  vault: UnipilotVault,
   uniswapFactory: Contract,
   baseThreshold: number,
   indexFundAddress: string,
@@ -43,16 +44,35 @@ export async function shouldBehaveLikeVaultFunctions(
   //   expect(lpShares).to.be.equal(simulatedLpShares.toString());
   // });
 
-  it("should successfully readjust vault", async () => {
-    console.log("Vault name", (await vault.name()).toString());
-    console.log("Vault symbol", (await vault.symbol()).toString());
-    console.log("Vault supply", (await vault.totalSupply()).toString());
-    const amounts = await readjustLiquidity(
-      baseThreshold,
-      indexFundAddress,
-      vault,
-    );
-    console.log("Amounts returned after readjust", amounts);
+  describe("Testing Unipilot Vault", async () => {
+    it("checking name of vault LP Token", async () => {
+      const vaultName = (await vault.name()).toString();
+      console.log("Vault name", vaultName);
+      expect(vaultName).to.be.equal("unipilot PILOT-WETH");
+    });
+
+    it("checking name of vault LP Token", async () => {
+      const vaultSymbol = (await vault.symbol()).toString();
+      console.log("Vault symbol", vaultSymbol);
+      expect(vaultSymbol).to.be.equal("PILOT-WETH");
+    });
+
+    it("checking name of vault LP Token", async () => {
+      const totalSupply = (await vault.totalSupply()).toString();
+      console.log("Vault total Supply", totalSupply);
+      expect(totalSupply).to.be.equal("0");
+    });
+
+    it("should successfully readjust vault", async () => {
+      console.log("Vault symbol", (await vault.symbol()).toString());
+      console.log("Vault supply", (await vault.totalSupply()).toString());
+      const amounts = await readjustLiquidity(
+        baseThreshold,
+        indexFundAddress,
+        vault,
+      );
+      console.log("Amounts returned after readjust", amounts);
+    });
   });
 }
 
