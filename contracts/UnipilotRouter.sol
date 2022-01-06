@@ -2,8 +2,11 @@ pragma solidity ^0.7.6;
 
 import "./interfaces/IUnipilotFactory.sol";
 import "./interfaces/IUnipilotVault.sol";
+import "./base/PeripheryPayments.sol";
 
-contract UnipilotRouter {
+import "hardhat/console.sol";
+
+contract UnipilotRouter is PeripheryPayments {
     address public unipilotFactory;
 
     constructor(address _unipilotFactory) {
@@ -17,18 +20,12 @@ contract UnipilotRouter {
         uint256 _amount1
     ) external returns (uint256 lpShares) {
         require(_vault != address(0) && _recipient != address(0), "NA");
-
+        require(_amount0 > 0 && _amount1 > 0, "IF");
         (address token0, address token1, uint256 fee) = IUnipilotVault(_vault)
             .getVaultInfo();
 
-        // require(
-        //     IUnipilotFactory(unipilotFactory).getVaults(
-        //         token0,
-        //         token1,
-        //         uint24(fee)
-        //     ) != address(0),
-        //     "NVA"
-        // );
+        pay(token0, msg.sender, _vault, _amount0);
+        pay(token1, msg.sender, _vault, _amount1);
 
         lpShares = IUnipilotVault(_vault).deposit(
             msg.sender,
@@ -39,6 +36,11 @@ contract UnipilotRouter {
     }
 
     // Withdraw goes to here...
+    // function withdraw(address _vault,uint256 desiredAmount ) external returns (uint256 amount, uint256 lpShares){
+    //     require(_vault != address(0) && desiredAmount > 0, "NA");
+
+    //     (amount, lpShares) = IUnipilotVault(_vault).withdraw(desiredAmount);
+    // }
 
     // Rebase goes to here...
 }

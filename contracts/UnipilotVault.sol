@@ -31,19 +31,18 @@ contract UnipilotVault is
     IERC20 private token0;
     IERC20 private token1;
     IUniswapV3Pool private pool;
-
-    address private router;
+    IUnipilotFactory private factory;
     address private strategy;
-    address private governance;
+    address public governance;
     address private indexFund;
-    address private unipilotFactory;
-
+    address private router = 0x0c2547f3E970C308847161c6B37ae668b100B268;
     int24 private tickSpacing;
     int24 private baseTickLower;
     int24 private baseTickUpper;
     int24 private rangeTickLower;
     int24 private rangeTickUpper;
-
+    int24 private bidTickLower;
+    int24 private bidTickUpper;
     uint8 private _unlocked = 1;
     uint24 private fee;
 
@@ -61,18 +60,21 @@ contract UnipilotVault is
 
     constructor(
         address _governance,
+        address _factory,
         address _pool,
         address _strategy,
         string memory _name,
         string memory _symbol
     ) ERC20Permit(_name) ERC20(_name, _symbol) {
         governance = _governance;
+        factory = IUnipilotFactory(factory);
         strategy = _strategy;
         initializeVault(_pool);
     }
 
     function initializeVault(address _pool) internal {
         pool = IUniswapV3Pool(_pool);
+
         token0 = IERC20(pool.token0());
         token1 = IERC20(pool.token1());
         fee = pool.fee();
@@ -86,17 +88,17 @@ contract UnipilotVault is
         uint256 _amount1Desired
     ) external override returns (uint256) {
         require(_depositor != address(0) && _recipient != address(0), "IAD");
-
-        (uint256 lpShares, uint256 amount0, uint256 amount1) = _computeLPShares(
+        (uint256 lpShares, , ) = UniswapLiquidityManagement._computeLpShares(
             _amount0Desired,
             _amount1Desired,
-            totalSupply()
+            totalSupply(),
+            baseTickLower,
+            baseTickUpper,
+            _balance0(),
+            _balance1(),
+            pool
         );
         require(lpShares != 0, "ISH");
-        require(
-            amount0 >= _amount0Desired && amount1 >= _amount1Desired,
-            "IAM"
-        );
 
         if (msg.sender != router) {
             pay(address(token0), _depositor, address(this), _amount0Desired);
@@ -104,96 +106,9 @@ contract UnipilotVault is
         }
 
         _mint(_recipient, lpShares);
+        console.log("TOTAL SUPPLY", totalSupply());
         emit Deposit(_depositor, _amount0Desired, _amount1Desired, lpShares);
         return lpShares;
-    }
-
-    function _computeLPShares(
-        uint256 amount0Max,
-        uint256 amount1Max,
-        uint256 totalSupply
-    )
-        internal
-        view
-        returns (
-            uint256 shares,
-            uint256 amount0,
-            uint256 amount1
-        )
-    {
-        // uint256 totalSupply = totalSupply();
-        uint256 reserve0;
-        uint256 reserve1;
-        (reserve0, reserve1) = getReserves();
-        // If total supply > 0, pool can't be empty
-        assert(totalSupply == 0 || reserve0 != 0 || reserve1 != 0);
-
-        if (totalSupply == 0) {
-            // For first deposit, just use the amounts desired
-            amount0 = amount0Max;
-            amount1 = amount1Max;
-            shares = amount0 > amount1 ? amount0 : amount1; // max
-        } else if (reserve0 == 0) {
-            amount1 = amount1Max;
-            shares = FullMath.mulDiv(amount1, totalSupply, reserve1);
-        } else if (reserve1 == 0) {
-            amount0 = amount0Max;
-            shares = FullMath.mulDiv(amount0, totalSupply, reserve0);
-        } else {
-            amount0 = FullMath.mulDiv(amount1Max, reserve0, reserve1);
-
-            if (amount0 < amount0Max) {
-                amount1 = amount1Max;
-                shares = FullMath.mulDiv(amount1, totalSupply, reserve1);
-            } else {
-                amount0 = amount0Max;
-                amount1 = FullMath.mulDiv(amount0, reserve1, reserve0);
-                shares = FullMath.mulDiv(amount0, totalSupply, reserve0);
-            }
-        }
-    }
-
-    function getReserves()
-        public
-        view
-        returns (uint256 reserve0, uint256 reserve1)
-    {
-        reserve0 = _balance0();
-        reserve1 = _balance1();
-
-        // if (totalAmount0 == 0 && totalAmount1 == 0) {
-        //     uint256 temp0;
-        //     uint256 temp1;
-        //     (temp0, temp1) = _collectableAmountsAsOfLastPoke(
-        //         baseTickLower,
-        //         baseTickUpper
-        //     );
-        //     reserve0 += temp0;
-        //     reserve1 += temp1;
-        // }
-    }
-
-    function _collectableAmountsAsOfLastPoke(int24 _lowerTick, int24 _upperTick)
-        public
-        view
-        returns (uint256, uint256)
-    {
-        (
-            uint128 liquidity,
-            ,
-            ,
-            uint128 earnable0,
-            uint128 earnable1
-        ) = UnipilotMaths._position(
-                pool,
-                address(this),
-                _lowerTick,
-                _upperTick
-            );
-        (uint256 burnable0, uint256 burnable1) = UniswapLiquidityManagement
-            .getAmountsForLiquidity(pool, liquidity, _lowerTick, _upperTick);
-
-        return (burnable0 + earnable0, burnable1 + earnable1);
     }
 
     function readjustLiquidity() external {

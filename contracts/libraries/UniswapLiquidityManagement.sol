@@ -7,6 +7,9 @@ import "@uniswap/v3-core/contracts/libraries/SqrtPriceMath.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 import "@uniswap/v3-periphery/contracts/libraries/LiquidityAmounts.sol";
 import "@uniswap/v3-periphery/contracts/libraries/PositionKey.sol";
+import "@uniswap/v3-core/contracts/libraries/FullMath.sol";
+import "./UniswapPoolActions.sol";
+import "hardhat/console.sol";
 
 /// @title Liquidity and ticks functions
 /// @notice Provides functions for computing liquidity and ticks for token amounts and prices
@@ -119,6 +122,134 @@ library UniswapLiquidityManagement {
 
         tickLower = tickFloor - baseThreshold;
         tickUpper = tickFloor + baseThreshold;
+    }
+
+    function getReserves(
+        int24 baseTickLower,
+        int24 baseTickUpper,
+        uint256 balance0,
+        uint256 balance1,
+        IUniswapV3Pool pool
+    ) internal returns (uint256 reserve0, uint256 reserve1) {
+        reserve0 = balance0;
+        reserve1 = balance1;
+        uint128 liquidity = UniswapPoolActions.updatePosition(
+            pool,
+            baseTickLower,
+            baseTickUpper
+        );
+        if (liquidity > 0) {
+            uint256 temp0;
+            uint256 temp1;
+            (temp0, temp1) = _collectableAmountsAsOfLastPoke(
+                baseTickLower,
+                baseTickUpper,
+                pool
+            );
+            reserve0 += temp0;
+            reserve1 += temp1;
+        }
+    }
+
+    function _collectableAmountsAsOfLastPoke(
+        int24 _lowerTick,
+        int24 _upperTick,
+        IUniswapV3Pool pool
+    ) internal view returns (uint256, uint256) {
+        (
+            uint128 liquidity,
+            uint128 earnable0,
+            uint128 earnable1
+        ) = UniswapLiquidityManagement.getPositionLiquidity(
+                pool,
+                _lowerTick,
+                _upperTick
+            );
+        (uint256 burnable0, uint256 burnable1) = UniswapLiquidityManagement
+            .getAmountsForLiquidity(pool, liquidity, _lowerTick, _upperTick);
+
+        return (burnable0 + earnable0, burnable1 + earnable1);
+    }
+
+    function _computeLpShares(
+        uint256 amount0Max,
+        uint256 amount1Max,
+        uint256 totalSupply,
+        int24 baseTickLower,
+        int24 baseTickUpper,
+        uint256 balance0,
+        uint256 balance1,
+        IUniswapV3Pool pool
+    )
+        internal
+        returns (
+            uint256 shares,
+            uint256 amount0,
+            uint256 amount1
+        )
+    {
+        // uint256 totalSupply = totalSupply();
+        uint256 reserve0;
+        uint256 reserve1;
+        (reserve0, reserve1) = getReserves(
+            baseTickLower,
+            baseTickUpper,
+            balance0,
+            balance1,
+            pool
+        );
+        // If total supply > 0, pool can't be empty
+        assert(totalSupply == 0 || reserve0 != 0 || reserve1 != 0);
+        (shares, amount0, amount1) = _calculateShare(
+            amount0Max,
+            amount1Max,
+            reserve0,
+            reserve1,
+            totalSupply
+        );
+    }
+
+    function _calculateShare(
+        uint256 amount0Max,
+        uint256 amount1Max,
+        uint256 reserve0,
+        uint256 reserve1,
+        uint256 totalSupply
+    )
+        internal
+        view
+        returns (
+            uint256 shares,
+            uint256 amount0,
+            uint256 amount1
+        )
+    {
+        if (totalSupply == 0) {
+            // For first deposit, just use the amounts desired
+            amount0 = amount0Max;
+            amount1 = amount1Max;
+            shares = amount0 > amount1 ? amount0 : amount1; // max
+        } else if (reserve0 == 0) {
+            amount1 = amount1Max;
+            shares = FullMath.mulDiv(amount1, totalSupply, reserve1);
+        } else if (reserve1 == 0) {
+            amount0 = amount0Max;
+            shares = FullMath.mulDiv(amount0, totalSupply, reserve0);
+        } else {
+            console.log("RESERVE 0", reserve0);
+            console.log("RESERVE 1", reserve1);
+            console.log("TOTAL SUPPLY", totalSupply);
+            amount0 = FullMath.mulDiv(amount1Max, reserve0, reserve1);
+            console.log("AMOUNT 0", amount0);
+            if (amount0 < amount0Max) {
+                amount1 = amount1Max;
+                shares = FullMath.mulDiv(amount1, totalSupply, reserve1);
+            } else {
+                amount0 = amount0Max;
+                amount1 = FullMath.mulDiv(amount0, reserve1, reserve0);
+                shares = FullMath.mulDiv(amount0, totalSupply, reserve0);
+            }
+        }
     }
 
     /// @dev Gets ticks with proportion equivalent to desired amount

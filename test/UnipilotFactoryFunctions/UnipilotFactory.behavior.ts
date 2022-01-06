@@ -10,7 +10,6 @@ export async function shouleBehaveLikePilotFactory(
   UniswapV3Factory: Contract,
   WETH9: Contract,
   PILOT: Contract,
-  pool: string,
 ): Promise<void> {
   const governance = wallets[0];
   const alice = wallets[1];
@@ -57,25 +56,23 @@ export async function shouleBehaveLikePilotFactory(
   // });
 
   it("Vault deployment(cool shit): Will deploy new vault of a uniswap pool", async () => {
-    const vaultStatic = await UnipilotFactory.connect(
-      governance,
-    ).callStatic.createVault(
-      WETH9.address,
-      PILOT.address,
-      3000,
-      42951287100,
-      "unipilot PILOT-WETH",
-      "PILOT-WETH",
-    );
-    console.log("Create Vault", vaultStatic._pool.toString());
     const vault = await UnipilotFactory.connect(governance).createVault(
       WETH9.address,
       PILOT.address,
       3000,
-      42951287100,
+      "42951287100",
       "unipilot PILOT-WETH",
       "PILOT-WETH",
     );
     await expect(vault).to.be.ok;
+  });
+
+  it("Get vault after it is deployed", async () => {
+    const vault = await UnipilotFactory.connect(governance).getVaults(
+      WETH9.address,
+      PILOT.address,
+      3000,
+    );
+    console.log("vault deployed address", vault);
   });
 }

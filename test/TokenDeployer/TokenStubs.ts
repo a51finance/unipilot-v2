@@ -4,6 +4,7 @@ import { deployContract } from "ethereum-waffle";
 import { Contract } from "ethers";
 import Erc20Artifact from "../../artifacts/contracts/test/ERC20.sol/ERC20.json";
 import PilotArtifact from "../../artifacts/contracts/test/PilotToken.sol/Pilot.json";
+
 export async function deployToken(
   deployer: any,
   name: String,
@@ -22,7 +23,7 @@ export async function deployPilot(deployer: any): Promise<Contract> {
   let pilot = await deployContract(deployer, PilotArtifact, [
     deployer.address,
     [deployer.address],
-    [parseUnits("5000", "18")],
+    [parseUnits("50000", "18")],
   ]);
   return pilot;
 }
