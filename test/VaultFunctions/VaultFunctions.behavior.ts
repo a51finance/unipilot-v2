@@ -55,16 +55,9 @@ export async function shouldBehaveLikeVaultFunctions(
       expect(await lpShares).to.be.ok;
     });
 
-    // it("should successfully readjust vault", async () => {
-    //   console.log("Vault symbol", (await vault.symbol()).toString());
-    //   console.log("Vault supply", (await vault.totalSupply()).toString());
-    //   const amounts = await readjustLiquidity(
-    //     baseThreshold,
-    //     indexFundAddress,
-    //     vault,
-    //   );
-    //   console.log("Amounts returned after readjust", amounts);
-    // });
+    it("should successfully readjust vault", async () => {
+      expect(await vault.readjustLiquidity()).to.be.ok;
+    });
   });
 }
 
@@ -98,12 +91,3 @@ export async function shouldBehaveLikeVaultFunctions(
 //   }
 //   return lpShares;
 // }
-
-async function readjustLiquidity(
-  baseThreshold: number,
-  indexFund: string,
-  vault: Contract,
-) {
-  const amounts = await vault._readjustLiquidity(baseThreshold, indexFund);
-  return amounts;
-}
