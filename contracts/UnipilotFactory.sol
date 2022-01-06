@@ -10,9 +10,10 @@ import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 
 contract UnipilotFactory is IUnipilotFactory {
-    address public override governance;
-    address private uniswapFactory;
+    address private router;
     address private uniStrategy;
+    address private uniswapFactory;
+    address public override governance;
 
     constructor(
         address _uniswapFactory,
@@ -20,8 +21,8 @@ contract UnipilotFactory is IUnipilotFactory {
         address _uniStrategy
     ) {
         governance = _governance;
-        uniswapFactory = _uniswapFactory;
         uniStrategy = _uniStrategy;
+        uniswapFactory = _uniswapFactory;
     }
 
     mapping(address => mapping(address => mapping(uint24 => address)))
@@ -63,15 +64,7 @@ contract UnipilotFactory is IUnipilotFactory {
             IUniswapV3Pool(pool).initialize(_sqrtPriceX96);
         }
         _pool = pool;
-        _vault = _deploy(
-            token0,
-            token1,
-            _fee,
-            pool,
-            uniStrategy,
-            _name,
-            _symbol
-        );
+        _vault = _deploy(token0, token1, _fee, pool, _name, _symbol);
         vaults[token0][token1][_fee] = _vault;
         emit VaultCreated(token0, token1, _fee);
     }
@@ -97,7 +90,7 @@ contract UnipilotFactory is IUnipilotFactory {
         governance = _newGovernance;
     }
 
-    function whitelistVaults(address[] memory vaults) external {
+    function whitelistVaults(address[] memory vaults) external isGovernance {
         for (uint256 i = 0; i < vaults.length; i++) {
             address toggleAddress = vaults[i];
             whitelistedVaults[toggleAddress] = !whitelistedVaults[
@@ -111,14 +104,21 @@ contract UnipilotFactory is IUnipilotFactory {
         address _tokenB,
         uint24 _fee,
         address _pool,
-        address _unistrategy,
         string memory _name,
         string memory _symbol
     ) private returns (address _vault) {
         _vault = address(
             new UnipilotVault{
                 salt: keccak256(abi.encode(_tokenA, _tokenB, _fee))
-            }(governance, address(this), _pool, _unistrategy, _name, _symbol)
+            }(
+                _pool,
+                router,
+                uniStrategy,
+                governance,
+                address(this),
+                _name,
+                _symbol
+            )
         );
     }
 }
