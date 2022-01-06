@@ -7,7 +7,6 @@ import "./interfaces/IUnipilotVault.sol";
 import "./interfaces/IUnipilotStrategy.sol";
 import "./interfaces/IUnipilotFactory.sol";
 
-import "./libraries/UnipilotMaths.sol";
 import "./libraries/UniswapLiquidityManagement.sol";
 import "./libraries/UniswapPoolActions.sol";
 
@@ -31,18 +30,19 @@ contract UnipilotVault is
     IERC20 private token0;
     IERC20 private token1;
     IUniswapV3Pool private pool;
-    IUnipilotFactory private factory;
-    address private strategy;
+    IUnipilotFactory private unipilotFactory;
+
     address public governance;
+    address private strategy;
     address private indexFund;
-    address private router = 0x0c2547f3E970C308847161c6B37ae668b100B268;
+    address private router;
+
     int24 private tickSpacing;
     int24 private baseTickLower;
     int24 private baseTickUpper;
     int24 private rangeTickLower;
     int24 private rangeTickUpper;
-    int24 private bidTickLower;
-    int24 private bidTickUpper;
+
     uint8 private _unlocked = 1;
     uint24 private fee;
 
@@ -59,20 +59,22 @@ contract UnipilotVault is
     }
 
     constructor(
-        address _governance,
-        address _factory,
         address _pool,
+        address _router,
         address _strategy,
+        address _governance,
+        address _unipilotFactory,
         string memory _name,
         string memory _symbol
     ) ERC20Permit(_name) ERC20(_name, _symbol) {
-        governance = _governance;
-        factory = IUnipilotFactory(factory);
+        router = _router;
         strategy = _strategy;
+        governance = _governance;
+        unipilotFactory = IUnipilotFactory(_unipilotFactory);
         initializeVault(_pool);
     }
 
-    function initializeVault(address _pool) internal {
+    function initializeVault(address _pool) private {
         pool = IUniswapV3Pool(_pool);
 
         token0 = IERC20(pool.token0());
@@ -88,7 +90,7 @@ contract UnipilotVault is
         uint256 _amount1Desired
     ) external override returns (uint256) {
         require(_depositor != address(0) && _recipient != address(0), "IAD");
-        (uint256 lpShares, , ) = UniswapLiquidityManagement._computeLpShares(
+        (uint256 lpShares, , ) = UniswapLiquidityManagement.computeLpShares(
             _amount0Desired,
             _amount1Desired,
             totalSupply(),
@@ -211,12 +213,11 @@ contract UnipilotVault is
             baseTickUpper
         );
 
-        pool.mint(
+        pool.mintLiquidity(
             address(this),
             baseTickLower,
             baseTickUpper,
-            a.liquidity,
-            abi.encode(address(this))
+            a.liquidity
         );
     }
 
@@ -296,12 +297,11 @@ contract UnipilotVault is
             ticks.baseTickUpper
         );
 
-        pool.mint(
+        pool.mintLiquidity(
             address(this),
             ticks.baseTickLower,
             ticks.baseTickUpper,
-            baseLiquidity,
-            abi.encode(address(this))
+            baseLiquidity
         );
 
         baseTickLower = ticks.baseTickLower;
@@ -339,12 +339,11 @@ contract UnipilotVault is
         }
 
         if (rangeLiquidity > 0) {
-            pool.mint(
+            pool.mintLiquidity(
                 address(this),
                 rangeTickLower,
                 rangeTickUpper,
-                rangeLiquidity,
-                abi.encode(address(this))
+                rangeLiquidity
             );
         }
     }
@@ -457,23 +456,6 @@ contract UnipilotVault is
         returns (uint256 liquiditySharePercentage)
     {
         return FullMath.mulDiv(liquidity, 1e18, totalSupply());
-    }
-
-    function _addLiquidityUniswap(
-        address payer,
-        int24 tickLower,
-        int24 tickUpper,
-        uint128 liquidity
-    ) internal returns (uint256 amount0, uint256 amount1) {
-        if (liquidity > 0) {
-            (amount0, amount1) = pool.mint(
-                address(this),
-                tickLower,
-                tickUpper,
-                liquidity,
-                abi.encode(payer)
-            );
-        }
     }
 
     /// @inheritdoc IUnipilotVault
