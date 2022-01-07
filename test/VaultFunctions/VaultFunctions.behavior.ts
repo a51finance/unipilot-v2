@@ -47,10 +47,17 @@ export async function shouldBehaveLikeVaultFunctions(
         await vault.callStatic.deposit(
           wallets[0].address,
           wallets[0].address,
-          parseUnits("5", "6"),
           parseUnits("10", "18"),
+          parseUnits("5", "6"),
         )
       ).toString();
+
+      await vault.deposit(
+        wallets[0].address,
+        wallets[0].address,
+        parseUnits("10", "18"),
+        parseUnits("5", "6"),
+      );
 
       expect(await lpShares).to.be.ok;
     });

@@ -2,6 +2,16 @@
 pragma solidity ^0.7.6;
 
 interface IUnipilotVault {
+    struct AddLiquidityParams {
+        address token0;
+        address token1;
+        uint24 fee;
+        int24 tickLower;
+        int24 tickUpper;
+        uint256 amount0Desired;
+        uint256 amount1Desired;
+    }
+
     struct ReadjustVars {
         uint256 fees0;
         uint256 fees1;
@@ -36,6 +46,13 @@ interface IUnipilotVault {
         int24 rangeTickUpper;
     }
 
+    struct MintCallbackData {
+        address payer;
+        address token0;
+        address token1;
+        uint24 fee;
+    }
+
     event Deposit(
         address depositor,
         uint256 amount0,
@@ -65,7 +82,7 @@ interface IUnipilotVault {
         address recipient,
         uint256 amount0,
         uint256 amount1
-    ) external returns (uint256 lpShares);
+    ) external payable returns (uint256 lpShares);
 
     function getVaultInfo()
         external

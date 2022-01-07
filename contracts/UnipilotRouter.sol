@@ -7,10 +7,16 @@ import "./base/PeripheryPayments.sol";
 import "hardhat/console.sol";
 
 contract UnipilotRouter is PeripheryPayments {
-    address public unipilotFactory;
+    address private unipilotFactory;
+    address private owner;
 
-    constructor(address _unipilotFactory) {
-        unipilotFactory = _unipilotFactory;
+    modifier onlyOwner() {
+        require(msg.sender == owner, "NO");
+        _;
+    }
+
+    constructor() {
+        owner = msg.sender;
     }
 
     function deposit(
@@ -33,6 +39,10 @@ contract UnipilotRouter is PeripheryPayments {
             _amount0,
             _amount1
         );
+    }
+
+    function setFactory(address _factory) external onlyOwner {
+        unipilotFactory = _factory;
     }
 
     // Withdraw goes to here...

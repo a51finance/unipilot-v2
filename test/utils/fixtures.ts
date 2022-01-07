@@ -4,7 +4,12 @@ import { Contract } from "ethers";
 import { ethers } from "hardhat";
 import { UnipilotFactory, UnipilotVault } from "../../typechain";
 import { UniswapV3Deployer } from "../UniswapV3Deployer";
-import { deployStrategy, deployUniswapContracts, deployWETH9 } from "../stubs";
+import {
+  deployStrategy,
+  deployUnipilotRouter,
+  deployUniswapContracts,
+  deployWETH9,
+} from "../stubs";
 import hre from "hardhat";
 
 const deployWeth9 = async (wallet0: SignerWithAddress) => {
@@ -27,11 +32,13 @@ async function unipilotFactoryFixture(
   deployer: SignerWithAddress,
   uniswapV3Factory: string,
   uniStrategy: string,
+  router: string,
 ): Promise<UNIPILOT_FACTORY_FIXTURE> {
   const unipilotFactoryDep = await ethers.getContractFactory("UnipilotFactory");
   const unipilotFactory = (await unipilotFactoryDep.deploy(
     uniswapV3Factory,
     deployer.address,
+    router,
     uniStrategy,
   )) as UnipilotFactory;
   return { unipilotFactory };
@@ -53,10 +60,13 @@ export const unipilotVaultFixture: Fixture<UNIPILOT_VAULT_FIXTURE> =
     let [wallet0, wallet1] = await hre.ethers.getSigners();
     const uniswapV3Factory = await deployUniswapFactory(wallet0);
     const uniStrategy = await deployStrategy(wallet0);
+    const router = await deployUnipilotRouter(wallet0);
+    console.log("UniStrategy address", uniStrategy.address);
     const { unipilotFactory } = await unipilotFactoryFixture(
       wallet0,
       uniswapV3Factory,
       uniStrategy.address,
+      router.address,
     );
 
     console.log(

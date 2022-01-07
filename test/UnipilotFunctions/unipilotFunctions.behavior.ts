@@ -12,6 +12,7 @@ import { shouldBehaveLikeUnipilotRouterFunctions } from "../UnipilotRouterFuncti
 import { unipilotVaultFixture } from "../utils/fixtures";
 import { shouldBehaveLikeVaultFunctions } from "../VaultFunctions/VaultFunctions.behavior";
 import { MaxUint256 } from "@ethersproject/constants";
+import hre from "hardhat";
 
 export async function shouldBehaveLikeUnipilotFunctions(
   wallets: SignerWithAddress[],
@@ -50,10 +51,12 @@ export async function shouldBehaveLikeUnipilotFunctions(
     before("create fixture loader", async () => {
       [wallet, other] = await (ethers as any).getSigners();
       loadFixture = createFixtureLoader([wallet, other]);
+      let [wallet0, wallet1] = await hre.ethers.getSigners();
 
       ({ unipilotFactory, createVault } = await loadFixture(
         unipilotVaultFixture,
       ));
+
       unipilotVault = await createVault(
         USDT.address,
         PILOT.address,
@@ -62,6 +65,9 @@ export async function shouldBehaveLikeUnipilotFunctions(
         "unipilot PILOT-WETH",
         "PILOT-WETH",
       );
+      await unipilotFactory
+        .connect(wallet0)
+        .whitelistVaults([unipilotVault.address]);
 
       //following ERC20Artifact
       await USDT._mint(wallets[0].address, parseUnits("20", "6"));

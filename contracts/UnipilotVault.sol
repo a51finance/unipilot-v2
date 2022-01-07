@@ -16,6 +16,7 @@ import "@openzeppelin/contracts/drafts/ERC20Permit.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20Burnable.sol";
+import "hardhat/console.sol";
 
 contract UnipilotVault is
     ERC20Permit,
@@ -32,13 +33,11 @@ contract UnipilotVault is
     IERC20 private token1;
     TicksData private ticksData;
     IUniswapV3Pool private pool;
-    IUnipilotFactory private unipilotFactory;
-
-    address public governance;
+    IUnipilotFactory private factory;
     address private strategy;
+    address public governance;
     address private indexFund;
     address private router;
-
     uint8 private _unlocked = 1;
     uint24 private fee;
     int24 private tickSpacing;
@@ -56,22 +55,22 @@ contract UnipilotVault is
     }
 
     constructor(
-        address _pool,
-        address _router,
-        address _strategy,
         address _governance,
-        address _unipilotFactory,
+        address _factory,
+        address _router,
+        address _pool,
+        address _strategy,
         string memory _name,
         string memory _symbol
     ) ERC20Permit(_name) ERC20(_name, _symbol) {
-        router = _router;
-        strategy = _strategy;
         governance = _governance;
-        unipilotFactory = IUnipilotFactory(_unipilotFactory);
+        router = _router;
+        factory = IUnipilotFactory(_factory);
+        strategy = _strategy;
         initializeVault(_pool);
     }
 
-    function initializeVault(address _pool) private {
+    function initializeVault(address _pool) internal {
         pool = IUniswapV3Pool(_pool);
         token0 = IERC20(pool.token0());
         token1 = IERC20(pool.token1());
@@ -84,9 +83,37 @@ contract UnipilotVault is
         address _recipient,
         uint256 _amount0Desired,
         uint256 _amount1Desired
-    ) external override returns (uint256) {
+    ) external payable override returns (uint256 lpShares) {
+        (, bool isWhitelisted) = factory.getVaults(
+            address(token0),
+            address(token1),
+            fee
+        );
+        if (isWhitelisted) {
+            lpShares = depositForActive(
+                _depositor,
+                _recipient,
+                _amount0Desired,
+                _amount1Desired
+            );
+        } else {
+            lpShares = depositForPassive(
+                _depositor,
+                _recipient,
+                _amount0Desired,
+                _amount1Desired
+            );
+        }
+    }
+
+    function depositForActive(
+        address _depositor,
+        address _recipient,
+        uint256 _amount0Desired,
+        uint256 _amount1Desired
+    ) internal returns (uint256 lpShares) {
         require(_depositor != address(0) && _recipient != address(0), "IAD");
-        (uint256 lpShares, , ) = UniswapLiquidityManagement.computeLpShares(
+        (lpShares, , ) = UniswapLiquidityManagement.computeLpShares(
             _amount0Desired,
             _amount1Desired,
             totalSupply(),
@@ -106,15 +133,113 @@ contract UnipilotVault is
         _mint(_recipient, lpShares);
         console.log("TOTAL SUPPLY", totalSupply());
         emit Deposit(_depositor, _amount0Desired, _amount1Desired, lpShares);
-        return lpShares;
+    }
+
+    function depositForPassive(
+        address _depositor,
+        address _recipient,
+        uint256 _amount0Desired,
+        uint256 _amount1Desired
+    ) internal returns (uint256 lpShares) {
+        uint256 totalSupply = totalSupply();
+        if (totalSupply == 0) {
+            (
+                baseTickLower,
+                baseTickUpper,
+                ,
+                ,
+                rangeTickLower,
+                rangeTickUpper
+            ) = _getTicksFromUniStrategy(address(pool));
+        }
+        (lpShares, , ) = UniswapLiquidityManagement.computeLpShares(
+            _amount0Desired,
+            _amount1Desired,
+            totalSupply,
+            baseTickLower,
+            baseTickUpper,
+            _balance0(),
+            _balance1(),
+            pool
+        );
+        (
+            uint128 baseLiquidity,
+            uint256 baseAmount0,
+            uint256 baseAmount1
+        ) = _addLiquidityUniswap(
+                AddLiquidityParams({
+                    token0: address(token0),
+                    token1: address(token1),
+                    fee: fee,
+                    tickLower: baseTickLower,
+                    tickUpper: baseTickUpper,
+                    amount0Desired: _amount0Desired,
+                    amount1Desired: _amount1Desired
+                })
+            );
+
+        uint256 remainingAmount0 = _amount0Desired.sub(baseAmount0);
+        uint256 remainingAmount1 = _amount1Desired.sub(baseAmount1);
+
+        (uint128 rangeLiquidity, , ) = _addLiquidityUniswap(
+            AddLiquidityParams({
+                token0: address(token0),
+                token1: address(token1),
+                fee: fee,
+                tickLower: rangeTickLower,
+                tickUpper: rangeTickUpper,
+                amount0Desired: remainingAmount0,
+                amount1Desired: remainingAmount1
+            })
+        );
+
+        if (msg.sender != router) {
+            pay(address(token0), _depositor, address(this), _amount0Desired);
+            pay(address(token1), _depositor, address(this), _amount1Desired);
+        }
+
+        _mint(_recipient, lpShares);
+        emit Deposit(_depositor, _amount0Desired, _amount1Desired, lpShares);
+    }
+
+    function _addLiquidityUniswap(AddLiquidityParams memory params)
+        private
+        returns (
+            uint128 liquidity,
+            uint256 amount0,
+            uint256 amount1
+        )
+    {
+        liquidity = UniswapLiquidityManagement.getLiquidityForAmounts(
+            pool,
+            params.amount0Desired,
+            params.amount1Desired,
+            params.tickLower,
+            params.tickUpper
+        );
+
+        (amount0, amount1) = pool.mint(
+            address(this),
+            params.tickLower,
+            params.tickUpper,
+            liquidity,
+            abi.encode(address(this))
+        );
     }
 
     function readjustLiquidity() external {
-        if (_isPoolWhitelisted()) {
+        (, bool isWhitelisted) = factory.getVaults(
+            address(token0),
+            address(token1),
+            fee
+        );
+
+        if (isWhitelisted) {
             readjustLiquidityForActive();
-        } else {
-            readjustLiquidityForPassive();
         }
+        // else {
+        //     readjustLiquidityForPassive();
+        // }
     }
 
     function readjustLiquidityForActive() private {
@@ -141,10 +266,13 @@ contract UnipilotVault is
             totalSupply()
         );
 
+        console.log("calling from vault1", address(strategy));
+        console.log("pool", address(pool));
+        IUnipilotStrategy(strategy).getTicks(address(pool));
         int24 baseThreshold = IUnipilotStrategy(strategy).getBaseThreshold(
             address(pool)
         );
-
+        console.log("calling from vault2");
         (a.tickLower, a.tickUpper) = UniswapLiquidityManagement.getBaseTicks(
             a.currentTick,
             baseThreshold,
@@ -153,6 +281,11 @@ contract UnipilotVault is
 
         a.amount0Desired = _balance0();
         a.amount1Desired = _balance1();
+
+        console.log("amount 0 desired", a.amount0Desired);
+        console.log("amount 1 desired", a.amount1Desired);
+        console.log("tick lower", uint256(a.tickLower));
+        console.log("tick upper", uint256(a.tickUpper));
 
         a.liquidity = pool.getLiquidityForAmounts(
             a.amount0Desired,
@@ -184,13 +317,17 @@ contract UnipilotVault is
             ? a.sqrtPriceX96 - a.exactSqrtPriceImpact
             : a.sqrtPriceX96 + a.exactSqrtPriceImpact;
 
-        pool.swap(
-            address(this),
-            a.zeroForOne,
-            a.amountSpecified,
-            a.sqrtPriceLimitX96,
-            abi.encode(a.zeroForOne)
-        );
+        console.log("address", address(this));
+        console.log("zero for one", a.zeroForOne);
+        console.log("amountSpecified", uint256(a.amountSpecified));
+        console.log("sqrtPriceLimitX96", uint256(a.sqrtPriceLimitX96));
+        // pool.swap(
+        //     address(this),
+        //     a.zeroForOne,
+        //     a.amountSpecified,
+        //     a.sqrtPriceLimitX96,
+        //     abi.encode(a.zeroForOne)
+        // );
 
         a.amount0Desired = _balance0();
         a.amount1Desired = _balance1();
@@ -421,14 +558,6 @@ contract UnipilotVault is
         return IUnipilotStrategy(strategy).getTicks(pool);
     }
 
-    function _isPoolWhitelisted() private returns (bool isWhitelisted) {
-        (, isWhitelisted) = IUnipilotFactory(unipilotFactory).getVaults(
-            address(token0),
-            address(token1),
-            fee
-        );
-    }
-
     /// @dev Amount of token0 held as unused balance.
     function _balance0() private view returns (uint256) {
         return token0.balanceOf(address(this));
@@ -455,6 +584,23 @@ contract UnipilotVault is
         return FullMath.mulDiv(liquidity, 1e18, totalSupply());
     }
 
+    function _addLiquidityUniswap(
+        address payer,
+        int24 tickLower,
+        int24 tickUpper,
+        uint128 liquidity
+    ) internal returns (uint256 amount0, uint256 amount1) {
+        if (liquidity > 0) {
+            (amount0, amount1) = pool.mint(
+                address(this),
+                tickLower,
+                tickUpper,
+                liquidity,
+                abi.encode(payer)
+            );
+        }
+    }
+
     /// @inheritdoc IUnipilotVault
     function uniswapV3MintCallback(
         uint256 amount0Owed,
@@ -478,7 +624,10 @@ contract UnipilotVault is
         bytes calldata data
     ) external override {
         _verifyCallback();
-        require(amount0 > 0 || amount1 > 0);
+        console.log("amount0", uint256(amount0));
+        console.log("amount1", uint256(amount1));
+
+        require(amount0 > 0 || amount1 > 0, "sould be less");
         bool zeroForOne = abi.decode(data, (bool));
 
         if (zeroForOne)

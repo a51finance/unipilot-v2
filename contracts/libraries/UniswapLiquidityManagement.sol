@@ -118,6 +118,8 @@ library UniswapLiquidityManagement {
     ) internal pure returns (int24 tickLower, int24 tickUpper) {
         int24 tickFloor = floor(currentTick, tickSpacing);
 
+        // console.log("tickFloor", uint256(tickFloor));
+        // console.log("baseThreshold", baseThreshold);
         tickLower = tickFloor - baseThreshold;
         tickUpper = tickFloor + baseThreshold;
     }

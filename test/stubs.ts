@@ -25,11 +25,12 @@ export async function deployUnipilotFactory(
   deployer: SignerWithAddress,
   uniswapV3Factory: string,
   uniStrategy: string,
+  router: string,
 ) {
   let unipilotFactory = await deployContract(
     deployer,
     UnipilotFactoryArtifact,
-    [uniswapV3Factory, deployer.address, uniStrategy],
+    [uniswapV3Factory, deployer.address, router, uniStrategy],
     {
       gasPrice: 90000000000,
     },
@@ -62,6 +63,7 @@ export async function deployUnipilotVault(
   deployer: SignerWithAddress,
   pool: string,
   uniStrategy: string,
+  router: string,
 ): Promise<Contract> {
   // address _governance,
   // address _pool,

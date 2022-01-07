@@ -54,29 +54,21 @@ describe("Initializing the testing suite", async () => {
     );
     uniswapV3Factory = uniswapv3Contracts.factory;
     uniStrategy = await deployStrategy(wallet0);
+    unipilotRouter = await deployUnipilotRouter(wallet0);
     unipilotFactory = await deployUnipilotFactory(
       wallet0,
       uniswapV3Factory.address,
       uniStrategy.address,
+      unipilotRouter.address,
     );
+
     uniswapPositionManager = uniswapv3Contracts.positionManager;
     swapRouter = uniswapv3Contracts.router;
     PILOT = await deployPilot(wallet0);
-    unipilotRouter = await deployUnipilotRouter(wallet0);
   });
 
   describe("Running the pilot functions", async () => {
     it("Runs Unipilot Functions", async function () {
-      console.log("WETH9", WETH9.address);
-      console.log("UNISWAP FACTORY", uniswapV3Factory.address);
-      console.log("USDT", USDT.address);
-      console.log("Unipilot Factory", unipilotFactory.address);
-      console.log("Unipilot Router", unipilotRouter.address);
-
-      // console.log("Vault name", (await mockVault.name()).toString());
-      // console.log("Vault supply", (await vaultSupply).toString());
-      // console.log("Vault symbol", (await mockVault.symbol()).toString());
-      console.log("Strategy", uniStrategy.address);
       let [wallet0, wallet1, wallet2, wallet3] = await hre.ethers.getSigners();
       let wallets: SignerWithAddress[] = [wallet0, wallet1, wallet2, wallet3];
       await shouldBehaveLikeUnipilotFunctions(
