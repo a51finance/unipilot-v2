@@ -1,15 +1,13 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity >=0.5.0;
 
-import "@uniswap/v3-core/contracts/libraries/TickMath.sol";
-import "@uniswap/v3-core/contracts/libraries/LowGasSafeMath.sol";
-import "@uniswap/v3-core/contracts/libraries/SqrtPriceMath.sol";
-import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
-import "@uniswap/v3-periphery/contracts/libraries/LiquidityAmounts.sol";
-import "@uniswap/v3-periphery/contracts/libraries/PositionKey.sol";
-import "@uniswap/v3-core/contracts/libraries/FullMath.sol";
-import "./UniswapPoolActions.sol";
 import "hardhat/console.sol";
+import "./UniswapPoolActions.sol";
+
+import "@uniswap/v3-core/contracts/libraries/TickMath.sol";
+import "@uniswap/v3-core/contracts/libraries/SqrtPriceMath.sol";
+import "@uniswap/v3-periphery/contracts/libraries/PositionKey.sol";
+import "@uniswap/v3-periphery/contracts/libraries/LiquidityAmounts.sol";
 
 /// @title Liquidity and ticks functions
 /// @notice Provides functions for computing liquidity and ticks for token amounts and prices
@@ -141,7 +139,7 @@ library UniswapLiquidityManagement {
         if (liquidity > 0) {
             uint256 temp0;
             uint256 temp1;
-            (temp0, temp1) = _collectableAmountsAsOfLastPoke(
+            (temp0, temp1) = collectableAmountsInPosition(
                 baseTickLower,
                 baseTickUpper,
                 pool
@@ -151,7 +149,7 @@ library UniswapLiquidityManagement {
         }
     }
 
-    function _collectableAmountsAsOfLastPoke(
+    function collectableAmountsInPosition(
         int24 _lowerTick,
         int24 _upperTick,
         IUniswapV3Pool pool
@@ -171,7 +169,7 @@ library UniswapLiquidityManagement {
         return (burnable0 + earnable0, burnable1 + earnable1);
     }
 
-    function _computeLpShares(
+    function computeLpShares(
         uint256 amount0Max,
         uint256 amount1Max,
         uint256 totalSupply,
@@ -200,7 +198,7 @@ library UniswapLiquidityManagement {
         );
         // If total supply > 0, pool can't be empty
         assert(totalSupply == 0 || reserve0 != 0 || reserve1 != 0);
-        (shares, amount0, amount1) = _calculateShare(
+        (shares, amount0, amount1) = calculateShare(
             amount0Max,
             amount1Max,
             reserve0,
@@ -209,7 +207,7 @@ library UniswapLiquidityManagement {
         );
     }
 
-    function _calculateShare(
+    function calculateShare(
         uint256 amount0Max,
         uint256 amount1Max,
         uint256 reserve0,

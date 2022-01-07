@@ -54,15 +54,16 @@ describe("Initializing the testing suite", async () => {
     );
     uniswapV3Factory = uniswapv3Contracts.factory;
     uniStrategy = await deployStrategy(wallet0);
+    unipilotRouter = await deployUnipilotRouter(wallet0);
     unipilotFactory = await deployUnipilotFactory(
       wallet0,
       uniswapV3Factory.address,
+      unipilotRouter.address,
       uniStrategy.address,
     );
     uniswapPositionManager = uniswapv3Contracts.positionManager;
     swapRouter = uniswapv3Contracts.router;
     PILOT = await deployPilot(wallet0);
-    unipilotRouter = await deployUnipilotRouter(wallet0);
   });
 
   describe("Running the pilot functions", async () => {

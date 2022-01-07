@@ -3,6 +3,7 @@ pragma solidity >=0.5.0;
 
 import "./SafeCastExtended.sol";
 import "./UniswapLiquidityManagement.sol";
+
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 import "@uniswap/v3-core/contracts/libraries/FullMath.sol";
 import "@uniswap/v3-core/contracts/libraries/LowGasSafeMath.sol";
@@ -89,6 +90,24 @@ library UniswapPoolActions {
                 tickUpper,
                 amount0.toUint128(),
                 amount1.toUint128()
+            );
+        }
+    }
+
+    function mintLiquidity(
+        IUniswapV3Pool pool,
+        address payer,
+        int24 tickLower,
+        int24 tickUpper,
+        uint128 liquidity
+    ) internal returns (uint256 amount0, uint256 amount1) {
+        if (liquidity > 0) {
+            (amount0, amount1) = pool.mint(
+                address(this),
+                tickLower,
+                tickUpper,
+                liquidity,
+                abi.encode(payer)
             );
         }
     }
