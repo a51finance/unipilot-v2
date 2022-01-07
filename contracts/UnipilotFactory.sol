@@ -120,6 +120,13 @@ contract UnipilotFactory is IUnipilotFactory {
                 _name,
                 _symbol
             )
+            //address _governance,
+            // address _factory,
+            // address _router,
+            // address _pool,
+            // address _strategy,
+            // string memory _name,
+            // string memory _symbol
         );
     }
 }
