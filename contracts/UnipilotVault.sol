@@ -41,8 +41,6 @@ contract UnipilotVault is
     int24 private baseTickUpper;
     int24 private rangeTickLower;
     int24 private rangeTickUpper;
-    int24 private bidTickLower;
-    int24 private bidTickUpper;
     uint8 private _unlocked = 1;
     uint24 private fee;
 
@@ -67,14 +65,13 @@ contract UnipilotVault is
         string memory _symbol
     ) ERC20Permit(_name) ERC20(_name, _symbol) {
         governance = _governance;
-        factory = IUnipilotFactory(factory);
+        factory = IUnipilotFactory(_factory);
         strategy = _strategy;
         initializeVault(_pool);
     }
 
     function initializeVault(address _pool) internal {
         pool = IUniswapV3Pool(_pool);
-
         token0 = IERC20(pool.token0());
         token1 = IERC20(pool.token1());
         fee = pool.fee();
@@ -86,9 +83,37 @@ contract UnipilotVault is
         address _recipient,
         uint256 _amount0Desired,
         uint256 _amount1Desired
-    ) external override returns (uint256) {
+    ) external payable override returns (uint256 lpShares) {
+        (, bool isWhitelisted) = factory.getVaults(
+            address(token0),
+            address(token1),
+            fee
+        );
+        if (isWhitelisted) {
+            lpShares = depositForActive(
+                _depositor,
+                _recipient,
+                _amount0Desired,
+                _amount1Desired
+            );
+        } else {
+            lpShares = depositForPassive(
+                _depositor,
+                _recipient,
+                _amount0Desired,
+                _amount1Desired
+            );
+        }
+    }
+
+    function depositForActive(
+        address _depositor,
+        address _recipient,
+        uint256 _amount0Desired,
+        uint256 _amount1Desired
+    ) internal returns (uint256 lpShares) {
         require(_depositor != address(0) && _recipient != address(0), "IAD");
-        (uint256 lpShares, , ) = UniswapLiquidityManagement._computeLpShares(
+        (lpShares, , ) = UniswapLiquidityManagement._computeLpShares(
             _amount0Desired,
             _amount1Desired,
             totalSupply(),
@@ -108,7 +133,98 @@ contract UnipilotVault is
         _mint(_recipient, lpShares);
         console.log("TOTAL SUPPLY", totalSupply());
         emit Deposit(_depositor, _amount0Desired, _amount1Desired, lpShares);
-        return lpShares;
+    }
+
+    function depositForPassive(
+        address _depositor,
+        address _recipient,
+        uint256 _amount0Desired,
+        uint256 _amount1Desired
+    ) internal returns (uint256 lpShares) {
+        uint256 totalSupply = totalSupply();
+        if (totalSupply == 0) {
+            (
+                baseTickLower,
+                baseTickUpper,
+                ,
+                ,
+                rangeTickLower,
+                rangeTickUpper
+            ) = _getTicksFromUniStrategy(address(pool));
+        }
+        (lpShares, , ) = UniswapLiquidityManagement._computeLpShares(
+            _amount0Desired,
+            _amount1Desired,
+            totalSupply,
+            baseTickLower,
+            baseTickUpper,
+            _balance0(),
+            _balance1(),
+            pool
+        );
+        (
+            uint128 baseLiquidity,
+            uint256 baseAmount0,
+            uint256 baseAmount1
+        ) = _addLiquidityUniswap(
+                AddLiquidityParams({
+                    token0: address(token0),
+                    token1: address(token1),
+                    fee: fee,
+                    tickLower: baseTickLower,
+                    tickUpper: baseTickUpper,
+                    amount0Desired: _amount0Desired,
+                    amount1Desired: _amount1Desired
+                })
+            );
+
+        uint256 remainingAmount0 = _amount0Desired.sub(baseAmount0);
+        uint256 remainingAmount1 = _amount1Desired.sub(baseAmount1);
+
+        (uint128 rangeLiquidity, , ) = _addLiquidityUniswap(
+            AddLiquidityParams({
+                token0: address(token0),
+                token1: address(token1),
+                fee: fee,
+                tickLower: rangeTickLower,
+                tickUpper: rangeTickUpper,
+                amount0Desired: remainingAmount0,
+                amount1Desired: remainingAmount1
+            })
+        );
+
+        if (msg.sender != router) {
+            pay(address(token0), _depositor, address(this), _amount0Desired);
+            pay(address(token1), _depositor, address(this), _amount1Desired);
+        }
+
+        _mint(_recipient, lpShares);
+        emit Deposit(_depositor, _amount0Desired, _amount1Desired, lpShares);
+    }
+
+    function _addLiquidityUniswap(AddLiquidityParams memory params)
+        private
+        returns (
+            uint128 liquidity,
+            uint256 amount0,
+            uint256 amount1
+        )
+    {
+        liquidity = UniswapLiquidityManagement.getLiquidityForAmounts(
+            pool,
+            params.amount0Desired,
+            params.amount1Desired,
+            params.tickLower,
+            params.tickUpper
+        );
+
+        (amount0, amount1) = pool.mint(
+            address(this),
+            params.tickLower,
+            params.tickUpper,
+            liquidity,
+            abi.encode(address(this))
+        );
     }
 
     function readjustLiquidity() external {
