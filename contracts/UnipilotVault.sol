@@ -15,6 +15,7 @@ import "@openzeppelin/contracts/drafts/ERC20Permit.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20Burnable.sol";
+import "hardhat/console.sol";
 
 contract UnipilotVault is
     ERC20Permit,
@@ -158,6 +159,11 @@ contract UnipilotVault is
         a.amount0Desired = _balance0();
         a.amount1Desired = _balance1();
 
+        console.log("amount 0 desired", a.amount0Desired);
+        console.log("amount 1 desired", a.amount1Desired);
+        console.log("tick lower", uint256(a.tickLower));
+        console.log("tick upper", uint256(a.tickUpper));
+
         a.liquidity = pool.getLiquidityForAmounts(
             a.amount0Desired,
             a.amount1Desired,
@@ -165,60 +171,60 @@ contract UnipilotVault is
             a.tickUpper
         );
 
-        (a.amount0, a.amount1) = pool.getAmountsForLiquidity(
-            a.liquidity,
-            a.tickLower,
-            a.tickUpper
-        );
+        // (a.amount0, a.amount1) = pool.getAmountsForLiquidity(
+        //     a.liquidity,
+        //     a.tickLower,
+        //     a.tickUpper
+        // );
 
-        a.zeroForOne = UniswapLiquidityManagement.amountsDirection(
-            a.amount0Desired,
-            a.amount1Desired,
-            a.amount0,
-            a.amount1
-        );
+        // a.zeroForOne = UniswapLiquidityManagement.amountsDirection(
+        //     a.amount0Desired,
+        //     a.amount1Desired,
+        //     a.amount0,
+        //     a.amount1
+        // );
 
-        a.amountSpecified = a.zeroForOne
-            ? int256(FullMath.mulDiv(a.amount0Desired.sub(a.amount0), 50, 100))
-            : int256(FullMath.mulDiv(a.amount1Desired.sub(a.amount1), 50, 100));
+        // a.amountSpecified = a.zeroForOne
+        //     ? int256(FullMath.mulDiv(a.amount0Desired.sub(a.amount0), 50, 100))
+        //     : int256(FullMath.mulDiv(a.amount1Desired.sub(a.amount1), 50, 100));
 
-        a.exactSqrtPriceImpact = (a.sqrtPriceX96 * (1e5 / 2)) / 1e6;
+        // a.exactSqrtPriceImpact = (a.sqrtPriceX96 * (1e5 / 2)) / 1e6;
 
-        a.sqrtPriceLimitX96 = a.zeroForOne
-            ? a.sqrtPriceX96 - a.exactSqrtPriceImpact
-            : a.sqrtPriceX96 + a.exactSqrtPriceImpact;
+        // a.sqrtPriceLimitX96 = a.zeroForOne
+        //     ? a.sqrtPriceX96 - a.exactSqrtPriceImpact
+        //     : a.sqrtPriceX96 + a.exactSqrtPriceImpact;
 
-        pool.swap(
-            address(this),
-            a.zeroForOne,
-            a.amountSpecified,
-            a.sqrtPriceLimitX96,
-            abi.encode(a.zeroForOne)
-        );
+        // pool.swap(
+        //     address(this),
+        //     a.zeroForOne,
+        //     a.amountSpecified,
+        //     a.sqrtPriceLimitX96,
+        //     abi.encode(a.zeroForOne)
+        // );
 
-        a.amount0Desired = _balance0();
-        a.amount1Desired = _balance1();
+        // a.amount0Desired = _balance0();
+        // a.amount1Desired = _balance1();
 
-        (baseTickLower, baseTickUpper) = pool.getPositionTicks(
-            a.amount0Desired,
-            a.amount1Desired,
-            baseThreshold,
-            tickSpacing
-        );
+        // (baseTickLower, baseTickUpper) = pool.getPositionTicks(
+        //     a.amount0Desired,
+        //     a.amount1Desired,
+        //     baseThreshold,
+        //     tickSpacing
+        // );
 
-        a.liquidity = pool.getLiquidityForAmounts(
-            a.amount0Desired,
-            a.amount1Desired,
-            baseTickLower,
-            baseTickUpper
-        );
+        // a.liquidity = pool.getLiquidityForAmounts(
+        //     a.amount0Desired,
+        //     a.amount1Desired,
+        //     baseTickLower,
+        //     baseTickUpper
+        // );
 
-        pool.mintLiquidity(
-            address(this),
-            baseTickLower,
-            baseTickUpper,
-            a.liquidity
-        );
+        // pool.mintLiquidity(
+        //     address(this),
+        //     baseTickLower,
+        //     baseTickUpper,
+        //     a.liquidity
+        // );
     }
 
     function readjustLiquidityForPassive() private {
