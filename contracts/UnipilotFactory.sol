@@ -64,8 +64,7 @@ contract UnipilotFactory is IUnipilotFactory {
             IUniswapV3Pool(pool).initialize(_sqrtPriceX96);
         }
         _pool = pool;
-        console.log("POOL", _pool);
-        _vault = _deploy(token0, token1, _fee, pool, router, _name, _symbol);
+        _vault = _deploy(token0, token1, _fee, pool, _name, _symbol);
         vaults[token0][token1][_fee] = _vault;
         emit VaultCreated(token0, token1, _fee);
     }
@@ -105,7 +104,6 @@ contract UnipilotFactory is IUnipilotFactory {
         address _tokenB,
         uint24 _fee,
         address _pool,
-        address _router,
         string memory _name,
         string memory _symbol
     ) private returns (address _vault) {
@@ -113,21 +111,14 @@ contract UnipilotFactory is IUnipilotFactory {
             new UnipilotVault{
                 salt: keccak256(abi.encode(_tokenA, _tokenB, _fee))
             }(
+                _pool,
+                router,
+                uniStrategy,
                 governance,
                 address(this),
-                _router,
-                _pool,
-                uniStrategy,
                 _name,
                 _symbol
             )
-            //address _governance,
-            // address _factory,
-            // address _router,
-            // address _pool,
-            // address _strategy,
-            // string memory _name,
-            // string memory _symbol
         );
     }
 }
