@@ -33,14 +33,16 @@ contract UnipilotVault is
     IERC20 private token1;
     TicksData private ticksData;
     IUniswapV3Pool private pool;
-    IUnipilotFactory private factory;
-    address private strategy;
+    IUnipilotFactory private unipilotFactory;
+
     address public governance;
+    address private strategy;
     address private indexFund;
     address private router;
-    uint8 private _unlocked = 1;
+
     uint24 private fee;
     int24 private tickSpacing;
+    uint8 private _unlocked = 1;
 
     modifier onlyGovernance() {
         require(msg.sender == governance, "NG");
@@ -55,18 +57,18 @@ contract UnipilotVault is
     }
 
     constructor(
-        address _governance,
-        address _factory,
-        address _router,
         address _pool,
+        address _router,
         address _strategy,
+        address _governance,
+        address _unipilotFactory,
         string memory _name,
         string memory _symbol
     ) ERC20Permit(_name) ERC20(_name, _symbol) {
-        governance = _governance;
         router = _router;
-        factory = IUnipilotFactory(_factory);
         strategy = _strategy;
+        governance = _governance;
+        unipilotFactory = IUnipilotFactory(_unipilotFactory);
         initializeVault(_pool);
     }
 
@@ -84,12 +86,7 @@ contract UnipilotVault is
         uint256 _amount0Desired,
         uint256 _amount1Desired
     ) external payable override returns (uint256 lpShares) {
-        (, bool isWhitelisted) = factory.getVaults(
-            address(token0),
-            address(token1),
-            fee
-        );
-        if (isWhitelisted) {
+        if (_isPoolWhitelisted()) {
             lpShares = depositForActive(
                 _depositor,
                 _recipient,
@@ -144,20 +141,20 @@ contract UnipilotVault is
         uint256 totalSupply = totalSupply();
         if (totalSupply == 0) {
             (
-                baseTickLower,
-                baseTickUpper,
+                ticksData.baseTickLower,
+                ticksData.baseTickUpper,
                 ,
                 ,
-                rangeTickLower,
-                rangeTickUpper
+                ticksData.rangeTickLower,
+                ticksData.rangeTickUpper
             ) = _getTicksFromUniStrategy(address(pool));
         }
         (lpShares, , ) = UniswapLiquidityManagement.computeLpShares(
             _amount0Desired,
             _amount1Desired,
             totalSupply,
-            baseTickLower,
-            baseTickUpper,
+            ticksData.baseTickLower,
+            ticksData.baseTickUpper,
             _balance0(),
             _balance1(),
             pool
@@ -171,8 +168,8 @@ contract UnipilotVault is
                     token0: address(token0),
                     token1: address(token1),
                     fee: fee,
-                    tickLower: baseTickLower,
-                    tickUpper: baseTickUpper,
+                    tickLower: ticksData.baseTickLower,
+                    tickUpper: ticksData.baseTickUpper,
                     amount0Desired: _amount0Desired,
                     amount1Desired: _amount1Desired
                 })
@@ -186,8 +183,8 @@ contract UnipilotVault is
                 token0: address(token0),
                 token1: address(token1),
                 fee: fee,
-                tickLower: rangeTickLower,
-                tickUpper: rangeTickUpper,
+                tickLower: ticksData.rangeTickLower,
+                tickUpper: ticksData.rangeTickUpper,
                 amount0Desired: remainingAmount0,
                 amount1Desired: remainingAmount1
             })
@@ -228,18 +225,11 @@ contract UnipilotVault is
     }
 
     function readjustLiquidity() external {
-        (, bool isWhitelisted) = factory.getVaults(
-            address(token0),
-            address(token1),
-            fee
-        );
-
-        if (isWhitelisted) {
+        if (_isPoolWhitelisted()) {
             readjustLiquidityForActive();
+        } else {
+            readjustLiquidityForPassive();
         }
-        // else {
-        //     readjustLiquidityForPassive();
-        // }
     }
 
     function readjustLiquidityForActive() private {
@@ -266,13 +256,10 @@ contract UnipilotVault is
             totalSupply()
         );
 
-        console.log("calling from vault1", address(strategy));
-        console.log("pool", address(pool));
-        IUnipilotStrategy(strategy).getTicks(address(pool));
         int24 baseThreshold = IUnipilotStrategy(strategy).getBaseThreshold(
             address(pool)
         );
-        console.log("calling from vault2");
+
         (a.tickLower, a.tickUpper) = UniswapLiquidityManagement.getBaseTicks(
             a.currentTick,
             baseThreshold,
@@ -317,17 +304,13 @@ contract UnipilotVault is
             ? a.sqrtPriceX96 - a.exactSqrtPriceImpact
             : a.sqrtPriceX96 + a.exactSqrtPriceImpact;
 
-        console.log("address", address(this));
-        console.log("zero for one", a.zeroForOne);
-        console.log("amountSpecified", uint256(a.amountSpecified));
-        console.log("sqrtPriceLimitX96", uint256(a.sqrtPriceLimitX96));
-        // pool.swap(
-        //     address(this),
-        //     a.zeroForOne,
-        //     a.amountSpecified,
-        //     a.sqrtPriceLimitX96,
-        //     abi.encode(a.zeroForOne)
-        // );
+        pool.swap(
+            address(this),
+            a.zeroForOne,
+            a.amountSpecified,
+            a.sqrtPriceLimitX96,
+            abi.encode(a.zeroForOne)
+        );
 
         a.amount0Desired = _balance0();
         a.amount1Desired = _balance1();
@@ -558,6 +541,14 @@ contract UnipilotVault is
         return IUnipilotStrategy(strategy).getTicks(pool);
     }
 
+    function _isPoolWhitelisted() private returns (bool isWhitelisted) {
+        (, isWhitelisted) = IUnipilotFactory(unipilotFactory).getVaults(
+            address(token0),
+            address(token1),
+            fee
+        );
+    }
+
     /// @dev Amount of token0 held as unused balance.
     function _balance0() private view returns (uint256) {
         return token0.balanceOf(address(this));
@@ -582,23 +573,6 @@ contract UnipilotVault is
         returns (uint256 liquiditySharePercentage)
     {
         return FullMath.mulDiv(liquidity, 1e18, totalSupply());
-    }
-
-    function _addLiquidityUniswap(
-        address payer,
-        int24 tickLower,
-        int24 tickUpper,
-        uint128 liquidity
-    ) internal returns (uint256 amount0, uint256 amount1) {
-        if (liquidity > 0) {
-            (amount0, amount1) = pool.mint(
-                address(this),
-                tickLower,
-                tickUpper,
-                liquidity,
-                abi.encode(payer)
-            );
-        }
     }
 
     /// @inheritdoc IUnipilotVault
