@@ -8,7 +8,6 @@ import "@uniswap/v3-core/contracts/libraries/TickMath.sol";
 import "@uniswap/v3-core/contracts/libraries/SqrtPriceMath.sol";
 import "@uniswap/v3-periphery/contracts/libraries/PositionKey.sol";
 import "@uniswap/v3-periphery/contracts/libraries/LiquidityAmounts.sol";
-import "hardhat/console.sol";
 
 /// @title Liquidity and ticks functions
 /// @notice Provides functions for computing liquidity and ticks for token amounts and prices
@@ -119,8 +118,8 @@ library UniswapLiquidityManagement {
     ) internal pure returns (int24 tickLower, int24 tickUpper) {
         int24 tickFloor = floor(currentTick, tickSpacing);
 
-        console.log("tickFloor", uint256(tickFloor));
-        console.log("baseThreshold", uint256(baseThreshold));
+        // console.log("tickFloor", uint256(tickFloor));
+        // console.log("baseThreshold", baseThreshold);
         tickLower = tickFloor - baseThreshold;
         tickUpper = tickFloor + baseThreshold;
     }

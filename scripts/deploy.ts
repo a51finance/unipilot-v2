@@ -10,6 +10,8 @@ import { resolve } from "path";
 
 import UnipilotFactoryArtifacts from "../artifacts/contracts/UnipilotFactory.sol/UnipilotFactory.json";
 import UnipilotVaultArtifacts from "../artifacts/contracts/UnipilotVault.sol/UnipilotVault.json";
+import UnipilotRouterArtifacts from "../artifacts/contracts/UnipilotRouter.sol/UnipilotRouter.json";
+import UnipilotStrategiesArtifacts from "../artifacts/contracts/UnipilotStrategy.sol/UnipilotStrategy.json";
 
 dotenvConfig({ path: resolve(__dirname, "../.env") });
 
@@ -55,6 +57,22 @@ const deployUnipilotFactory = async () => {
     walletAddress,
   );
 };
+
+// const deployUnipilotRouter = async () => {
+//   const UnipilotRouter = new ethers.ContractFactory(
+//     UnipilotRouterArtifacts.abi,
+//     UnipilotRouterArtifacts.bytecode,
+//     wallet,
+//   );
+//   const walletAddress = await wallet.getAddress();
+//   const UnipilotRouterContract = await UnipilotRouter.deploy();
+//   console.log(
+//     "UnipilotFactory deployed to:",
+//     UnipilotFactoryContract.address,
+//     "from account,",
+//     walletAddress,
+//   );
+// };
 
 const deployVault = async (
   contractAddress: string,
