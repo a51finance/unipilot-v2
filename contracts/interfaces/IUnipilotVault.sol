@@ -1,5 +1,4 @@
 //SPDX-License-Identifier: MIT
-
 pragma solidity ^0.7.6;
 
 interface IUnipilotVault {
@@ -19,6 +18,13 @@ interface IUnipilotVault {
         int256 amountSpecified;
         uint160 exactSqrtPriceImpact;
         uint160 sqrtPriceLimitX96;
+    }
+
+    struct TicksData {
+        int24 baseTickLower;
+        int24 baseTickUpper;
+        int24 rangeTickLower;
+        int24 rangeTickUpper;
     }
 
     struct Tick {

@@ -1,5 +1,6 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.7.6;
+pragma abicoder v2;
 
 import "./base/PeripheryPayments.sol";
 
@@ -29,6 +30,7 @@ contract UnipilotVault is
 
     IERC20 private token0;
     IERC20 private token1;
+    TicksData private ticksData;
     IUniswapV3Pool private pool;
     IUnipilotFactory private unipilotFactory;
 
@@ -37,14 +39,9 @@ contract UnipilotVault is
     address private indexFund;
     address private router;
 
-    int24 private tickSpacing;
-    int24 private baseTickLower;
-    int24 private baseTickUpper;
-    int24 private rangeTickLower;
-    int24 private rangeTickUpper;
-
     uint8 private _unlocked = 1;
     uint24 private fee;
+    int24 private tickSpacing;
 
     modifier onlyGovernance() {
         require(msg.sender == governance, "NG");
@@ -76,7 +73,6 @@ contract UnipilotVault is
 
     function initializeVault(address _pool) private {
         pool = IUniswapV3Pool(_pool);
-
         token0 = IERC20(pool.token0());
         token1 = IERC20(pool.token1());
         fee = pool.fee();
@@ -94,8 +90,8 @@ contract UnipilotVault is
             _amount0Desired,
             _amount1Desired,
             totalSupply(),
-            baseTickLower,
-            baseTickUpper,
+            ticksData.baseTickLower,
+            ticksData.baseTickUpper,
             _balance0(),
             _balance1(),
             pool
@@ -126,8 +122,8 @@ contract UnipilotVault is
         (a.sqrtPriceX96, a.currentTick) = getSqrtRatioX96AndTick();
 
         (a.fees0, a.fees1) = pool.burnLiquidity(
-            baseTickLower,
-            baseTickUpper,
+            ticksData.baseTickLower,
+            ticksData.baseTickUpper,
             address(this)
         );
 
@@ -199,24 +195,25 @@ contract UnipilotVault is
         a.amount0Desired = _balance0();
         a.amount1Desired = _balance1();
 
-        (baseTickLower, baseTickUpper) = pool.getPositionTicks(
-            a.amount0Desired,
-            a.amount1Desired,
-            baseThreshold,
-            tickSpacing
-        );
+        (ticksData.baseTickLower, ticksData.baseTickUpper) = pool
+            .getPositionTicks(
+                a.amount0Desired,
+                a.amount1Desired,
+                baseThreshold,
+                tickSpacing
+            );
 
         a.liquidity = pool.getLiquidityForAmounts(
             a.amount0Desired,
             a.amount1Desired,
-            baseTickLower,
-            baseTickUpper
+            ticksData.baseTickLower,
+            ticksData.baseTickUpper
         );
 
         pool.mintLiquidity(
             address(this),
-            baseTickLower,
-            baseTickUpper,
+            ticksData.baseTickLower,
+            ticksData.baseTickUpper,
             a.liquidity
         );
     }
@@ -225,14 +222,14 @@ contract UnipilotVault is
         (uint160 sqrtPriceX96, int24 currentTick) = getSqrtRatioX96AndTick();
 
         (uint256 baseFees0, uint256 baseFees1) = pool.burnLiquidity(
-            baseTickLower,
-            baseTickUpper,
+            ticksData.baseTickLower,
+            ticksData.baseTickUpper,
             address(this)
         );
 
         (uint256 rangeFees0, uint256 rangeFees1) = pool.burnLiquidity(
-            rangeTickLower,
-            rangeTickUpper,
+            ticksData.rangeTickLower,
+            ticksData.rangeTickUpper,
             address(this)
         );
 
@@ -304,8 +301,8 @@ contract UnipilotVault is
             baseLiquidity
         );
 
-        baseTickLower = ticks.baseTickLower;
-        baseTickUpper = ticks.baseTickUpper;
+        ticksData.baseTickLower = ticks.baseTickLower;
+        ticksData.baseTickUpper = ticks.baseTickUpper;
 
         amount0 = _balance0();
         amount1 = _balance1();
@@ -329,11 +326,11 @@ contract UnipilotVault is
             /// only one range position will ever have liquidity (if any)
             if (range1 < range0) {
                 rangeLiquidity = range0;
-                rangeTickLower = ticks.bidTickLower;
-                rangeTickUpper = ticks.bidTickUpper;
+                ticksData.rangeTickLower = ticks.bidTickLower;
+                ticksData.rangeTickUpper = ticks.bidTickUpper;
             } else if (0 < range1) {
-                rangeTickLower = ticks.rangeTickLower;
-                rangeTickUpper = ticks.rangeTickUpper;
+                ticksData.rangeTickLower = ticks.rangeTickLower;
+                ticksData.rangeTickUpper = ticks.rangeTickUpper;
                 rangeLiquidity = range1;
             }
         }
@@ -341,8 +338,8 @@ contract UnipilotVault is
         if (rangeLiquidity > 0) {
             pool.mintLiquidity(
                 address(this),
-                rangeTickLower,
-                rangeTickUpper,
+                ticksData.rangeTickLower,
+                ticksData.rangeTickUpper,
                 rangeLiquidity
             );
         }
@@ -355,16 +352,16 @@ contract UnipilotVault is
         require(liquidity > 0, "IL");
 
         (amount0, amount1) = pool.burnUserLiquidity(
-            baseTickLower,
-            baseTickUpper,
+            ticksData.baseTickLower,
+            ticksData.baseTickUpper,
             liquidityShare(liquidity),
             recipient
         );
 
         if (!_isPoolWhitelisted()) {
             (uint256 range0, uint256 range1) = pool.burnUserLiquidity(
-                baseTickLower,
-                baseTickUpper,
+                ticksData.baseTickLower,
+                ticksData.baseTickUpper,
                 liquidityShare(liquidity),
                 recipient
             );
