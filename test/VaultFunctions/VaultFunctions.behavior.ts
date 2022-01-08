@@ -72,9 +72,9 @@ export async function shouldBehaveLikeVaultFunctions(
       console.log("Usdt balance", usdtBalance);
     });
 
-    it("should successfully readjust vault", async () => {
-      expect(await vault.readjustLiquidity()).to.be.ok;
-    });
+    // it("should successfully readjust vault", async () => {
+    //   expect(await vault.readjustLiquidity()).to.be.ok;
+    // });
   });
 }
 

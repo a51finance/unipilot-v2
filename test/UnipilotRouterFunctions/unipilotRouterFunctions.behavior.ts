@@ -78,4 +78,22 @@ export async function shouldBehaveLikeUnipilotRouterFunctions(
     console.log("Lp Share 2", result.toString());
     expect(result).to.be.ok;
   });
+
+  it("Readjust: Should be successful", async () => {
+    const vaultStatic = await UnipilotFactory.connect(
+      owner,
+    ).callStatic.createVault(
+      PILOT.address,
+      USDT.address,
+      3000,
+      "42951287100",
+      "unipilot PILOT-USDT",
+      "PILOT-USDT",
+    );
+
+    let result = await UnipilotRouter.connect(owner).readjustLiquidity(
+      vaultStatic._vault,
+    );
+    console.log("TX hash", result.hash);
+  });
 }

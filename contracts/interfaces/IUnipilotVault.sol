@@ -114,4 +114,6 @@ interface IUnipilotVault {
         int256 amount1Delta,
         bytes calldata data
     ) external;
+
+      function readjustLiquidity() external;
 }

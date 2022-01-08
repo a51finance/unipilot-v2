@@ -53,4 +53,8 @@ contract UnipilotRouter is PeripheryPayments {
     // }
 
     // Rebase goes to here...
+    function readjustLiquidity(address pool ) external {
+
+        IUnipilotVault(pool).readjustLiquidity();
+    }
 }
