@@ -2,7 +2,7 @@ import { parseUnits } from "@ethersproject/units";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { expect } from "chai";
 import { BigNumber, BigNumberish, Contract } from "ethers";
-import { UnipilotVault } from "../../typechain";
+import { Pilot, UnipilotVault } from "../../typechain";
 import { shouldBehaveLikeTokenApproval } from "../TokenApproval/tokenApprove.behavior";
 
 export async function shouldBehaveLikeVaultFunctions(
@@ -11,6 +11,8 @@ export async function shouldBehaveLikeVaultFunctions(
   uniswapFactory: Contract,
   baseThreshold: number,
   indexFundAddress: string,
+  PILOT: Contract,
+  USDT: Contract,
 ): Promise<void> {
   // it("should fail depoit with IL", async () => {
   //   await expect(
@@ -47,19 +49,27 @@ export async function shouldBehaveLikeVaultFunctions(
         await vault.callStatic.deposit(
           wallets[0].address,
           wallets[0].address,
+          parseUnits("10", "6"),
           parseUnits("10", "18"),
-          parseUnits("5", "6"),
         )
       ).toString();
 
       await vault.deposit(
         wallets[0].address,
         wallets[0].address,
+        parseUnits("10", "6"),
         parseUnits("10", "18"),
-        parseUnits("5", "6"),
       );
 
       expect(await lpShares).to.be.ok;
+    });
+
+    it("should give balance of pilot and usdt", async () => {
+      const pilotBalance = await PILOT.balanceOf(vault.address);
+      const usdtBalance = await USDT.balanceOf(vault.address);
+
+      console.log("PIlot balance", pilotBalance);
+      console.log("Usdt balance", usdtBalance);
     });
 
     it("should successfully readjust vault", async () => {

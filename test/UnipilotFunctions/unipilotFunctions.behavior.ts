@@ -61,7 +61,7 @@ export async function shouldBehaveLikeUnipilotFunctions(
         USDT.address,
         PILOT.address,
         3000,
-        42951287100,
+        "79228162514264337593543950336",
         "unipilot PILOT-WETH",
         "PILOT-WETH",
       );
@@ -111,6 +111,8 @@ export async function shouldBehaveLikeUnipilotFunctions(
         UniswapV3Factory,
         20,
         wallets[0].address,
+        PILOT,
+        USDT,
       );
     });
   });

@@ -49,7 +49,7 @@ interface UNIPILOT_VAULT_FIXTURE extends UNIPILOT_FACTORY_FIXTURE {
     tokenA: string,
     tokenB: string,
     fee: number,
-    sqrtPrice: number,
+    sqrtPrice: string,
     tokenName: string,
     tokenSymbol: string,
   ): Promise<UnipilotVault>;

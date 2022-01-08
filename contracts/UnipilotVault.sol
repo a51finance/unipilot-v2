@@ -17,8 +17,6 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20Burnable.sol";
 
-// import "hardhat/console.sol";
-
 contract UnipilotVault is
     ERC20Permit,
     ERC20Burnable,
@@ -84,14 +82,14 @@ contract UnipilotVault is
         uint256 _amount1Desired
     ) external payable override returns (uint256 lpShares) {
         if (_isPoolWhitelisted()) {
-            lpShares = depositForActive(
+            (lpShares, , ) = depositForActive(
                 _depositor,
                 _recipient,
                 _amount0Desired,
                 _amount1Desired
             );
         } else {
-            lpShares = depositForPassive(
+            (lpShares, , ) = depositForPassive(
                 _depositor,
                 _recipient,
                 _amount0Desired,
@@ -105,28 +103,35 @@ contract UnipilotVault is
         address _recipient,
         uint256 _amount0Desired,
         uint256 _amount1Desired
-    ) internal returns (uint256 lpShares) {
+    )
+        internal
+        returns (
+            uint256 lpShares,
+            uint256 amount0,
+            uint256 amount1
+        )
+    {
         require(_depositor != address(0) && _recipient != address(0), "IAD");
-        (lpShares, , ) = UniswapLiquidityManagement.computeLpShares(
-            _amount0Desired,
-            _amount1Desired,
-            totalSupply(),
-            ticksData.baseTickLower,
-            ticksData.baseTickUpper,
-            _balance0(),
-            _balance1(),
-            pool
-        );
+        (lpShares, amount0, amount1) = UniswapLiquidityManagement
+            .computeLpShares(
+                _amount0Desired,
+                _amount1Desired,
+                totalSupply(),
+                ticksData.baseTickLower,
+                ticksData.baseTickUpper,
+                _balance0(),
+                _balance1(),
+                pool
+            );
         require(lpShares != 0, "ISH");
 
         if (msg.sender != router) {
-            pay(address(token0), _depositor, address(this), _amount0Desired);
-            pay(address(token1), _depositor, address(this), _amount1Desired);
+            pay(address(token0), _depositor, address(this), amount0);
+            pay(address(token1), _depositor, address(this), amount1);
         }
 
         _mint(_recipient, lpShares);
-        //console.log("TOTAL SUPPLY", totalSupply());
-        emit Deposit(_depositor, _amount0Desired, _amount1Desired, lpShares);
+        emit Deposit(_depositor, amount0, amount1, lpShares);
     }
 
     function depositForPassive(
@@ -134,7 +139,14 @@ contract UnipilotVault is
         address _recipient,
         uint256 _amount0Desired,
         uint256 _amount1Desired
-    ) internal returns (uint256 lpShares) {
+    )
+        internal
+        returns (
+            uint256 lpShares,
+            uint256 amount0,
+            uint256 amount1
+        )
+    {
         uint256 totalSupply = totalSupply();
         if (totalSupply == 0) {
             (
@@ -147,16 +159,17 @@ contract UnipilotVault is
             ) = _getTicksFromUniStrategy(address(pool));
         }
 
-        (lpShares, , ) = UniswapLiquidityManagement.computeLpShares(
-            _amount0Desired,
-            _amount1Desired,
-            totalSupply,
-            ticksData.baseTickLower,
-            ticksData.baseTickUpper,
-            _balance0(),
-            _balance1(),
-            pool
-        );
+        (lpShares, amount0, amount1) = UniswapLiquidityManagement
+            .computeLpShares(
+                _amount0Desired,
+                _amount1Desired,
+                totalSupply,
+                ticksData.baseTickLower,
+                ticksData.baseTickUpper,
+                _balance0(),
+                _balance1(),
+                pool
+            );
 
         uint128 liquidity = pool.getLiquidityForAmounts(
             _amount0Desired,
@@ -195,7 +208,7 @@ contract UnipilotVault is
         }
 
         _mint(_recipient, lpShares);
-        emit Deposit(_depositor, _amount0Desired, _amount1Desired, lpShares);
+        emit Deposit(_depositor, amount0, amount1, lpShares);
     }
 
     function readjustLiquidity() external {
@@ -242,11 +255,6 @@ contract UnipilotVault is
 
         a.amount0Desired = _balance0();
         a.amount1Desired = _balance1();
-
-        // console.log("amount 0 desired", a.amount0Desired);
-        // console.log("amount 1 desired", a.amount1Desired);
-        // console.log("tick lower", uint256(a.tickLower));
-        // console.log("tick upper", uint256(a.tickUpper));
 
         a.liquidity = pool.getLiquidityForAmounts(
             a.amount0Desired,
@@ -572,10 +580,8 @@ contract UnipilotVault is
         bytes calldata data
     ) external override {
         _verifyCallback();
-        // console.log("amount0", uint256(amount0));
-        // console.log("amount1", uint256(amount1));
 
-        require(amount0 > 0 || amount1 > 0, "sould be less");
+        require(amount0 > 0 || amount1 > 0, "SBL");
         bool zeroForOne = abi.decode(data, (bool));
 
         if (zeroForOne)
