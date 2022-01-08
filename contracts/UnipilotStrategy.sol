@@ -6,7 +6,8 @@ import "./base/oracle/libraries/OracleLibrary.sol";
 
 import "@uniswap/v3-core/contracts/libraries/TickMath.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
-import "hardhat/console.sol";
+
+//import "hardhat/console.sol";
 
 /**
  *
@@ -248,12 +249,12 @@ contract UnipilotStrategy is IUnipilotStrategy {
         override
         returns (int24 readjustThreshold)
     {
-        console.log(
-            "readjustThreshold",
-            uint256(poolStrategy[_pool].readjustThreshold)
-        );
-        // readjustThreshold = poolStrategy[_pool].readjustThreshold;
-        return 1;
+        // console.log(
+        //     "readjustThreshold",
+        //     uint256(poolStrategy[_pool].readjustThreshold)
+        // );
+        readjustThreshold = poolStrategy[_pool].readjustThreshold;
+        return readjustThreshold;
     }
 
     function getBaseThreshold(address _pool)
@@ -262,9 +263,9 @@ contract UnipilotStrategy is IUnipilotStrategy {
         override
         returns (int24 baseThreshold)
     {
-        console.log("pool address", _pool);
+        //console.log("pool address", _pool);
         baseThreshold = poolStrategy[_pool].baseThreshold;
-        console.log("base threshold", uint256(baseThreshold));
+        //console.log("base threshold", uint256(baseThreshold));
     }
 
     /**

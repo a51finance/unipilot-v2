@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity >=0.5.0;
 
-import "hardhat/console.sol";
+//import "hardhat/console.sol";
 import "./UniswapPoolActions.sol";
 
 import "@uniswap/v3-core/contracts/libraries/TickMath.sol";
@@ -236,11 +236,11 @@ library UniswapLiquidityManagement {
             amount0 = amount0Max;
             shares = FullMath.mulDiv(amount0, totalSupply, reserve0);
         } else {
-            console.log("RESERVE 0", reserve0);
-            console.log("RESERVE 1", reserve1);
-            console.log("TOTAL SUPPLY", totalSupply);
+            // console.log("RESERVE 0", reserve0);
+            // console.log("RESERVE 1", reserve1);
+            // console.log("TOTAL SUPPLY", totalSupply);
             amount0 = FullMath.mulDiv(amount1Max, reserve0, reserve1);
-            console.log("AMOUNT 0", amount0);
+            //console.log("AMOUNT 0", amount0);
             if (amount0 < amount0Max) {
                 amount1 = amount1Max;
                 shares = FullMath.mulDiv(amount1, totalSupply, reserve1);

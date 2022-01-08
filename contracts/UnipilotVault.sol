@@ -16,7 +16,8 @@ import "@openzeppelin/contracts/drafts/ERC20Permit.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20Burnable.sol";
-import "hardhat/console.sol";
+
+// import "hardhat/console.sol";
 
 contract UnipilotVault is
     ERC20Permit,
@@ -35,7 +36,7 @@ contract UnipilotVault is
     IUniswapV3Pool private pool;
     IUnipilotFactory private unipilotFactory;
 
-    address public governance;
+    address private governance;
     address private strategy;
     address private indexFund;
     address private router;
@@ -69,10 +70,6 @@ contract UnipilotVault is
         strategy = _strategy;
         governance = _governance;
         unipilotFactory = IUnipilotFactory(_unipilotFactory);
-        initializeVault(_pool);
-    }
-
-    function initializeVault(address _pool) internal {
         pool = IUniswapV3Pool(_pool);
         token0 = IERC20(pool.token0());
         token1 = IERC20(pool.token1());
@@ -128,7 +125,7 @@ contract UnipilotVault is
         }
 
         _mint(_recipient, lpShares);
-        console.log("TOTAL SUPPLY", totalSupply());
+        //console.log("TOTAL SUPPLY", totalSupply());
         emit Deposit(_depositor, _amount0Desired, _amount1Desired, lpShares);
     }
 
@@ -149,6 +146,7 @@ contract UnipilotVault is
                 ticksData.rangeTickUpper
             ) = _getTicksFromUniStrategy(address(pool));
         }
+
         (lpShares, , ) = UniswapLiquidityManagement.computeLpShares(
             _amount0Desired,
             _amount1Desired,
@@ -159,35 +157,36 @@ contract UnipilotVault is
             _balance1(),
             pool
         );
-        (
-            uint128 baseLiquidity,
-            uint256 baseAmount0,
-            uint256 baseAmount1
-        ) = _addLiquidityUniswap(
-                AddLiquidityParams({
-                    token0: address(token0),
-                    token1: address(token1),
-                    fee: fee,
-                    tickLower: ticksData.baseTickLower,
-                    tickUpper: ticksData.baseTickUpper,
-                    amount0Desired: _amount0Desired,
-                    amount1Desired: _amount1Desired
-                })
-            );
+
+        uint128 liquidity = pool.getLiquidityForAmounts(
+            _amount0Desired,
+            _amount1Desired,
+            ticksData.baseTickLower,
+            ticksData.baseTickUpper
+        );
+
+        (uint256 baseAmount0, uint256 baseAmount1) = pool.mintLiquidity(
+            address(this),
+            ticksData.baseTickLower,
+            ticksData.baseTickUpper,
+            liquidity
+        );
 
         uint256 remainingAmount0 = _amount0Desired.sub(baseAmount0);
         uint256 remainingAmount1 = _amount1Desired.sub(baseAmount1);
 
-        (uint128 rangeLiquidity, , ) = _addLiquidityUniswap(
-            AddLiquidityParams({
-                token0: address(token0),
-                token1: address(token1),
-                fee: fee,
-                tickLower: ticksData.rangeTickLower,
-                tickUpper: ticksData.rangeTickUpper,
-                amount0Desired: remainingAmount0,
-                amount1Desired: remainingAmount1
-            })
+        liquidity = pool.getLiquidityForAmounts(
+            remainingAmount0,
+            remainingAmount1,
+            ticksData.rangeTickLower,
+            ticksData.rangeTickUpper
+        );
+
+        pool.mintLiquidity(
+            address(this),
+            ticksData.rangeTickLower,
+            ticksData.rangeTickUpper,
+            liquidity
         );
 
         if (msg.sender != router) {
@@ -197,31 +196,6 @@ contract UnipilotVault is
 
         _mint(_recipient, lpShares);
         emit Deposit(_depositor, _amount0Desired, _amount1Desired, lpShares);
-    }
-
-    function _addLiquidityUniswap(AddLiquidityParams memory params)
-        private
-        returns (
-            uint128 liquidity,
-            uint256 amount0,
-            uint256 amount1
-        )
-    {
-        liquidity = UniswapLiquidityManagement.getLiquidityForAmounts(
-            pool,
-            params.amount0Desired,
-            params.amount1Desired,
-            params.tickLower,
-            params.tickUpper
-        );
-
-        (amount0, amount1) = pool.mint(
-            address(this),
-            params.tickLower,
-            params.tickUpper,
-            liquidity,
-            abi.encode(address(this))
-        );
     }
 
     function readjustLiquidity() external {
@@ -269,10 +243,10 @@ contract UnipilotVault is
         a.amount0Desired = _balance0();
         a.amount1Desired = _balance1();
 
-        console.log("amount 0 desired", a.amount0Desired);
-        console.log("amount 1 desired", a.amount1Desired);
-        console.log("tick lower", uint256(a.tickLower));
-        console.log("tick upper", uint256(a.tickUpper));
+        // console.log("amount 0 desired", a.amount0Desired);
+        // console.log("amount 1 desired", a.amount1Desired);
+        // console.log("tick lower", uint256(a.tickLower));
+        // console.log("tick upper", uint256(a.tickUpper));
 
         a.liquidity = pool.getLiquidityForAmounts(
             a.amount0Desired,
@@ -541,7 +515,7 @@ contract UnipilotVault is
         return IUnipilotStrategy(strategy).getTicks(pool);
     }
 
-    function _isPoolWhitelisted() private returns (bool isWhitelisted) {
+    function _isPoolWhitelisted() internal view returns (bool isWhitelisted) {
         (, isWhitelisted) = IUnipilotFactory(unipilotFactory).getVaults(
             address(token0),
             address(token1),
@@ -598,8 +572,8 @@ contract UnipilotVault is
         bytes calldata data
     ) external override {
         _verifyCallback();
-        console.log("amount0", uint256(amount0));
-        console.log("amount1", uint256(amount1));
+        // console.log("amount0", uint256(amount0));
+        // console.log("amount1", uint256(amount1));
 
         require(amount0 > 0 || amount1 > 0, "sould be less");
         bool zeroForOne = abi.decode(data, (bool));
