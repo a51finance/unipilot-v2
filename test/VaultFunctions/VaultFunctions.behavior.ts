@@ -29,13 +29,13 @@ export async function shouldBehaveLikeVaultFunctions(
     it("checking name of vault LP Token", async () => {
       const vaultName = (await vault.name()).toString();
       console.log("Vault name", vaultName);
-      expect(vaultName).to.be.equal("unipilot PILOT-WETH");
+      expect(vaultName).to.be.equal("unipilot PILOT-USDT");
     });
 
     it("checking name of vault LP Token", async () => {
       const vaultSymbol = (await vault.symbol()).toString();
       console.log("Vault symbol", vaultSymbol);
-      expect(vaultSymbol).to.be.equal("PILOT-WETH");
+      expect(vaultSymbol).to.be.equal("PILOT-USDT");
     });
 
     it("checking name of vault LP Token", async () => {
@@ -50,7 +50,7 @@ export async function shouldBehaveLikeVaultFunctions(
           wallets[0].address,
           wallets[0].address,
           parseUnits("10", "18"),
-          parseUnits("10", "18"),
+          parseUnits("10", "6"),
         )
       ).toString();
 
@@ -58,7 +58,7 @@ export async function shouldBehaveLikeVaultFunctions(
         wallets[0].address,
         wallets[0].address,
         parseUnits("10", "18"),
-        parseUnits("10", "18"),
+        parseUnits("10", "6"),
       );
 
       expect(await lpShares).to.be.ok;
@@ -72,9 +72,9 @@ export async function shouldBehaveLikeVaultFunctions(
       console.log("Usdt balance", usdtBalance);
     });
 
-    // it("should successfully readjust vault", async () => {
-    //   expect(await vault.readjustLiquidity()).to.be.ok;
-    // });
+    it("should successfully readjust vault", async () => {
+      expect(await vault.readjustLiquidity()).to.be.ok;
+    });
   });
 }
 

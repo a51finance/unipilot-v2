@@ -20,6 +20,7 @@ import { createPoolOnUniswap } from "./UniswapInteractions/createPool";
 import { shouldBehaveLikeUnipilotFunctions } from "./UnipilotFunctions/unipilotFunctions.behavior";
 import { shouldBehaveLikeTokenApproval } from "./TokenApproval/tokenApprove.behavior";
 import { parseUnits } from "@ethersproject/units";
+import { getMaxTick, getMinTick } from "./utils/fixtures";
 
 use(solidity);
 
@@ -46,13 +47,14 @@ describe("Initializing the testing suite", async () => {
 
     DAI = await deployToken(wallet0, "Dai Stablecoin", "DAI", 18);
     USDC = await deployToken(wallet0, "Usdc", "USDC", 6);
-    USDT = await deployToken(wallet0, "Tether Stable", "USDT", 18);
+    USDT = await deployToken(wallet0, "Tether Stable", "USDT", 6);
     let uniswapv3Contracts = await deployUniswapContracts(wallet0, WETH9);
     console.log(
       "uniswapv3COntracts factory",
       uniswapv3Contracts.factory.address,
     );
     uniswapV3Factory = uniswapv3Contracts.factory;
+    uniswapPositionManager = uniswapv3Contracts.positionManager;
     uniStrategy = await deployStrategy(wallet0);
     unipilotRouter = await deployUnipilotRouter(wallet0);
     unipilotFactory = await deployUnipilotFactory(
@@ -65,12 +67,32 @@ describe("Initializing the testing suite", async () => {
     uniswapPositionManager = uniswapv3Contracts.positionManager;
     swapRouter = uniswapv3Contracts.router;
     PILOT = await deployPilot(wallet0);
+
+    await PILOT.approve(uniswapPositionManager.address, MaxUint256);
+    await USDT._mint(wallet0.address, parseUnits("5000", "6"));
+    await USDT.approve(uniswapPositionManager.address, MaxUint256);
+    await PILOT.mint(wallet0.address, parseUnits("5000", "18"));
+
+    await uniswapPositionManager.mint({
+      token0: USDT.address,
+      token1: PILOT.address,
+      tickLower: getMinTick(60),
+      tickUpper: getMaxTick(60),
+      fee: 3000,
+      recipient: wallet0.address,
+      amount0Desired: parseUnits("100", "18"),
+      amount1Desired: parseUnits("100", "6"),
+      amount0Min: 0,
+      amount1Min: 0,
+      deadline: 2000000000,
+    });
   });
 
   describe("Running the pilot functions", async () => {
     it("Runs Unipilot Functions", async function () {
       let [wallet0, wallet1, wallet2, wallet3] = await hre.ethers.getSigners();
       let wallets: SignerWithAddress[] = [wallet0, wallet1, wallet2, wallet3];
+      console.log("POSITION MANAGER", uniswapPositionManager.address);
       await shouldBehaveLikeUnipilotFunctions(
         wallets,
         unipilotFactory,
@@ -79,6 +101,7 @@ describe("Initializing the testing suite", async () => {
         WETH9,
         PILOT,
         USDT,
+        uniswapPositionManager,
       );
     });
   });

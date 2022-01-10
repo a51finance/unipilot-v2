@@ -9,7 +9,11 @@ import { UnipilotFactory, UnipilotVault } from "../../typechain";
 import { shouldBehaveLikeTokenApproval } from "../TokenApproval/tokenApprove.behavior";
 import { shouleBehaveLikePilotFactory } from "../UnipilotFactoryFunctions/UnipilotFactory.behavior";
 import { shouldBehaveLikeUnipilotRouterFunctions } from "../UnipilotRouterFunctions/unipilotRouterFunctions.behavior";
-import { unipilotVaultFixture } from "../utils/fixtures";
+import {
+  getMaxTick,
+  getMinTick,
+  unipilotVaultFixture,
+} from "../utils/fixtures";
 import { shouldBehaveLikeVaultFunctions } from "../VaultFunctions/VaultFunctions.behavior";
 import { MaxUint256 } from "@ethersproject/constants";
 import hre from "hardhat";
@@ -23,6 +27,7 @@ export async function shouldBehaveLikeUnipilotFunctions(
   WETH9: Contract,
   PILOT: Contract,
   USDT: Contract,
+  positionManager: Contract,
 ): Promise<void> {
   describe("Testing the UnipilotFactory !!", async () => {
     shouleBehaveLikePilotFactory(
@@ -62,18 +67,14 @@ export async function shouldBehaveLikeUnipilotFunctions(
         PILOT.address,
         3000,
         "79228162514264337593543950336",
-        "unipilot PILOT-WETH",
-        "PILOT-WETH",
+        "unipilot PILOT-USDT",
+        "PILOT-USDT",
       );
-      // await unipilotFactory
-      //   .connect(wallet0)
-      //   .whitelistVaults([unipilotVault.address]);
+      await unipilotFactory
+        .connect(wallet0)
+        .whitelistVaults([unipilotVault.address]);
 
       //following ERC20Artifact
-      await USDT._mint(wallets[0].address, parseUnits("20", "18"));
-
-      //following PilotArtifact
-      await PILOT.mint(wallets[0].address, parseUnits("20", "18"));
 
       console.log(
         "USDT Balance of wallet 0",
