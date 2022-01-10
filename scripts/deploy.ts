@@ -55,6 +55,7 @@ const deployUnipilotFactory = async () => {
   const UnipilotFactoryContract = await UnipilotFactory.deploy(
     "0x1F98431c8aD98523631AE4a59f267346ea31F984",
     walletAddress,
+    "0x0000000000000000000000000000000000000000",
     UnipilotStrategy,
   );
   console.log(
@@ -133,13 +134,13 @@ const checkGovernance = async (contractAddress: string) => {
 const main = async () => {
   await updateStateVariables();
   await updateStateVariables2();
-  // await deployUnipilotFactory();
-  // await deployUnipilotStrategy();
-  await getERC20Approval(TTC99, "0x089d97D30934125691544c81a0e158F84dDb2190");
-  await getERC20Approval(
-    TKN2_TOKEN_ADDRESS,
-    "0x089d97D30934125691544c81a0e158F84dDb2190",
-  );
+  await deployUnipilotFactory();
+  //await deployUnipilotStrategy();
+  // await getERC20Approval(TTC99, "0x089d97D30934125691544c81a0e158F84dDb2190");
+  // await getERC20Approval(
+  //   TKN2_TOKEN_ADDRESS,
+  //   "0x089d97D30934125691544c81a0e158F84dDb2190",
+  // );
   // await checkGovernance("0xcE8f9628aD97D45ee6B7088ccd316D11B37cce71");
 };
 
