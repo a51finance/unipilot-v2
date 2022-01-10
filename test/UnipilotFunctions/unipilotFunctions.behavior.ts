@@ -17,7 +17,7 @@ import {
 import { shouldBehaveLikeVaultFunctions } from "../VaultFunctions/VaultFunctions.behavior";
 import { MaxUint256 } from "@ethersproject/constants";
 import hre from "hardhat";
-
+import { encodePriceSqrt } from "../utils/encodePriceSqrt";
 export async function shouldBehaveLikeUnipilotFunctions(
   wallets: SignerWithAddress[],
   UnipilotFactory: Contract,
@@ -62,13 +62,18 @@ export async function shouldBehaveLikeUnipilotFunctions(
         unipilotVaultFixture,
       ));
 
+      const encodedPrice = encodePriceSqrt(
+        parseUnits("4", "18"),
+        parseUnits("2", "18"),
+      );
+      console.log("encoded price", encodedPrice);
       unipilotVault = await createVault(
         USDT.address,
         PILOT.address,
         3000,
-        "79228162514264337593543950336",
+        encodedPrice,
         "unipilot PILOT-USDT",
-        "PILOT-USDT",
+        "PILOT-WETH",
       );
       await unipilotFactory
         .connect(wallet0)
@@ -105,16 +110,6 @@ export async function shouldBehaveLikeUnipilotFunctions(
       console.log("allowance of PILOT", allowancePilot);
     });
 
-    it("Router Function to be executed", async () => {
-      await shouldBehaveLikeUnipilotRouterFunctions(
-        wallets,
-        UnipilotFactory,
-        UnipilotRouter,
-        PILOT,
-        USDT,
-      );
-    });
-
     it("Vault functions to be executed", async () => {
       await shouldBehaveLikeVaultFunctions(
         wallets,
@@ -122,6 +117,19 @@ export async function shouldBehaveLikeUnipilotFunctions(
         UniswapV3Factory,
         20,
         wallets[0].address,
+        PILOT,
+        USDT,
+      );
+    });
+
+    it("Router Function to be executed", async () => {
+      console.log("Unipilot Router", UnipilotRouter.address);
+
+      await shouldBehaveLikeUnipilotRouterFunctions(
+        wallets,
+        UnipilotFactory,
+        unipilotVault,
+        UnipilotRouter,
         PILOT,
         USDT,
       );

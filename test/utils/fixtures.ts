@@ -1,6 +1,6 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { deployContract, Fixture } from "ethereum-waffle";
-import { Contract } from "ethers";
+import { BigNumber, Contract } from "ethers";
 import { ethers } from "hardhat";
 import { UnipilotFactory, UnipilotVault } from "../../typechain";
 import { UniswapV3Deployer } from "../UniswapV3Deployer";
@@ -49,7 +49,7 @@ interface UNIPILOT_VAULT_FIXTURE extends UNIPILOT_FACTORY_FIXTURE {
     tokenA: string,
     tokenB: string,
     fee: number,
-    sqrtPrice: string,
+    sqrtPrice: BigNumber,
     tokenName: string,
     tokenSymbol: string,
   ): Promise<UnipilotVault>;
