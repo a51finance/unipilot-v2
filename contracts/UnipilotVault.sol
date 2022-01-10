@@ -210,7 +210,7 @@ contract UnipilotVault is
         emit Deposit(_depositor, amount0, amount1, lpShares);
     }
 
-    function readjustLiquidity() external {
+    function readjustLiquidity() external override {
         if (_isPoolWhitelisted()) {
             readjustLiquidityForActive();
         } else {

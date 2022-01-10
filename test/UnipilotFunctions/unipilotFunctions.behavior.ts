@@ -104,6 +104,16 @@ export async function shouldBehaveLikeUnipilotFunctions(
       console.log("allowance of PILOT", allowancePilot);
     });
 
+    it("Router Function to be executed", async () => {
+      await shouldBehaveLikeUnipilotRouterFunctions(
+        wallets,
+        UnipilotFactory,
+        UnipilotRouter,
+        PILOT,
+        USDT,
+      );
+    });
+
     it("Vault functions to be executed", async () => {
       await shouldBehaveLikeVaultFunctions(
         wallets,
