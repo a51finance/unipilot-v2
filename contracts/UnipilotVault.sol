@@ -56,7 +56,7 @@ contract UnipilotVault is
     }
 
     constructor(
-        address _pool,
+        address _pool, //0xa1874f248ff6afca2311fd6ab86650fdbf4b75eb
         address _router,
         address _strategy,
         address _governance,
@@ -172,12 +172,16 @@ contract UnipilotVault is
             );
 
         uint128 liquidity = pool.getLiquidityForAmounts(
-            _amount0Desired,
-            _amount1Desired,
+            amount0,
+            amount1,
             ticksData.baseTickLower,
             ticksData.baseTickUpper
         );
 
+        if (msg.sender != router) {
+            pay(address(token0), _depositor, address(this), amount0);
+            pay(address(token1), _depositor, address(this), amount1);
+        }
         (uint256 baseAmount0, uint256 baseAmount1) = pool.mintLiquidity(
             address(this),
             ticksData.baseTickLower,
@@ -201,11 +205,6 @@ contract UnipilotVault is
             ticksData.rangeTickUpper,
             liquidity
         );
-
-        if (msg.sender != router) {
-            pay(address(token0), _depositor, address(this), _amount0Desired);
-            pay(address(token1), _depositor, address(this), _amount1Desired);
-        }
 
         _mint(_recipient, lpShares);
         emit Deposit(_depositor, amount0, amount1, lpShares);

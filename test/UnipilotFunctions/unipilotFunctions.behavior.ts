@@ -65,12 +65,12 @@ export async function shouldBehaveLikeUnipilotFunctions(
         "unipilot PILOT-WETH",
         "PILOT-WETH",
       );
-      await unipilotFactory
-        .connect(wallet0)
-        .whitelistVaults([unipilotVault.address]);
+      // await unipilotFactory
+      //   .connect(wallet0)
+      //   .whitelistVaults([unipilotVault.address]);
 
       //following ERC20Artifact
-      await USDT._mint(wallets[0].address, parseUnits("20", "6"));
+      await USDT._mint(wallets[0].address, parseUnits("20", "18"));
 
       //following PilotArtifact
       await PILOT.mint(wallets[0].address, parseUnits("20", "18"));

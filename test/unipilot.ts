@@ -46,7 +46,7 @@ describe("Initializing the testing suite", async () => {
 
     DAI = await deployToken(wallet0, "Dai Stablecoin", "DAI", 18);
     USDC = await deployToken(wallet0, "Usdc", "USDC", 6);
-    USDT = await deployToken(wallet0, "Tether Stable", "USDT", 6);
+    USDT = await deployToken(wallet0, "Tether Stable", "USDT", 18);
     let uniswapv3Contracts = await deployUniswapContracts(wallet0, WETH9);
     console.log(
       "uniswapv3COntracts factory",

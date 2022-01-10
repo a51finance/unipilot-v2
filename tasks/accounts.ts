@@ -23,7 +23,7 @@ task("deploy-unipilot", "Deploy all unipilot contracts")
       router: "0x0000000000000000000000000000000000000000",
       strategy: "0x3DB63a880FFaED0aBfA40496366fcc383256ecCA",
       governance: cliArgs.governance,
-      unipilotFactory: "0x8dA851D05a6122d28294D624F03Af533aFeF01da",
+      unipilotFactory: "0xcFe7AB2AfB8602A08fE6d05095e1ecf3cAf3D924",
       name: cliArgs.name,
       symbol: cliArgs.symbol,
     };
