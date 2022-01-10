@@ -29,7 +29,6 @@ export async function shouldBehaveLikeUnipilotRouterFunctions(
     });
 
     it("Deposit: it should pass", async () => {
-     
       await PILOT.connect(owner).approve(UnipilotRouter.address, MaxUint256);
       await USDT.connect(owner).approve(UnipilotRouter.address, MaxUint256);
 
@@ -48,32 +47,32 @@ export async function shouldBehaveLikeUnipilotRouterFunctions(
         parseUnits("1000", "18"),
         parseUnits("1", "6"),
       );
-        expect(result).to.be.ok;
+      expect(result).to.be.ok;
     });
 
-    // it("Readjust: Should be pass", async () => {
-    //   // const vaultStatic = await UnipilotFactory.connect(owner).createVault(
-    //   //   PILOT.address,
-    //   //   USDT.address,
-    //   //   3000,
-    //   //   "42951287100",
-    //   //   "unipilot PILOT-USDT",
-    //   //   "PILOT-USDT",
-    //   // );
+    it("Readjust For Passive Vault: Should be pass", async () => {
+      // const vaultStatic = await UnipilotFactory.connect(owner).createVault(
+      //   PILOT.address,
+      //   USDT.address,
+      //   3000,
+      //   "42951287100",
+      //   "unipilot PILOT-USDT",
+      //   "PILOT-USDT",
+      // );
 
-    //   let result = await UnipilotRouter.connect(owner).readjustLiquidity(
-    //     UnipilotVaultContract.address,
-    //   );
-    //   console.log("TX hash", result.hash);
-    // });
+      let result = await UnipilotRouter.connect(owner).readjustLiquidity(
+        UnipilotVaultContract.address,
+      );
+      console.log("Readjust TX hash", result.hash);
+    });
 
-    // it("Withdraw: Should be pass", async () => {
-    //   let result = await UnipilotRouter.connect(owner).withdraw(
-    //     UnipilotVaultContract.address,
-    //     "1",
-    //     owner.address,
-    //   );
-    //   console.log("Withdraw Hash: ", result.hash);
-    // });
+    it("Withdraw: Should be pass", async () => {
+      let result = await UnipilotRouter.connect(owner).withdraw(
+        UnipilotVaultContract.address,
+        "100",
+        owner.address,
+      );
+      console.log("Withdraw Hash: ", result.hash);
+    });
   });
 }
