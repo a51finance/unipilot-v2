@@ -13,7 +13,7 @@ import { unipilotVaultFixture } from "../utils/fixtures";
 import { shouldBehaveLikeVaultFunctions } from "../VaultFunctions/VaultFunctions.behavior";
 import { MaxUint256 } from "@ethersproject/constants";
 import hre from "hardhat";
-
+import { encodePriceSqrt } from "../utils/encodePriceSqrt";
 export async function shouldBehaveLikeUnipilotFunctions(
   wallets: SignerWithAddress[],
   UnipilotFactory: Contract,
@@ -57,11 +57,16 @@ export async function shouldBehaveLikeUnipilotFunctions(
         unipilotVaultFixture,
       ));
 
+      const encodedPrice = encodePriceSqrt(
+        parseUnits("4", "18"),
+        parseUnits("2", "18"),
+      );
+      console.log("encoded price", encodedPrice);
       unipilotVault = await createVault(
         USDT.address,
         PILOT.address,
         3000,
-        "79228162514264337593543950336",
+        encodedPrice,
         "unipilot PILOT-WETH",
         "PILOT-WETH",
       );
