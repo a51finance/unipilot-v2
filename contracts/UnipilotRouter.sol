@@ -45,16 +45,13 @@ contract UnipilotRouter is PeripheryPayments {
         unipilotFactory = _factory;
     }
 
-    // Withdraw goes to here...
-    // function withdraw(address _vault,uint256 desiredAmount ) external returns (uint256 amount, uint256 lpShares){
-    //     require(_vault != address(0) && desiredAmount > 0, "NA");
+    function withdraw(address _vault,uint256 liquidity, address _recipient ) external returns (uint256 amount0, uint256 amount1){
+        require(_vault != address(0) || _recipient != address(0) );
+        (amount0, amount1) = IUnipilotVault(_vault).withdraw(liquidity,_recipient);
+    }
 
-    //     (amount, lpShares) = IUnipilotVault(_vault).withdraw(desiredAmount);
-    // }
+    function readjustLiquidity(address _vault ) external {
 
-    // Rebase goes to here...
-    function readjustLiquidity(address pool ) external {
-
-        IUnipilotVault(pool).readjustLiquidity();
+        IUnipilotVault(_vault).readjustLiquidity();
     }
 }

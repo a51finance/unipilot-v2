@@ -104,16 +104,6 @@ export async function shouldBehaveLikeUnipilotFunctions(
       console.log("allowance of PILOT", allowancePilot);
     });
 
-    it("Router Function to be executed", async () => {
-      await shouldBehaveLikeUnipilotRouterFunctions(
-        wallets,
-        UnipilotFactory,
-        UnipilotRouter,
-        PILOT,
-        USDT,
-      );
-    });
-
     it("Vault functions to be executed", async () => {
       await shouldBehaveLikeVaultFunctions(
         wallets,
@@ -121,6 +111,19 @@ export async function shouldBehaveLikeUnipilotFunctions(
         UniswapV3Factory,
         20,
         wallets[0].address,
+        PILOT,
+        USDT,
+      );
+    });
+
+    it("Router Function to be executed", async () => {
+      console.log("Unipilot Router", UnipilotRouter.address);
+
+      await shouldBehaveLikeUnipilotRouterFunctions(
+        wallets,
+        UnipilotFactory,
+        unipilotVault,
+        UnipilotRouter,
         PILOT,
         USDT,
       );
