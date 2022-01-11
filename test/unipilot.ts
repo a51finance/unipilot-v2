@@ -47,7 +47,7 @@ describe("Initializing the testing suite", async () => {
 
     DAI = await deployToken(wallet0, "Dai Stablecoin", "DAI", 18);
     USDC = await deployToken(wallet0, "Usdc", "USDC", 6);
-    USDT = await deployToken(wallet0, "Tether Stable", "USDT", 6);
+    USDT = await deployToken(wallet0, "Tether Stable", "USDT", 18);
     let uniswapv3Contracts = await deployUniswapContracts(wallet0, WETH9);
     console.log(
       "uniswapv3COntracts factory",
@@ -69,23 +69,23 @@ describe("Initializing the testing suite", async () => {
     PILOT = await deployPilot(wallet0);
 
     await PILOT.approve(uniswapPositionManager.address, MaxUint256);
-    await USDT._mint(wallet0.address, parseUnits("5000", "6"));
+    await USDT._mint(wallet0.address, parseUnits("5000", "18"));
     await USDT.approve(uniswapPositionManager.address, MaxUint256);
     await PILOT.mint(wallet0.address, parseUnits("5000", "18"));
 
-    await uniswapPositionManager.mint({
-      token0: USDT.address,
-      token1: PILOT.address,
-      tickLower: getMinTick(60),
-      tickUpper: getMaxTick(60),
-      fee: 3000,
-      recipient: wallet0.address,
-      amount0Desired: parseUnits("100", "18"),
-      amount1Desired: parseUnits("100", "6"),
-      amount0Min: 0,
-      amount1Min: 0,
-      deadline: 2000000000,
-    });
+    // await uniswapPositionManager.mint({
+    //   token0: USDT.address,
+    //   token1: PILOT.address,
+    //   tickLower: getMinTick(60),
+    //   tickUpper: getMaxTick(60),
+    //   fee: 3000,
+    //   recipient: wallet0.address,
+    //   amount0Desired: parseUnits("100", "18"),
+    //   amount1Desired: parseUnits("100", "6"),
+    //   amount0Min: 0,
+    //   amount1Min: 0,
+    //   deadline: 2000000000,
+    // });
   });
 
   describe("Running the pilot functions", async () => {

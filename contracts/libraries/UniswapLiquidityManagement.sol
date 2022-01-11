@@ -5,7 +5,8 @@ import "@uniswap/v3-core/contracts/libraries/TickMath.sol";
 import "@uniswap/v3-core/contracts/libraries/SqrtPriceMath.sol";
 import "@uniswap/v3-periphery/contracts/libraries/PositionKey.sol";
 import "@uniswap/v3-periphery/contracts/libraries/LiquidityAmounts.sol";
-import "hardhat/console.sol";
+
+// import "hardhat/console.sol";
 
 /// @title Liquidity and ticks functions
 /// @notice Provides functions for computing liquidity and ticks for token amounts and prices
@@ -292,9 +293,9 @@ library UniswapLiquidityManagement {
         );
         // //Calc new tick(upper or lower) for imbalanced token
         if (zeroGreaterOne) {
-            console.log("SQRT PRICE", sqrtPriceX96);
-            console.log("LIQUIDITY", cache.liquidity);
-            console.log("AMOUNT DESIRED", cache.amount0Desired);
+            // console.log("SQRT PRICE", sqrtPriceX96);
+            // console.log("LIQUIDITY", cache.liquidity);
+            // console.log("AMOUNT DESIRED", cache.amount0Desired);
             uint160 nextSqrtPrice0 = SqrtPriceMath
                 .getNextSqrtPriceFromAmount0RoundingUp(
                     sqrtPriceX96,
@@ -302,10 +303,10 @@ library UniswapLiquidityManagement {
                     cache.amount0Desired,
                     false
                 );
-            // cache.tickUpper = floor(
-            //     TickMath.getTickAtSqrtRatio(nextSqrtPrice0),
-            //     tickSpacing
-            // );
+            cache.tickUpper = floor(
+                TickMath.getTickAtSqrtRatio(nextSqrtPrice0),
+                tickSpacing
+            );
         } else {
             uint160 nextSqrtPrice1 = SqrtPriceMath
                 .getNextSqrtPriceFromAmount1RoundingDown(
@@ -321,10 +322,10 @@ library UniswapLiquidityManagement {
             );
         }
 
-        // checkRange(cache.tickLower, cache.tickUpper);
+        checkRange(cache.tickLower, cache.tickUpper);
 
-        // tickLower = cache.tickLower;
-        // tickUpper = cache.tickUpper;
+        tickLower = cache.tickLower;
+        tickUpper = cache.tickUpper;
     }
 
     /// @dev Gets amounts of token0 and token1 that can be stored in range of upper and lower ticks

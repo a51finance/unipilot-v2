@@ -42,7 +42,7 @@ export async function deployUnipilotRouter(deployer: any) {
   let unipilotRouter = await deployContract(
     deployer,
     UnipilotRouterArtifact,
-    [],
+    [deployer.address],
     {
       gasPrice: 90000000000,
     },

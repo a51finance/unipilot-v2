@@ -63,8 +63,8 @@ export async function shouldBehaveLikeUnipilotFunctions(
       ));
 
       const encodedPrice = encodePriceSqrt(
-        parseUnits("4", "18"),
-        parseUnits("2", "18"),
+        parseUnits("1", "18"),
+        parseUnits("1", "18"),
       );
       console.log("encoded price", encodedPrice);
       unipilotVault = await createVault(
@@ -73,11 +73,8 @@ export async function shouldBehaveLikeUnipilotFunctions(
         3000,
         encodedPrice,
         "unipilot PILOT-USDT",
-        "PILOT-WETH",
+        "PILOT-USDT",
       );
-      await unipilotFactory
-        .connect(wallet0)
-        .whitelistVaults([unipilotVault.address]);
 
       //following ERC20Artifact
 
@@ -127,7 +124,7 @@ export async function shouldBehaveLikeUnipilotFunctions(
 
       await shouldBehaveLikeUnipilotRouterFunctions(
         wallets,
-        UnipilotFactory,
+        unipilotFactory,
         unipilotVault,
         UnipilotRouter,
         PILOT,

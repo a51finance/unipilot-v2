@@ -7,7 +7,7 @@ import "./base/PeripheryPayments.sol";
 import "./interfaces/IUnipilotVault.sol";
 import "./interfaces/IUnipilotStrategy.sol";
 import "./interfaces/IUnipilotFactory.sol";
-
+import "./interfaces/IUnipilotRouter.sol";
 import "./libraries/UniswapLiquidityManagement.sol";
 import "./libraries/UniswapPoolActions.sol";
 
@@ -16,7 +16,8 @@ import "@openzeppelin/contracts/drafts/ERC20Permit.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20Burnable.sol";
-import "hardhat/console.sol";
+
+// import "hardhat/console.sol";
 
 contract UnipilotVault is
     ERC20Permit,
@@ -90,12 +91,12 @@ contract UnipilotVault is
                 _amount1Desired
             );
         } else {
-            // (lpShares, , ) = depositForPassive(
-            //     _depositor,
-            //     _recipient,
-            //     _amount0Desired,
-            //     _amount1Desired
-            // );
+            (lpShares, , ) = depositForPassive(
+                _depositor,
+                _recipient,
+                _amount0Desired,
+                _amount1Desired
+            );
         }
     }
 
@@ -129,6 +130,15 @@ contract UnipilotVault is
         if (msg.sender != router) {
             pay(address(token0), _depositor, address(this), amount0);
             pay(address(token1), _depositor, address(this), amount1);
+        } else {
+            IUnipilotRouter(router).vaultPayCallback(
+                _depositor,
+                address(token0),
+                address(token1),
+                amount0,
+                amount1,
+                fee
+            );
         }
 
         _mint(_recipient, lpShares);
@@ -182,6 +192,15 @@ contract UnipilotVault is
         if (msg.sender != router) {
             pay(address(token0), _depositor, address(this), amount0);
             pay(address(token1), _depositor, address(this), amount1);
+        } else {
+            IUnipilotRouter(router).vaultPayCallback(
+                _depositor,
+                address(token0),
+                address(token1),
+                amount0,
+                amount1,
+                fee
+            );
         }
         (uint256 baseAmount0, uint256 baseAmount1) = pool.mintLiquidity(
             address(this),
@@ -215,7 +234,7 @@ contract UnipilotVault is
         if (_isPoolWhitelisted()) {
             readjustLiquidityForActive();
         } else {
-            //readjustLiquidityForPassive();
+            readjustLiquidityForPassive();
         }
     }
 
@@ -253,13 +272,13 @@ contract UnipilotVault is
             tickSpacing
         );
 
-        console.log("TICK LOWER", uint256(int256(a.tickLower)));
-        console.log("TICK UPPER", uint256(int256(a.tickUpper)));
-        console.log("BASE THRESHOLD", uint256(int256(baseThreshold)));
+        // console.log("TICK LOWER", uint256(int256(a.tickLower)));
+        // console.log("TICK UPPER", uint256(int256(a.tickUpper)));
+        // console.log("BASE THRESHOLD", uint256(int256(baseThreshold)));
         a.amount0Desired = _balance0();
         a.amount1Desired = _balance1();
-        console.log("BALANCE 0", a.amount0Desired);
-        console.log("BALANCE 1", a.amount1Desired);
+        // console.log("BALANCE 0", a.amount0Desired);
+        // console.log("BALANCE 1", a.amount1Desired);
         a.liquidity = pool.getLiquidityForAmounts(
             a.amount0Desired,
             a.amount1Desired,
@@ -289,7 +308,7 @@ contract UnipilotVault is
         a.sqrtPriceLimitX96 = a.zeroForOne
             ? a.sqrtPriceX96 - a.exactSqrtPriceImpact
             : a.sqrtPriceX96 + a.exactSqrtPriceImpact;
-        console.log("AMOUNT SPECIFIED", uint256(a.amountSpecified));
+        // console.log("AMOUNT SPECIFIED", uint256(a.amountSpecified));
         if (a.amountSpecified > 0) {
             pool.swap(
                 address(this),
@@ -310,196 +329,196 @@ contract UnipilotVault is
                 tickSpacing
             );
 
-        // a.liquidity = pool.getLiquidityForAmounts(
-        //     a.amount0Desired,
-        //     a.amount1Desired,
-        //     ticksData.baseTickLower,
-        //     ticksData.baseTickUpper
-        // );
+        a.liquidity = pool.getLiquidityForAmounts(
+            a.amount0Desired,
+            a.amount1Desired,
+            ticksData.baseTickLower,
+            ticksData.baseTickUpper
+        );
 
-        // pool.mintLiquidity(
-        //     address(this),
-        //     ticksData.baseTickLower,
-        //     ticksData.baseTickUpper,
-        //     a.liquidity
-        // );
-    }
-
-    // function readjustLiquidityForPassive() private {
-    //     (uint160 sqrtPriceX96, int24 currentTick) = getSqrtRatioX96AndTick();
-
-    //     (uint256 baseFees0, uint256 baseFees1) = pool.burnLiquidity(
-    //         ticksData.baseTickLower,
-    //         ticksData.baseTickUpper,
-    //         address(this)
-    //     );
-
-    //     (uint256 rangeFees0, uint256 rangeFees1) = pool.burnLiquidity(
-    //         ticksData.rangeTickLower,
-    //         ticksData.rangeTickUpper,
-    //         address(this)
-    //     );
-
-    //     (uint256 fees0, uint256 fees1) = (
-    //         baseFees0.add(rangeFees0),
-    //         baseFees1.add(rangeFees1)
-    //     );
-
-    //     if (fees0 > 0)
-    //         token0.transfer(indexFund, FullMath.mulDiv(fees0, 10, 100));
-    //     if (fees1 > 0)
-    //         token1.transfer(indexFund, FullMath.mulDiv(fees1, 10, 100));
-
-    //     uint256 amount0 = _balance0();
-    //     uint256 amount1 = _balance1();
-
-    //     emit FeesSnapshot(
-    //         currentTick,
-    //         fees0,
-    //         fees1,
-    //         amount0,
-    //         amount1,
-    //         totalSupply()
-    //     );
-
-    //     if (amount0 == 0 || amount1 == 0) {
-    //         bool zeroForOne = amount0 > 0 ? true : false;
-
-    //         int256 amountSpecified = zeroForOne
-    //             ? int256(FullMath.mulDiv(amount0, 10, 100))
-    //             : int256(FullMath.mulDiv(amount1, 10, 100));
-
-    //         uint160 exactSqrtPriceImpact = (sqrtPriceX96 * (1e5 / 2)) / 1e6;
-
-    //         uint160 sqrtPriceLimitX96 = zeroForOne
-    //             ? sqrtPriceX96 - exactSqrtPriceImpact
-    //             : sqrtPriceX96 + exactSqrtPriceImpact;
-
-    //         pool.swap(
-    //             address(this),
-    //             zeroForOne,
-    //             amountSpecified,
-    //             sqrtPriceLimitX96,
-    //             abi.encode(zeroForOne)
-    //         );
-    //     }
-
-    //     Tick memory ticks;
-    //     (
-    //         ticks.baseTickLower,
-    //         ticks.baseTickUpper,
-    //         ticks.bidTickLower,
-    //         ticks.bidTickUpper,
-    //         ticks.rangeTickLower,
-    //         ticks.rangeTickUpper
-    //     ) = _getTicksFromUniStrategy(address(pool));
-
-    //     uint128 baseLiquidity = pool.getLiquidityForAmounts(
-    //         amount0,
-    //         amount1,
-    //         ticks.baseTickLower,
-    //         ticks.baseTickUpper
-    //     );
-
-    //     pool.mintLiquidity(
-    //         address(this),
-    //         ticks.baseTickLower,
-    //         ticks.baseTickUpper,
-    //         baseLiquidity
-    //     );
-
-    //     ticksData.baseTickLower = ticks.baseTickLower;
-    //     ticksData.baseTickUpper = ticks.baseTickUpper;
-
-    //     amount0 = _balance0();
-    //     amount1 = _balance1();
-
-    //     uint128 rangeLiquidity;
-    //     if (amount0 > 0 || amount1 > 0) {
-    //         uint128 range0 = pool.getLiquidityForAmounts(
-    //             amount0,
-    //             amount1,
-    //             ticks.bidTickLower,
-    //             ticks.bidTickUpper
-    //         );
-
-    //         uint128 range1 = pool.getLiquidityForAmounts(
-    //             amount0,
-    //             amount1,
-    //             ticks.rangeTickLower,
-    //             ticks.rangeTickUpper
-    //         );
-
-    //         /// only one range position will ever have liquidity (if any)
-    //         if (range1 < range0) {
-    //             rangeLiquidity = range0;
-    //             ticksData.rangeTickLower = ticks.bidTickLower;
-    //             ticksData.rangeTickUpper = ticks.bidTickUpper;
-    //         } else if (0 < range1) {
-    //             ticksData.rangeTickLower = ticks.rangeTickLower;
-    //             ticksData.rangeTickUpper = ticks.rangeTickUpper;
-    //             rangeLiquidity = range1;
-    //         }
-    //     }
-
-    //     if (rangeLiquidity > 0) {
-    //         pool.mintLiquidity(
-    //             address(this),
-    //             ticksData.rangeTickLower,
-    //             ticksData.rangeTickUpper,
-    //             rangeLiquidity
-    //         );
-    //     }
-    // }
-
-    function withdraw(uint256 liquidity, address recipient)
-        external
-        override
-        returns (uint256 amount0, uint256 amount1)
-    {
-        require(liquidity > 0, "IL");
-
-        (amount0, amount1) = pool.burnUserLiquidity(
+        pool.mintLiquidity(
+            address(this),
             ticksData.baseTickLower,
             ticksData.baseTickUpper,
-            liquidityShare(liquidity),
-            recipient
+            a.liquidity
+        );
+    }
+
+    function readjustLiquidityForPassive() private {
+        (uint160 sqrtPriceX96, int24 currentTick) = getSqrtRatioX96AndTick();
+
+        (uint256 baseFees0, uint256 baseFees1) = pool.burnLiquidity(
+            ticksData.baseTickLower,
+            ticksData.baseTickUpper,
+            address(this)
         );
 
-        if (!_isPoolWhitelisted()) {
-            (uint256 range0, uint256 range1) = pool.burnUserLiquidity(
-                ticksData.baseTickLower,
-                ticksData.baseTickUpper,
-                liquidityShare(liquidity),
-                recipient
+        (uint256 rangeFees0, uint256 rangeFees1) = pool.burnLiquidity(
+            ticksData.rangeTickLower,
+            ticksData.rangeTickUpper,
+            address(this)
+        );
+
+        (uint256 fees0, uint256 fees1) = (
+            baseFees0.add(rangeFees0),
+            baseFees1.add(rangeFees1)
+        );
+
+        if (fees0 > 0)
+            token0.transfer(indexFund, FullMath.mulDiv(fees0, 10, 100));
+        if (fees1 > 0)
+            token1.transfer(indexFund, FullMath.mulDiv(fees1, 10, 100));
+
+        uint256 amount0 = _balance0();
+        uint256 amount1 = _balance1();
+
+        emit FeesSnapshot(
+            currentTick,
+            fees0,
+            fees1,
+            amount0,
+            amount1,
+            totalSupply()
+        );
+
+        if (amount0 == 0 || amount1 == 0) {
+            bool zeroForOne = amount0 > 0 ? true : false;
+
+            int256 amountSpecified = zeroForOne
+                ? int256(FullMath.mulDiv(amount0, 10, 100))
+                : int256(FullMath.mulDiv(amount1, 10, 100));
+
+            uint160 exactSqrtPriceImpact = (sqrtPriceX96 * (1e5 / 2)) / 1e6;
+
+            uint160 sqrtPriceLimitX96 = zeroForOne
+                ? sqrtPriceX96 - exactSqrtPriceImpact
+                : sqrtPriceX96 + exactSqrtPriceImpact;
+
+            pool.swap(
+                address(this),
+                zeroForOne,
+                amountSpecified,
+                sqrtPriceLimitX96,
+                abi.encode(zeroForOne)
             );
-            amount0 = amount0.add(range0);
-            amount1 = amount1.add(range1);
         }
 
-        uint256 totalSupply = totalSupply();
+        Tick memory ticks;
+        (
+            ticks.baseTickLower,
+            ticks.baseTickUpper,
+            ticks.bidTickLower,
+            ticks.bidTickUpper,
+            ticks.rangeTickLower,
+            ticks.rangeTickUpper
+        ) = _getTicksFromUniStrategy(address(pool));
 
-        uint256 unusedAmount0 = FullMath.mulDiv(
-            _balance0(),
-            liquidity,
-            totalSupply
+        uint128 baseLiquidity = pool.getLiquidityForAmounts(
+            amount0,
+            amount1,
+            ticks.baseTickLower,
+            ticks.baseTickUpper
         );
 
-        uint256 unusedAmount1 = FullMath.mulDiv(
-            _balance1(),
-            liquidity,
-            totalSupply
+        pool.mintLiquidity(
+            address(this),
+            ticks.baseTickLower,
+            ticks.baseTickUpper,
+            baseLiquidity
         );
 
-        if (unusedAmount0 > 0) token0.transfer(recipient, unusedAmount0);
-        if (unusedAmount1 > 0) token1.transfer(recipient, unusedAmount1);
+        ticksData.baseTickLower = ticks.baseTickLower;
+        ticksData.baseTickUpper = ticks.baseTickUpper;
 
-        amount0 = amount0.add(unusedAmount0);
-        amount1 = amount1.add(unusedAmount1);
+        amount0 = _balance0();
+        amount1 = _balance1();
 
-        _burn(msg.sender, liquidity);
-        emit Withdraw(msg.sender, recipient, liquidity, amount0, amount1);
+        uint128 rangeLiquidity;
+        if (amount0 > 0 || amount1 > 0) {
+            uint128 range0 = pool.getLiquidityForAmounts(
+                amount0,
+                amount1,
+                ticks.bidTickLower,
+                ticks.bidTickUpper
+            );
+
+            uint128 range1 = pool.getLiquidityForAmounts(
+                amount0,
+                amount1,
+                ticks.rangeTickLower,
+                ticks.rangeTickUpper
+            );
+
+            /// only one range position will ever have liquidity (if any)
+            if (range1 < range0) {
+                rangeLiquidity = range0;
+                ticksData.rangeTickLower = ticks.bidTickLower;
+                ticksData.rangeTickUpper = ticks.bidTickUpper;
+            } else if (0 < range1) {
+                ticksData.rangeTickLower = ticks.rangeTickLower;
+                ticksData.rangeTickUpper = ticks.rangeTickUpper;
+                rangeLiquidity = range1;
+            }
+        }
+
+        if (rangeLiquidity > 0) {
+            pool.mintLiquidity(
+                address(this),
+                ticksData.rangeTickLower,
+                ticksData.rangeTickUpper,
+                rangeLiquidity
+            );
+        }
     }
+
+    // function withdraw(uint256 liquidity, address recipient)
+    //     external
+    //     override
+    //     returns (uint256 amount0, uint256 amount1)
+    // {
+    //     require(liquidity > 0, "IL");
+
+    //     (amount0, amount1) = pool.burnUserLiquidity(
+    //         ticksData.baseTickLower,
+    //         ticksData.baseTickUpper,
+    //         liquidityShare(liquidity),
+    //         recipient
+    //     );
+
+    //     if (!_isPoolWhitelisted()) {
+    //         (uint256 range0, uint256 range1) = pool.burnUserLiquidity(
+    //             ticksData.baseTickLower,
+    //             ticksData.baseTickUpper,
+    //             liquidityShare(liquidity),
+    //             recipient
+    //         );
+    //         amount0 = amount0.add(range0);
+    //         amount1 = amount1.add(range1);
+    //     }
+
+    //     uint256 totalSupply = totalSupply();
+
+    //     uint256 unusedAmount0 = FullMath.mulDiv(
+    //         _balance0(),
+    //         liquidity,
+    //         totalSupply
+    //     );
+
+    //     uint256 unusedAmount1 = FullMath.mulDiv(
+    //         _balance1(),
+    //         liquidity,
+    //         totalSupply
+    //     );
+
+    //     if (unusedAmount0 > 0) token0.transfer(recipient, unusedAmount0);
+    //     if (unusedAmount1 > 0) token1.transfer(recipient, unusedAmount1);
+
+    //     amount0 = amount0.add(unusedAmount0);
+    //     amount1 = amount1.add(unusedAmount1);
+
+    //     _burn(msg.sender, liquidity);
+    //     emit Withdraw(msg.sender, recipient, liquidity, amount0, amount1);
+    // }
 
     function getVaultInfo()
         external

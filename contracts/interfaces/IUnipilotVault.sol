@@ -84,9 +84,9 @@ interface IUnipilotVault {
         uint256 amount1
     ) external payable returns (uint256 lpShares);
 
-    function withdraw(uint256 liquidity, address recipient)
-        external
-        returns (uint256 amount0, uint256 amount1);
+    // function withdraw(uint256 liquidity, address recipient)
+    //     external
+    //     returns (uint256 amount0, uint256 amount1);
 
     function getVaultInfo()
         external

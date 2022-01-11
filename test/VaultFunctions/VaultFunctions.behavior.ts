@@ -68,7 +68,7 @@ export async function shouldBehaveLikeVaultFunctions(
       const pilotBalance = await PILOT.balanceOf(vault.address);
       const usdtBalance = await USDT.balanceOf(vault.address);
 
-      console.log("PIlot balance", pilotBalance);
+      console.log("Pilot balance", pilotBalance);
       console.log("Usdt balance", usdtBalance);
     });
 

@@ -4,19 +4,16 @@ import "./interfaces/IUnipilotFactory.sol";
 import "./interfaces/IUnipilotVault.sol";
 import "./base/PeripheryPayments.sol";
 
-//import "hardhat/console.sol";
-
 contract UnipilotRouter is PeripheryPayments {
     address private unipilotFactory;
-    address private owner;
-
-    modifier onlyOwner() {
-        require(msg.sender == owner, "NO");
+    address private governance;
+    modifier onlyGovernance() {
+        require(msg.sender == governance, "NG");
         _;
     }
 
-    constructor() {
-        owner = msg.sender;
+    constructor(address _governance) {
+        governance = _governance;
     }
 
     function deposit(
@@ -26,12 +23,9 @@ contract UnipilotRouter is PeripheryPayments {
         uint256 _amount1
     ) external returns (uint256 lpShares) {
         require(_vault != address(0) && _recipient != address(0), "NA");
-        require(_amount0 > 0 && _amount1 > 0, "IF");
+        require(_amount0 > 0 && _amount1 > 0);
         (address token0, address token1, uint256 fee) = IUnipilotVault(_vault)
             .getVaultInfo();
-
-        pay(token0, msg.sender, _vault, _amount0);
-        pay(token1, msg.sender, _vault, _amount1);
 
         lpShares = IUnipilotVault(_vault).deposit(
             msg.sender,
@@ -41,21 +35,41 @@ contract UnipilotRouter is PeripheryPayments {
         );
     }
 
-    function setFactory(address _factory) external onlyOwner {
+    function vaultPayCallback(
+        address _depositor,
+        address _token0,
+        address _token1,
+        uint256 _amount0,
+        uint256 _amount1,
+        uint24 _fee
+    ) external {
+        address caller = msg.sender;
+        (address vault, ) = IUnipilotFactory(unipilotFactory).getVaults(
+            _token0,
+            _token1,
+            _fee
+        );
+        require(caller == vault);
+        pay(_token0, _depositor, caller, _amount0);
+        pay(_token1, _depositor, caller, _amount1);
+    }
+
+    function setFactory(address _factory) external onlyGovernance {
+        require(_factory != address(0));
         unipilotFactory = _factory;
     }
 
-    function withdraw(
-        address _vault,
-        uint256 liquidity,
-        address _recipient
-    ) external returns (uint256 amount0, uint256 amount1) {
-        require(_vault != address(0) || _recipient != address(0));
-        (amount0, amount1) = IUnipilotVault(_vault).withdraw(
-            liquidity,
-            _recipient
-        );
-    }
+    // function withdraw(
+    //     address _vault,
+    //     uint256 liquidity,
+    //     address _recipient
+    // ) external returns (uint256 amount0, uint256 amount1) {
+    //     require(_vault != address(0) || _recipient != address(0));
+    //     (amount0, amount1) = IUnipilotVault(_vault).withdraw(
+    //         liquidity,
+    //         _recipient
+    //     );
+    // }
 
     function readjustLiquidity(address _vault) external {
         IUnipilotVault(_vault).readjustLiquidity();

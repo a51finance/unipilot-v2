@@ -3,12 +3,13 @@ import { parseUnits } from "@ethersproject/units";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { expect } from "chai";
 import { Contract } from "ethers";
+import { encodePriceSqrt } from "../utils/encodePriceSqrt";
 
 export async function shouleBehaveLikePilotFactory(
   wallets: SignerWithAddress[],
   UnipilotFactory: Contract,
   UniswapV3Factory: Contract,
-  WETH9: Contract,
+  USDT: Contract,
   PILOT: Contract,
 ): Promise<void> {
   const governance = wallets[0];
@@ -57,19 +58,19 @@ export async function shouleBehaveLikePilotFactory(
 
   it("Vault deployment(cool shit): Will deploy new vault of a uniswap pool", async () => {
     const vault = await UnipilotFactory.connect(governance).createVault(
-      WETH9.address,
+      USDT.address,
       PILOT.address,
       3000,
-      "42951287100",
-      "unipilot PILOT-WETH",
-      "PILOT-WETH",
+      encodePriceSqrt("1", "1"),
+      "unipilot PILOT-USDT",
+      "PILOT-USDT",
     );
     await expect(vault).to.be.ok;
   });
 
   it("Get vault after it is deployed", async () => {
     const vault = await UnipilotFactory.connect(governance).getVaults(
-      WETH9.address,
+      USDT.address,
       PILOT.address,
       3000,
     );

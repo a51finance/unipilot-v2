@@ -28,7 +28,7 @@ contract UnipilotFactory is IUnipilotFactory {
     mapping(address => mapping(address => mapping(uint24 => address)))
         private vaults;
 
-    mapping(address => bool) private whitelistedVaults;
+    mapping(address => bool) public whitelistedVaults;
 
     modifier isGovernance() {
         require(msg.sender == governance, "NG");
