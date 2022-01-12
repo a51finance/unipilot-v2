@@ -106,7 +106,7 @@ const config: HardhatUserConfig = {
     target: "ethers-v5",
   },
   etherscan: {
-    apiKey: "MPGJT6TKSTVI9MA1U8JDXZXBNQ16TT9UPK",
+    apiKey: etherscanApiKey,
   },
   contractSizer: {
     alphaSort: true,

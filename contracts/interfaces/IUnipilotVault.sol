@@ -37,6 +37,15 @@ interface IUnipilotVault {
         int24 rangeTickUpper;
     }
 
+    struct FeesData {
+        // accumulated protocol fees in token0/token1 units
+        uint256 indexFees0;
+        uint256 indexFees1;
+        // Total lifetime accrued fees in token0/token1 units
+        uint256 totalFees0;
+        uint256 totalFees1;
+    }
+
     struct Tick {
         int24 baseTickLower;
         int24 baseTickUpper;
@@ -61,7 +70,6 @@ interface IUnipilotVault {
     );
 
     event FeesSnapshot(
-        int24 currentTick,
         uint256 fees0,
         uint256 fees1,
         uint256 balance0,
@@ -84,9 +92,9 @@ interface IUnipilotVault {
         uint256 amount1
     ) external payable returns (uint256 lpShares);
 
-    // function withdraw(uint256 liquidity, address recipient)
-    //     external
-    //     returns (uint256 amount0, uint256 amount1);
+    function withdraw(uint256 liquidity, address recipient)
+        external
+        returns (uint256 amount0, uint256 amount1);
 
     function getVaultInfo()
         external
