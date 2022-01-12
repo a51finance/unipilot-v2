@@ -50,7 +50,7 @@ export async function shouldBehaveLikeVaultFunctions(
           wallets[0].address,
           wallets[0].address,
           parseUnits("10", "18"),
-          parseUnits("10", "6"),
+          parseUnits("10", "18"),
         )
       ).toString();
 
@@ -58,10 +58,10 @@ export async function shouldBehaveLikeVaultFunctions(
         wallets[0].address,
         wallets[0].address,
         parseUnits("10", "18"),
-        parseUnits("10", "6"),
+        parseUnits("10", "18"),
       );
 
-      expect(await lpShares).to.be.ok;
+      expect(lpShares).to.be.ok;
     });
 
     it("should give balance of pilot and usdt", async () => {

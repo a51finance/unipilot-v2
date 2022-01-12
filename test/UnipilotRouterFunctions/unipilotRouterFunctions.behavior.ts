@@ -105,7 +105,7 @@ export async function shouldBehaveLikeUnipilotRouterFunctions(
         UnipilotVaultContract.address,
         owner.address,
         parseUnits("10", "18"),
-        parseUnits("10", "6"),
+        parseUnits("10", "18"),
       );
       expect(result).to.be.ok;
     });
@@ -124,6 +124,14 @@ export async function shouldBehaveLikeUnipilotRouterFunctions(
         UnipilotVaultContract.address,
       );
       console.log("Readjust TX hash", result.hash);
+    });
+
+    it("should give balance of pilot and usdt", async () => {
+      const pilotBalance = await PILOT.balanceOf(UnipilotVaultContract.address);
+      const usdtBalance = await USDT.balanceOf(UnipilotVaultContract.address);
+
+      console.log("Pilot balance", pilotBalance);
+      console.log("Usdt balance", usdtBalance);
     });
     // it("Withdraw: Should be pass", async () => {
     //   let result = await UnipilotRouter.connect(owner).withdraw(

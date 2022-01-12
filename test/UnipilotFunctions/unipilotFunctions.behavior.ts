@@ -5,7 +5,11 @@ import { expect } from "chai";
 import { createFixtureLoader, loadFixture } from "ethereum-waffle";
 import { BigNumber, Contract, Wallet } from "ethers";
 import { ethers } from "hardhat";
-import { UnipilotFactory, UnipilotVault } from "../../typechain";
+import {
+  IUniswapV3Pool,
+  UnipilotFactory,
+  UnipilotVault,
+} from "../../typechain";
 import { shouldBehaveLikeTokenApproval } from "../TokenApproval/tokenApprove.behavior";
 import { shouleBehaveLikePilotFactory } from "../UnipilotFactoryFunctions/UnipilotFactory.behavior";
 import { shouldBehaveLikeUnipilotRouterFunctions } from "../UnipilotRouterFunctions/unipilotRouterFunctions.behavior";
@@ -21,19 +25,18 @@ import { encodePriceSqrt } from "../utils/encodePriceSqrt";
 export async function shouldBehaveLikeUnipilotFunctions(
   wallets: SignerWithAddress[],
   UnipilotFactory: Contract,
-  // UnipilotVault: Contract,
-  UniswapV3Factory: Contract,
   UnipilotRouter: Contract,
   WETH9: Contract,
   PILOT: Contract,
   USDT: Contract,
   positionManager: Contract,
+  uniswapV3Factory: Contract,
 ): Promise<void> {
   describe("Testing the UnipilotFactory !!", async () => {
     shouleBehaveLikePilotFactory(
       wallets,
       UnipilotFactory,
-      UniswapV3Factory,
+      uniswapV3Factory,
       USDT,
       PILOT,
     );
@@ -52,6 +55,8 @@ export async function shouldBehaveLikeUnipilotFunctions(
     let unipilotVault: UnipilotVault;
     let wallet: Wallet, other: Wallet;
     let unipilotFactory: UnipilotFactory;
+    let nftManager: Contract;
+    let uniswapPool: Contract;
 
     before("create fixture loader", async () => {
       [wallet, other] = await (ethers as any).getSigners();
@@ -66,7 +71,6 @@ export async function shouldBehaveLikeUnipilotFunctions(
         parseUnits("1", "18"),
         parseUnits("1", "18"),
       );
-      console.log("encoded price", encodedPrice);
       unipilotVault = await createVault(
         USDT.address,
         PILOT.address,
@@ -74,17 +78,6 @@ export async function shouldBehaveLikeUnipilotFunctions(
         encodedPrice,
         "unipilot PILOT-USDT",
         "PILOT-USDT",
-      );
-
-      //following ERC20Artifact
-
-      console.log(
-        "USDT Balance of wallet 0",
-        await USDT.balanceOf(wallets[0].address),
-      );
-      console.log(
-        "PILOT Balance of wallet 0",
-        await PILOT.balanceOf(wallets[0].address),
       );
 
       await USDT.connect(wallets[0]).approve(unipilotVault.address, MaxUint256);
@@ -98,20 +91,42 @@ export async function shouldBehaveLikeUnipilotFunctions(
         wallets[0].address,
         unipilotVault.address,
       );
-      console.log("allowance of USDT", allowanceUsdt);
 
       const allowancePilot = await PILOT.allowance(
         wallets[0].address,
         unipilotVault.address,
       );
-      console.log("allowance of PILOT", allowancePilot);
+
+      const poolAddress = await uniswapV3Factory.getPool(
+        USDT.address,
+        PILOT.address,
+        3000,
+      );
+      uniswapPool = (await ethers.getContractAt(
+        "IUniswapV3Pool",
+        poolAddress,
+      )) as IUniswapV3Pool;
+
+      nftManager = await positionManager.connect(wallet0).mint({
+        token0: USDT.address,
+        token1: PILOT.address,
+        tickLower: getMinTick(60),
+        tickUpper: getMaxTick(60),
+        fee: 3000,
+        recipient: wallet0.address,
+        amount0Desired: parseUnits("100", "18"),
+        amount1Desired: parseUnits("100", "18"),
+        amount0Min: 0,
+        amount1Min: 0,
+        deadline: 2000000000,
+      });
     });
 
     it("Vault functions to be executed", async () => {
       await shouldBehaveLikeVaultFunctions(
         wallets,
         unipilotVault,
-        UniswapV3Factory,
+        uniswapV3Factory,
         20,
         wallets[0].address,
         PILOT,
@@ -120,8 +135,6 @@ export async function shouldBehaveLikeUnipilotFunctions(
     });
 
     it("Router Function to be executed", async () => {
-      console.log("Unipilot Router", UnipilotRouter.address);
-
       await shouldBehaveLikeUnipilotRouterFunctions(
         wallets,
         unipilotFactory,
