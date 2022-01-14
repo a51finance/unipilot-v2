@@ -61,6 +61,7 @@ describe("Initializing the testing suite", async () => {
       uniswapV3Factory.address,
       wallet0,
       uniStrategy.address,
+      wallet1.address,
     );
 
     uniswapPositionManager = uniswapv3Contracts.positionManager;
@@ -68,9 +69,9 @@ describe("Initializing the testing suite", async () => {
     PILOT = await deployPilot(wallet0);
 
     await DAI.approve(uniswapPositionManager.address, MaxUint256);
-    await DAI._mint(wallet0.address, parseUnits("5000", "18"));
+    await DAI._mint(wallet0.address, parseUnits("2000000", "18"));
     await USDT.approve(uniswapPositionManager.address, MaxUint256);
-    await USDT._mint(wallet0.address, parseUnits("5000", "18"));
+    await USDT._mint(wallet0.address, parseUnits("2000000", "18"));
   });
 
   describe("Running the pilot functions", async () => {
@@ -78,15 +79,7 @@ describe("Initializing the testing suite", async () => {
       let [wallet0, wallet1, wallet2, wallet3] = await hre.ethers.getSigners();
       let wallets: SignerWithAddress[] = [wallet0, wallet1, wallet2, wallet3];
       console.log("POSITION MANAGER", uniswapPositionManager.address);
-      await shouldBehaveLikeUnipilotFunctions(
-        wallets,
-        unipilotFactory,
-        unipilotRouter,
-        WETH9,
-        DAI,
-        USDT,
-        swapRouter,
-      );
+      await shouldBehaveLikeUnipilotFunctions(wallets, WETH9, DAI, USDT);
     });
   });
 });

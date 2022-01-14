@@ -4,6 +4,7 @@ import { expect } from "chai";
 import { BigNumber, BigNumberish, Contract, ethers } from "ethers";
 import { Pilot, UnipilotVault } from "../../typechain";
 import { shouldBehaveLikeTokenApproval } from "../TokenApproval/tokenApprove.behavior";
+import { generateFeeThroughSwap } from "../utils/SwapFunction/swap";
 
 export async function shouldBehaveLikeVaultFunctions(
   wallets: SignerWithAddress[],
@@ -74,8 +75,8 @@ export async function shouldBehaveLikeVaultFunctions(
       const usdtBalance = await USDT.balanceOf(wallets[0].address);
 
       console.log("pilot balance", daiBalance, usdtBalance);
-      expect(daiBalance).to.be.equal(parseUnits("3990", "18"));
-      // expect(daiBalance).to.be.equal(parseUnits("3990", "18"));
+      // expect(daiBalance).to.be.equal(parseUnits("3000", "18"));
+      // expect(usdtBalance).to.be.equal(parseUnits("3000", "18"));
     });
 
     it("should successfully readjust active vault", async () => {
@@ -101,43 +102,23 @@ export async function shouldBehaveLikeVaultFunctions(
     //   expect(usdtBalance).to.be.gt(parseUnits("3999", "18"));
     // });
 
-    // it("fees compounding for user", async () => {
-    //   await vault.deposit(
-    //     wallets[0].address,
-    //     wallets[0].address,
-    //     parseUnits("100", "18"),
-    //     parseUnits("100", "18"),
-    //   );
+    it("fees compounding for user", async () => {
+      await vault.deposit(parseUnits("3000", "18"), parseUnits("3000", "18"));
 
-    //   const daiBalance = await DAI.balanceOf(wallets[0].address);
-    //   const usdtBalance = await USDT.balanceOf(wallets[0].address);
+      await generateFeeThroughSwap(swapRouter, wallets[0], DAI, USDT, "10000");
+      const fees = await vault.callStatic.getPositionDetails();
+      console.log("fees", fees);
+      await vault.readjustLiquidity();
 
-    //   console.log("Balance before swap", daiBalance, usdtBalance);
+      const indexFund = wallets[1].address;
+      console.log("index fund address", indexFund);
+      const daiBalance = await DAI.balanceOf(indexFund);
+      const usdtBalance = await USDT.balanceOf(indexFund);
+      console.log("dai balance", daiBalance);
+      console.log("usdt Balance", usdtBalance);
 
-    //   await swapRouter.connect(wallets[0]).exactInputSingle({
-    //     tokenIn: DAI.address,
-    //     tokenOut: USDT.address,
-    //     fee: 3000,
-    //     recipient: wallets[0].address,
-    //     deadline: 2000000000, // Wed May 18 2033 03:33:20 GMT+0000
-    //     amountIn: parseUnits("50", "18"),
-    //     amountOutMinimum: ethers.utils.parseEther("0"),
-    //     sqrtPriceLimitX96: 0,
-    //   });
-    //   await vault.readjustLiquidity();
-
-    //   const daiBalanceAfer = await DAI.balanceOf(wallets[0].address);
-    //   const usdtBalanceAfter = await USDT.balanceOf(wallets[0].address);
-
-    //   console.log("Balance after swap", daiBalanceAfer, usdtBalanceAfter);
-    //   // await vault.updatePosition();
-    //   // const feesData = await vault.getPositionDetails();
-
-    //   // const indexFund = await vault.getVaultInfo();
-    //   // const daiBalance = await DAI.balanceOf(indexFund[2]);
-    //   // const usdtBalance = await USDT.balanceOf(indexFund[2]);
-    //   // expect(daiBalance).to.be.gt(parseUnits("0", "18"));
-    //   // expect(usdtBalance).to.be.gt(parseUnits("0", "18"));
-    // });
+      // expect(daiBalance).to.be.gt(parseUnits("0", "18"));
+      // expect(usdtBalance).to.be.gt(parseUnits("0", "18"));
+    });
   });
 }

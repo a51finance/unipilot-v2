@@ -8,6 +8,7 @@ export async function generateFeeThroughSwap(
   wallet: SignerWithAddress,
   tokenIn: Contract,
   tokenOut: Contract,
+  amountIn: string,
 ) {
   await tokenIn.approve(swapRouter.address, MaxUint256);
   await tokenOut.approve(swapRouter.address, MaxUint256);
@@ -21,7 +22,7 @@ export async function generateFeeThroughSwap(
     fee: 3000,
     recipient: wallet.address,
     deadline: Math.round(Date.now() / 1000) + 86400,
-    amountIn: parseUnits("500", decimalsIn.toString()),
+    amountIn: parseUnits(amountIn, decimalsIn.toString()),
     amountOutMinimum: parseUnits("0", decimalsOut.toString()),
     sqrtPriceLimitX96: "0",
   };
@@ -32,7 +33,7 @@ export async function generateFeeThroughSwap(
     fee: 3000,
     recipient: wallet.address,
     deadline: Math.round(Date.now() / 1000) + 86400,
-    amountIn: parseUnits("500", decimalsOut.toString()),
+    amountIn: parseUnits(amountIn, decimalsOut.toString()),
     amountOutMinimum: parseUnits("0", decimalsIn.toString()),
     sqrtPriceLimitX96: "0",
   };

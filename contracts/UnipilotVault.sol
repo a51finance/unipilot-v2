@@ -60,12 +60,14 @@ contract UnipilotVault is
         address _strategy,
         address _governance,
         address _unipilotFactory,
+        address _indexFund,
         string memory _name,
         string memory _symbol
     ) ERC20Permit(_name) ERC20(_name, _symbol) {
         console.log("pool adress in constrcuti", _pool);
         strategy = _strategy;
         governance = _governance;
+        indexFund = _indexFund;
         unipilotFactory = IUnipilotFactory(_unipilotFactory);
         pool = IUniswapV3Pool(_pool);
         token0 = IERC20(pool.token0());
@@ -221,6 +223,9 @@ contract UnipilotVault is
             token0.transfer(indexFund, FullMath.mulDiv(a.fees0, 10, 100));
         if (a.fees1 > 0)
             token1.transfer(indexFund, FullMath.mulDiv(a.fees1, 10, 100));
+
+        console.log("fees 0 ", a.fees0);
+        console.log("fees 1", a.fees1);
 
         emit FeesSnapshot(
             a.fees0,

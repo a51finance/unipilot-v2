@@ -1,6 +1,6 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { deployContract, Fixture } from "ethereum-waffle";
-import { BigNumber, Contract } from "ethers";
+import { BigNumber, Contract, Wallet } from "ethers";
 import { ethers } from "hardhat";
 import { UnipilotFactory, UnipilotVault } from "../../typechain";
 import { UniswapV3Deployer } from "../UniswapV3Deployer";
@@ -24,12 +24,14 @@ const deployUniswap = async (wallet0: SignerWithAddress) => {
   return {
     uniswapV3Factory: uniswapv3Contracts.factory,
     uniswapV3PositionManager: uniswapv3Contracts.positionManager,
+    swapRouter: uniswapv3Contracts.router,
   };
 };
 
 interface UNISWAP_V3_FIXTURES {
   uniswapV3Factory: Contract;
   uniswapV3PositionManager: Contract;
+  swapRouter: Contract;
 }
 interface UNIPILOT_FACTORY_FIXTURE {
   unipilotFactory: UnipilotFactory;
@@ -41,10 +43,14 @@ async function unipilotFactoryFixture(
   uniStrategy: string,
 ): Promise<UNIPILOT_FACTORY_FIXTURE> {
   const unipilotFactoryDep = await ethers.getContractFactory("UnipilotFactory");
+  let [wallet0, wallet1] = await hre.ethers.getSigners();
+
+  console.log("wallet 1 address", wallet1.address);
   const unipilotFactory = (await unipilotFactoryDep.deploy(
     uniswapV3Factory,
     deployer.address,
     uniStrategy,
+    wallet1.address,
   )) as UnipilotFactory;
   return { unipilotFactory };
 }
@@ -64,9 +70,8 @@ interface UNIPILOT_VAULT_FIXTURE extends FACTORIES {
 export const unipilotVaultFixture: Fixture<UNIPILOT_VAULT_FIXTURE> =
   async function (): Promise<UNIPILOT_VAULT_FIXTURE> {
     let [wallet0, wallet1] = await hre.ethers.getSigners();
-    const { uniswapV3Factory, uniswapV3PositionManager } = await deployUniswap(
-      wallet0,
-    );
+    const { uniswapV3Factory, uniswapV3PositionManager, swapRouter } =
+      await deployUniswap(wallet0);
     const uniStrategy = await deployStrategy(wallet0);
     const router = await deployUnipilotRouter(wallet0);
     console.log("UniStrategy address", uniStrategy.address);
@@ -86,6 +91,7 @@ export const unipilotVaultFixture: Fixture<UNIPILOT_VAULT_FIXTURE> =
     return {
       uniswapV3Factory,
       uniswapV3PositionManager,
+      swapRouter,
       unipilotFactory,
       createVault: async (
         tokenA,

@@ -10,15 +10,18 @@ contract UnipilotFactory is IUnipilotFactory {
     address private uniStrategy;
     address private uniswapFactory;
     address public override governance;
+    address private indexFund;
 
     constructor(
         address _uniswapFactory,
         address _governance,
-        address _uniStrategy
+        address _uniStrategy,
+        address _indexFund
     ) {
         governance = _governance;
         uniStrategy = _uniStrategy;
         uniswapFactory = _uniswapFactory;
+        indexFund = _indexFund;
     }
 
     mapping(address => mapping(address => mapping(uint24 => address)))
@@ -108,7 +111,15 @@ contract UnipilotFactory is IUnipilotFactory {
         _vault = address(
             new UnipilotVault{
                 salt: keccak256(abi.encode(_tokenA, _tokenB, _fee))
-            }(_pool, uniStrategy, governance, address(this), _name, _symbol)
+            }(
+                _pool,
+                uniStrategy,
+                governance,
+                address(this),
+                indexFund,
+                _name,
+                _symbol
+            )
         );
     }
 }
