@@ -8,7 +8,6 @@ import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 
 contract UnipilotFactory is IUnipilotFactory {
-    address private router;
     address private uniStrategy;
     address private uniswapFactory;
     address public override governance;
@@ -16,19 +15,17 @@ contract UnipilotFactory is IUnipilotFactory {
     constructor(
         address _uniswapFactory,
         address _governance,
-        address _router,
         address _uniStrategy
     ) {
         governance = _governance;
         uniStrategy = _uniStrategy;
-        router = _router;
         uniswapFactory = _uniswapFactory;
     }
 
     mapping(address => mapping(address => mapping(uint24 => address)))
         private vaults;
 
-    mapping(address => bool) public whitelistedVaults;
+    mapping(address => bool) private whitelistedVaults;
 
     modifier isGovernance() {
         require(msg.sender == governance, "NG");
@@ -110,15 +107,7 @@ contract UnipilotFactory is IUnipilotFactory {
         _vault = address(
             new UnipilotVault{
                 salt: keccak256(abi.encode(_tokenA, _tokenB, _fee))
-            }(
-                _pool,
-                router,
-                uniStrategy,
-                governance,
-                address(this),
-                _name,
-                _symbol
-            )
+            }(_pool, uniStrategy, governance, address(this), _name, _symbol)
         );
     }
 }
