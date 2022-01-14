@@ -111,41 +111,4 @@ library UniswapPoolActions {
             );
         }
     }
-
-    // function collectPositionFees(
-    //     IUniswapV3Pool pool,
-    //     int24 tickLower,
-    //     int24 tickUpper,
-    //     address recipient
-    // ) internal returns (uint256 fees0, uint256 fees1) {
-    //     uint128 liquidity = updatePosition(pool, tickLower, tickUpper);
-
-    //     if (liquidity > 0) {
-    //         (fees0, fees1) = pool.collect(
-    //             recipient,
-    //             tickLower,
-    //             tickUpper,
-    //             type(uint128).max,
-    //             type(uint128).max
-    //         );
-    //     }
-    // }
-
-    // function compoundFees(
-    //     IUniswapV3Pool pool,
-    //     int24 tickLower,
-    //     int24 tickUpper,
-    //     uint256 balance0,
-    //     uint256 balance1,
-    //     address payer
-    // ) internal returns (uint256 amount0, amount1) {
-    //     uint128 liquidity = pool.getLiquidityForAmounts(
-    //         balance0,
-    //         balance1,
-    //         tickLower,
-    //         tickUpper
-    //     );
-
-    //     mintLiquidity(pool, payer, tickLower, tickUpper, liquidity);
-    // }
 }

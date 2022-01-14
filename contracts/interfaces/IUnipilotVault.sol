@@ -105,7 +105,6 @@ interface IUnipilotVault {
             address,
             address,
             address,
-            address,
             uint256
         );
 
