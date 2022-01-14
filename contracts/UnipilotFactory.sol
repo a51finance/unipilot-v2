@@ -3,7 +3,6 @@ pragma solidity ^0.7.6;
 
 import "./interfaces/IUnipilotFactory.sol";
 import "./UnipilotVault.sol";
-// import "hardhat/console.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 
