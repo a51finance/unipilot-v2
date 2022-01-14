@@ -85,12 +85,14 @@ interface IUnipilotVault {
         uint256 amount1
     );
 
-    function deposit(
-        address depositor,
-        address recipient,
-        uint256 amount0,
-        uint256 amount1
-    ) external payable returns (uint256 lpShares);
+    function deposit(uint256 _amount0Desired, uint256 _amount1Desired)
+        external
+        payable
+        returns (
+            uint256 lpShares,
+            uint256 amount0,
+            uint256 amount1
+        );
 
     function withdraw(uint256 liquidity, address recipient)
         external
@@ -100,6 +102,7 @@ interface IUnipilotVault {
         external
         view
         returns (
+            address,
             address,
             address,
             address,

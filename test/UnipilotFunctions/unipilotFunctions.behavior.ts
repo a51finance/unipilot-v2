@@ -70,7 +70,7 @@ export async function shouldBehaveLikeUnipilotFunctions(
 
       const encodedPrice = encodePriceSqrt(
         parseUnits("1", "18"),
-        parseUnits("1", "18"),
+        parseUnits("8", "18"),
       );
       unipilotVault = await createVault(
         USDT.address,
@@ -80,6 +80,10 @@ export async function shouldBehaveLikeUnipilotFunctions(
         "unipilot PILOT-USDT",
         "PILOT-USDT",
       );
+
+      await unipilotFactory
+        .connect(wallet0)
+        .whitelistVaults([unipilotVault.address]);
 
       await USDT.connect(wallets[0]).approve(unipilotVault.address, MaxUint256);
       await DAI.connect(wallets[0]).approve(unipilotVault.address, MaxUint256);
@@ -97,6 +101,21 @@ export async function shouldBehaveLikeUnipilotFunctions(
       )) as IUniswapV3Pool;
 
       console.log("pool unoswap", poolAddress);
+      const a = await positionManager.connect(wallet0).callStatic.mint({
+        token0: DAI.address,
+        token1: USDT.address,
+        tickLower: getMinTick(60),
+        tickUpper: getMaxTick(60),
+        fee: 3000,
+        recipient: wallet0.address,
+        amount0Desired: parseUnits("1000", "18"),
+        amount1Desired: parseUnits("1000", "18"),
+        amount0Min: 0,
+        amount1Min: 0,
+        deadline: 2000000000,
+      });
+
+      console.log("mint on uniswp", a);
       await positionManager.connect(wallet0).mint({
         token0: DAI.address,
         token1: USDT.address,
@@ -110,6 +129,10 @@ export async function shouldBehaveLikeUnipilotFunctions(
         amount1Min: 0,
         deadline: 2000000000,
       });
+
+      const uniswapLiq = await uniswapPool.liquidity();
+
+      console.log("uniswap liq pool", uniswapLiq);
     });
 
     it("Vault functions to be executed", async () => {
@@ -122,6 +145,7 @@ export async function shouldBehaveLikeUnipilotFunctions(
         DAI,
         USDT,
         swapRouter,
+        uniswapPool,
       );
     });
 

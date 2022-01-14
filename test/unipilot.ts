@@ -58,10 +58,9 @@ describe("Initializing the testing suite", async () => {
     uniStrategy = await deployStrategy(wallet0);
     unipilotRouter = await deployUnipilotRouter(wallet0);
     unipilotFactory = await deployUnipilotFactory(
-      wallet0,
       uniswapV3Factory.address,
+      wallet0,
       uniStrategy.address,
-      unipilotRouter.address,
     );
 
     uniswapPositionManager = uniswapv3Contracts.positionManager;

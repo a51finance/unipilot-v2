@@ -22,15 +22,14 @@ export async function deployUniswapContracts(
 }
 
 export async function deployUnipilotFactory(
-  deployer: SignerWithAddress,
   uniswapV3Factory: string,
+  deployer: SignerWithAddress,
   uniStrategy: string,
-  router: string,
 ) {
   let unipilotFactory = await deployContract(
     deployer,
     UnipilotFactoryArtifact,
-    [uniswapV3Factory, deployer.address, router, uniStrategy],
+    [uniswapV3Factory, deployer.address, uniStrategy],
     {
       gasPrice: 90000000000,
     },

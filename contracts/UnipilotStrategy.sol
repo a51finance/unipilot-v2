@@ -263,9 +263,7 @@ contract UnipilotStrategy is IUnipilotStrategy {
         override
         returns (int24 baseThreshold)
     {
-        //console.log("pool address", _pool);
         baseThreshold = poolStrategy[_pool].baseThreshold;
-        //console.log("base threshold", uint256(baseThreshold));
     }
 
     /**

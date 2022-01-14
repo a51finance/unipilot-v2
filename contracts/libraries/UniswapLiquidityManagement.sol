@@ -5,8 +5,9 @@ import "@uniswap/v3-core/contracts/libraries/TickMath.sol";
 import "@uniswap/v3-core/contracts/libraries/SqrtPriceMath.sol";
 import "@uniswap/v3-periphery/contracts/libraries/PositionKey.sol";
 import "@uniswap/v3-periphery/contracts/libraries/LiquidityAmounts.sol";
+import "../interfaces/IUnipilotVault.sol";
 
-// import "hardhat/console.sol";
+import "hardhat/console.sol";
 
 /// @title Liquidity and ticks functions
 /// @notice Provides functions for computing liquidity and ticks for token amounts and prices
@@ -120,33 +121,6 @@ library UniswapLiquidityManagement {
         tickUpper = tickFloor + baseThreshold;
     }
 
-    function getReserves(
-        int24 baseTickLower,
-        int24 baseTickUpper,
-        uint256 balance0,
-        uint256 balance1,
-        IUniswapV3Pool pool
-    ) internal returns (uint256 reserve0, uint256 reserve1) {
-        reserve0 = balance0;
-        reserve1 = balance1;
-        uint128 liquidity = UniswapPoolActions.updatePosition(
-            pool,
-            baseTickLower,
-            baseTickUpper
-        );
-        if (liquidity > 0) {
-            uint256 temp0;
-            uint256 temp1;
-            (temp0, temp1) = collectableAmountsInPosition(
-                baseTickLower,
-                baseTickUpper,
-                pool
-            );
-            reserve0 += temp0;
-            reserve1 += temp1;
-        }
-    }
-
     function collectableAmountsInPosition(
         int24 _lowerTick,
         int24 _upperTick,
@@ -156,11 +130,7 @@ library UniswapLiquidityManagement {
             uint128 liquidity,
             uint128 earnable0,
             uint128 earnable1
-        ) = UniswapLiquidityManagement.getPositionLiquidity(
-                pool,
-                _lowerTick,
-                _upperTick
-            );
+        ) = getPositionLiquidity(pool, _lowerTick, _upperTick);
         (uint256 burnable0, uint256 burnable1) = UniswapLiquidityManagement
             .getAmountsForLiquidity(pool, liquidity, _lowerTick, _upperTick);
 
@@ -168,14 +138,12 @@ library UniswapLiquidityManagement {
     }
 
     function computeLpShares(
+        IUniswapV3Pool pool,
+        bool isWhitelisted,
         uint256 amount0Max,
         uint256 amount1Max,
         uint256 totalSupply,
-        int24 baseTickLower,
-        int24 baseTickUpper,
-        uint256 balance0,
-        uint256 balance1,
-        IUniswapV3Pool pool
+        IUnipilotVault.TicksData memory ticks
     )
         internal
         returns (
@@ -184,16 +152,29 @@ library UniswapLiquidityManagement {
             uint256 amount1
         )
     {
-        // uint256 totalSupply = totalSupply();
         uint256 reserve0;
         uint256 reserve1;
+
         (reserve0, reserve1) = getReserves(
-            baseTickLower,
-            baseTickUpper,
-            balance0,
-            balance1,
+            ticks.baseTickLower,
+            ticks.baseTickUpper,
             pool
         );
+
+        console.log("reserve 0", reserve0);
+        console.log("reserve 1", reserve1);
+
+        // if (!isWhitelisted) {
+        //     (uint256 rangeReserve0, uint256 rangeReserve1) = getReserves(
+        //         ticks.rangeTickLower,
+        //         ticks.rangeTickUpper,
+        //         pool
+        //     );
+
+        //     reserve0 = reserve0.add(rangeReserve0);
+        //     reserve1 = reserve1.add(rangeReserve1);
+        // }
+
         // If total supply > 0, pool can't be empty
         assert(totalSupply == 0 || reserve0 != 0 || reserve1 != 0);
         (shares, amount0, amount1) = calculateShare(
@@ -203,6 +184,25 @@ library UniswapLiquidityManagement {
             reserve1,
             totalSupply
         );
+    }
+
+    function getReserves(
+        int24 tickLower,
+        int24 tickUpper,
+        IUniswapV3Pool pool
+    ) internal returns (uint256 reserve0, uint256 reserve1) {
+        uint128 liquidity = UniswapPoolActions.updatePosition(
+            pool,
+            tickLower,
+            tickUpper
+        );
+        if (liquidity > 0) {
+            (reserve0, reserve1) = collectableAmountsInPosition(
+                tickLower,
+                tickUpper,
+                pool
+            );
+        }
     }
 
     function calculateShare(

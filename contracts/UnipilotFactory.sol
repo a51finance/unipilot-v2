@@ -3,12 +3,10 @@ pragma solidity ^0.7.6;
 
 import "./interfaces/IUnipilotFactory.sol";
 import "./UnipilotVault.sol";
-// import "hardhat/console.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 
 contract UnipilotFactory is IUnipilotFactory {
-    address private router;
     address private uniStrategy;
     address private uniswapFactory;
     address public override governance;
@@ -16,19 +14,17 @@ contract UnipilotFactory is IUnipilotFactory {
     constructor(
         address _uniswapFactory,
         address _governance,
-        address _router,
         address _uniStrategy
     ) {
         governance = _governance;
         uniStrategy = _uniStrategy;
-        router = _router;
         uniswapFactory = _uniswapFactory;
     }
 
     mapping(address => mapping(address => mapping(uint24 => address)))
         private vaults;
 
-    mapping(address => bool) public whitelistedVaults;
+    mapping(address => bool) private whitelistedVaults;
 
     modifier isGovernance() {
         require(msg.sender == governance, "NG");
@@ -63,6 +59,8 @@ contract UnipilotFactory is IUnipilotFactory {
 
             IUniswapV3Pool(pool).initialize(_sqrtPriceX96);
         }
+        console.log("pool adress in factory", pool);
+
         _pool = pool;
         _vault = _deploy(token0, token1, _fee, pool, _name, _symbol);
         vaults[token0][token1][_fee] = _vault;
@@ -110,15 +108,7 @@ contract UnipilotFactory is IUnipilotFactory {
         _vault = address(
             new UnipilotVault{
                 salt: keccak256(abi.encode(_tokenA, _tokenB, _fee))
-            }(
-                _pool,
-                router,
-                uniStrategy,
-                governance,
-                address(this),
-                _name,
-                _symbol
-            )
+            }(_pool, uniStrategy, governance, address(this), _name, _symbol)
         );
     }
 }

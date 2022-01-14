@@ -29,16 +29,14 @@ interface UNIPILOT_FACTORY_FIXTURE {
 }
 
 async function unipilotFactoryFixture(
-  deployer: SignerWithAddress,
   uniswapV3Factory: string,
+  deployer: SignerWithAddress,
   uniStrategy: string,
-  router: string,
 ): Promise<UNIPILOT_FACTORY_FIXTURE> {
   const unipilotFactoryDep = await ethers.getContractFactory("UnipilotFactory");
   const unipilotFactory = (await unipilotFactoryDep.deploy(
     uniswapV3Factory,
     deployer.address,
-    router,
     uniStrategy,
   )) as UnipilotFactory;
   return { unipilotFactory };
@@ -63,10 +61,9 @@ export const unipilotVaultFixture: Fixture<UNIPILOT_VAULT_FIXTURE> =
     const router = await deployUnipilotRouter(wallet0);
     console.log("UniStrategy address", uniStrategy.address);
     const { unipilotFactory } = await unipilotFactoryFixture(
-      wallet0,
       uniswapV3Factory,
+      wallet0,
       uniStrategy.address,
-      router.address,
     );
 
     console.log(

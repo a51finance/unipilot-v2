@@ -14,6 +14,7 @@ export async function shouldBehaveLikeVaultFunctions(
   DAI: Contract,
   USDT: Contract,
   swapRouter: Contract,
+  uniswapPool: Contract,
 ): Promise<void> {
   // it("should fail depoit with IL", async () => {
   //   await expect(
@@ -54,26 +55,30 @@ export async function shouldBehaveLikeVaultFunctions(
     });
 
     it("should successfully deposit liquidity", async () => {
-      await vault.init();
-      let lpShares = await vault.deposit(
-        wallets[0].address,
-        wallets[0].address,
-        parseUnits("10", "18"),
-        parseUnits("10", "18"),
-      );
+      const uniswapPool = await vault.getVaultInfo();
+      console.log("uniswapPool in deposit", uniswapPool);
+      const resultDeposit = await vault
+        .connect(wallets[0])
+        .callStatic.deposit(parseUnits("1000", "18"), parseUnits("1000", "18"));
+      console.log("resultDeposit", resultDeposit);
+      expect(
+        await vault
+          .connect(wallets[0])
+          .deposit(parseUnits("1000", "18"), parseUnits("1000", "18")),
+      ).to.be.ok;
 
       const lpBalance = await vault.balanceOf(wallets[0].address);
       console.log("lpBalance", lpBalance);
 
-      const pilotBalance = await DAI.balanceOf(wallets[0].address);
+      const daiBalance = await DAI.balanceOf(wallets[0].address);
       const usdtBalance = await USDT.balanceOf(wallets[0].address);
 
-      expect(pilotBalance).to.be.equal(parseUnits("3990", "18"));
-      expect(usdtBalance).to.be.equal(parseUnits("3990", "18"));
+      console.log("pilot balance", daiBalance, usdtBalance);
+      expect(daiBalance).to.be.equal(parseUnits("3990", "18"));
+      // expect(daiBalance).to.be.equal(parseUnits("3990", "18"));
     });
 
     it("should successfully readjust active vault", async () => {
-      await vault.init();
       expect(await vault.readjustLiquidity()).to.be.ok;
       const daiBalance = await DAI.balanceOf(vault.address);
       const usdtBalance = await USDT.balanceOf(vault.address);
