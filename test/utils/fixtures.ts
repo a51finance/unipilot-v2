@@ -17,13 +17,20 @@ const deployWeth9 = async (wallet0: SignerWithAddress) => {
   return WETH9;
 };
 
-const deployUniswapFactory = async (wallet0: SignerWithAddress) => {
+const deployUniswap = async (wallet0: SignerWithAddress) => {
   let WETH9 = await deployWeth9(wallet0);
   let uniswapv3Contracts = await deployUniswapContracts(wallet0, WETH9);
   console.log("uniswapv3COntracts factory", uniswapv3Contracts.factory.address);
-  return uniswapv3Contracts.factory.address;
+  return {
+    uniswapV3Factory: uniswapv3Contracts.factory,
+    uniswapV3PositionManager: uniswapv3Contracts.positionManager,
+  };
 };
 
+interface UNISWAP_V3_FIXTURES {
+  uniswapV3Factory: Contract;
+  uniswapV3PositionManager: Contract;
+}
 interface UNIPILOT_FACTORY_FIXTURE {
   unipilotFactory: UnipilotFactory;
 }
@@ -42,7 +49,8 @@ async function unipilotFactoryFixture(
   return { unipilotFactory };
 }
 
-interface UNIPILOT_VAULT_FIXTURE extends UNIPILOT_FACTORY_FIXTURE {
+type FACTORIES = UNIPILOT_FACTORY_FIXTURE & UNISWAP_V3_FIXTURES;
+interface UNIPILOT_VAULT_FIXTURE extends FACTORIES {
   createVault(
     tokenA: string,
     tokenB: string,
@@ -56,12 +64,14 @@ interface UNIPILOT_VAULT_FIXTURE extends UNIPILOT_FACTORY_FIXTURE {
 export const unipilotVaultFixture: Fixture<UNIPILOT_VAULT_FIXTURE> =
   async function (): Promise<UNIPILOT_VAULT_FIXTURE> {
     let [wallet0, wallet1] = await hre.ethers.getSigners();
-    const uniswapV3Factory = await deployUniswapFactory(wallet0);
+    const { uniswapV3Factory, uniswapV3PositionManager } = await deployUniswap(
+      wallet0,
+    );
     const uniStrategy = await deployStrategy(wallet0);
     const router = await deployUnipilotRouter(wallet0);
     console.log("UniStrategy address", uniStrategy.address);
     const { unipilotFactory } = await unipilotFactoryFixture(
-      uniswapV3Factory,
+      uniswapV3Factory.address,
       wallet0,
       uniStrategy.address,
     );
@@ -74,6 +84,8 @@ export const unipilotVaultFixture: Fixture<UNIPILOT_VAULT_FIXTURE> =
     const unipilotVaultDep = await ethers.getContractFactory("UnipilotVault");
 
     return {
+      uniswapV3Factory,
+      uniswapV3PositionManager,
       unipilotFactory,
       createVault: async (
         tokenA,

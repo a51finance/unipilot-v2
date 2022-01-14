@@ -85,8 +85,6 @@ describe("Initializing the testing suite", async () => {
         WETH9,
         DAI,
         USDT,
-        uniswapPositionManager,
-        uniswapV3Factory,
         swapRouter,
       );
     });

@@ -29,19 +29,17 @@ export async function shouldBehaveLikeUnipilotFunctions(
   WETH9: Contract,
   DAI: Contract,
   USDT: Contract,
-  positionManager: Contract,
-  uniswapV3Factory: Contract,
   swapRouter: Contract,
 ): Promise<void> {
-  describe("Testing the UnipilotFactory !!", async () => {
-    shouleBehaveLikePilotFactory(
-      wallets,
-      UnipilotFactory,
-      uniswapV3Factory,
-      USDT,
-      DAI,
-    );
-  });
+  // describe("Testing the UnipilotFactory !!", async () => {
+  //   shouleBehaveLikePilotFactory(
+  //     wallets,
+  //     UnipilotFactory,
+  //     uniswapV3Factory,
+  //     USDT,
+  //     DAI,
+  //   );
+  // });
 
   // describe("Testing the UnipilotRouter !!", async () => {
   //   shouldBehaveLikeUnipilotRouterFunctions(wallets, UnipilotRouter);
@@ -56,17 +54,22 @@ export async function shouldBehaveLikeUnipilotFunctions(
     let unipilotVault: UnipilotVault;
     let wallet: Wallet, other: Wallet;
     let unipilotFactory: UnipilotFactory;
+    let uniswapV3Factory: Contract;
     let nftManager: Contract;
     let uniswapPool: Contract;
+    let uniswapV3PositionManager: Contract;
 
     before("create fixture loader", async () => {
       [wallet, other] = await (ethers as any).getSigners();
       loadFixture = createFixtureLoader([wallet, other]);
       let [wallet0, wallet1] = await hre.ethers.getSigners();
 
-      ({ unipilotFactory, createVault } = await loadFixture(
-        unipilotVaultFixture,
-      ));
+      ({
+        uniswapV3Factory,
+        uniswapV3PositionManager,
+        unipilotFactory,
+        createVault,
+      } = await loadFixture(unipilotVaultFixture));
 
       const encodedPrice = encodePriceSqrt(
         parseUnits("1", "18"),
@@ -89,6 +92,8 @@ export async function shouldBehaveLikeUnipilotFunctions(
       await DAI.connect(wallets[0]).approve(unipilotVault.address, MaxUint256);
       await USDT.connect(wallets[0]).approve(swapRouter.address, MaxUint256);
       await DAI.connect(wallets[0]).approve(swapRouter.address, MaxUint256);
+      await DAI.approve(uniswapV3PositionManager.address, MaxUint256);
+      await USDT.approve(uniswapV3PositionManager.address, MaxUint256);
 
       const poolAddress = await uniswapV3Factory.getPool(
         USDT.address,
@@ -101,22 +106,24 @@ export async function shouldBehaveLikeUnipilotFunctions(
       )) as IUniswapV3Pool;
 
       console.log("pool unoswap", poolAddress);
-      const a = await positionManager.connect(wallet0).callStatic.mint({
-        token0: DAI.address,
-        token1: USDT.address,
-        tickLower: getMinTick(60),
-        tickUpper: getMaxTick(60),
-        fee: 3000,
-        recipient: wallet0.address,
-        amount0Desired: parseUnits("1000", "18"),
-        amount1Desired: parseUnits("1000", "18"),
-        amount0Min: 0,
-        amount1Min: 0,
-        deadline: 2000000000,
-      });
+      const a = await uniswapV3PositionManager
+        .connect(wallet0)
+        .callStatic.mint({
+          token0: DAI.address,
+          token1: USDT.address,
+          tickLower: getMinTick(60),
+          tickUpper: getMaxTick(60),
+          fee: 3000,
+          recipient: wallet0.address,
+          amount0Desired: parseUnits("1000", "18"),
+          amount1Desired: parseUnits("1000", "18"),
+          amount0Min: 0,
+          amount1Min: 0,
+          deadline: 2000000000,
+        });
 
       console.log("mint on uniswp", a);
-      await positionManager.connect(wallet0).mint({
+      await uniswapV3PositionManager.connect(wallet0).mint({
         token0: DAI.address,
         token1: USDT.address,
         tickLower: getMinTick(60),
