@@ -452,7 +452,7 @@ contract UnipilotVault is
 
         if (rangeLiquidity > 0) {
             (uint256 _rangeAmount0, uint256 _rangeAmount1) = pool.mintLiquidity(
-                address(this),
+                _depositor,
                 ticksData.rangeTickLower,
                 ticksData.rangeTickUpper,
                 rangeLiquidity
