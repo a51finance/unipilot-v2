@@ -102,6 +102,7 @@ interface IUnipilotVault {
         returns (
             address,
             address,
+            address,
             uint256
         );
 

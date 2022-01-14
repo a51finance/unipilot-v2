@@ -37,14 +37,12 @@ library UniswapPoolActions {
             tickLower,
             tickUpper
         );
-
         if (liquidity > 0) {
             (uint256 amount0, uint256 amount1) = pool.burn(
                 tickLower,
                 tickUpper,
                 liquidity
             );
-
             if (amount0 > 0 || amount1 > 0) {
                 (uint256 collect0, uint256 collect1) = pool.collect(
                     recipient,

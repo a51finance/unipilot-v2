@@ -27,10 +27,11 @@ export async function shouldBehaveLikeUnipilotFunctions(
   UnipilotFactory: Contract,
   UnipilotRouter: Contract,
   WETH9: Contract,
-  PILOT: Contract,
+  DAI: Contract,
   USDT: Contract,
   positionManager: Contract,
   uniswapV3Factory: Contract,
+  swapRouter: Contract,
 ): Promise<void> {
   describe("Testing the UnipilotFactory !!", async () => {
     shouleBehaveLikePilotFactory(
@@ -38,7 +39,7 @@ export async function shouldBehaveLikeUnipilotFunctions(
       UnipilotFactory,
       uniswapV3Factory,
       USDT,
-      PILOT,
+      DAI,
     );
   });
 
@@ -73,7 +74,7 @@ export async function shouldBehaveLikeUnipilotFunctions(
       );
       unipilotVault = await createVault(
         USDT.address,
-        PILOT.address,
+        DAI.address,
         3000,
         encodedPrice,
         "unipilot PILOT-USDT",
@@ -81,25 +82,13 @@ export async function shouldBehaveLikeUnipilotFunctions(
       );
 
       await USDT.connect(wallets[0]).approve(unipilotVault.address, MaxUint256);
-
-      await PILOT.connect(wallets[0]).approve(
-        unipilotVault.address,
-        MaxUint256,
-      );
-
-      const allowanceUsdt = await USDT.allowance(
-        wallets[0].address,
-        unipilotVault.address,
-      );
-
-      const allowancePilot = await PILOT.allowance(
-        wallets[0].address,
-        unipilotVault.address,
-      );
+      await DAI.connect(wallets[0]).approve(unipilotVault.address, MaxUint256);
+      await USDT.connect(wallets[0]).approve(swapRouter.address, MaxUint256);
+      await DAI.connect(wallets[0]).approve(swapRouter.address, MaxUint256);
 
       const poolAddress = await uniswapV3Factory.getPool(
         USDT.address,
-        PILOT.address,
+        DAI.address,
         3000,
       );
       uniswapPool = (await ethers.getContractAt(
@@ -107,15 +96,16 @@ export async function shouldBehaveLikeUnipilotFunctions(
         poolAddress,
       )) as IUniswapV3Pool;
 
-      nftManager = await positionManager.connect(wallet0).mint({
-        token0: USDT.address,
-        token1: PILOT.address,
+      console.log("pool unoswap", poolAddress);
+      await positionManager.connect(wallet0).mint({
+        token0: DAI.address,
+        token1: USDT.address,
         tickLower: getMinTick(60),
         tickUpper: getMaxTick(60),
         fee: 3000,
         recipient: wallet0.address,
-        amount0Desired: parseUnits("100", "18"),
-        amount1Desired: parseUnits("100", "18"),
+        amount0Desired: parseUnits("1000", "18"),
+        amount1Desired: parseUnits("1000", "18"),
         amount0Min: 0,
         amount1Min: 0,
         deadline: 2000000000,
@@ -129,20 +119,21 @@ export async function shouldBehaveLikeUnipilotFunctions(
         uniswapV3Factory,
         20,
         wallets[0].address,
-        PILOT,
+        DAI,
         USDT,
+        swapRouter,
       );
     });
 
-    it("Router Function to be executed", async () => {
-      await shouldBehaveLikeUnipilotRouterFunctions(
-        wallets,
-        unipilotFactory,
-        unipilotVault,
-        UnipilotRouter,
-        PILOT,
-        USDT,
-      );
-    });
+    // it("Router Function to be executed", async () => {
+    //   await shouldBehaveLikeUnipilotRouterFunctions(
+    //     wallets,
+    //     unipilotFactory,
+    //     unipilotVault,
+    //     UnipilotRouter,
+    //     DAI,
+    //     USDT,
+    //   );
+    // });
   });
 }

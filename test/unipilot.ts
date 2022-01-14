@@ -68,10 +68,10 @@ describe("Initializing the testing suite", async () => {
     swapRouter = uniswapv3Contracts.router;
     PILOT = await deployPilot(wallet0);
 
-    await PILOT.approve(uniswapPositionManager.address, MaxUint256);
-    await USDT._mint(wallet0.address, parseUnits("5000", "18"));
+    await DAI.approve(uniswapPositionManager.address, MaxUint256);
+    await DAI._mint(wallet0.address, parseUnits("5000", "18"));
     await USDT.approve(uniswapPositionManager.address, MaxUint256);
-    await PILOT.mint(wallet0.address, parseUnits("5000", "18"));
+    await USDT._mint(wallet0.address, parseUnits("5000", "18"));
   });
 
   describe("Running the pilot functions", async () => {
@@ -84,10 +84,11 @@ describe("Initializing the testing suite", async () => {
         unipilotFactory,
         unipilotRouter,
         WETH9,
-        PILOT,
+        DAI,
         USDT,
         uniswapPositionManager,
         uniswapV3Factory,
+        swapRouter,
       );
     });
   });
