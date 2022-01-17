@@ -24,12 +24,9 @@ import hre from "hardhat";
 import { encodePriceSqrt } from "../utils/encodePriceSqrt";
 export async function shouldBehaveLikeUnipilotFunctions(
   wallets: SignerWithAddress[],
-  UnipilotFactory: Contract,
-  UnipilotRouter: Contract,
   WETH9: Contract,
   DAI: Contract,
   USDT: Contract,
-  swapRouter: Contract,
 ): Promise<void> {
   // describe("Testing the UnipilotFactory !!", async () => {
   //   shouleBehaveLikePilotFactory(
@@ -41,9 +38,6 @@ export async function shouldBehaveLikeUnipilotFunctions(
   //   );
   // });
 
-  // describe("Testing the UnipilotRouter !!", async () => {
-  //   shouldBehaveLikeUnipilotRouterFunctions(wallets, UnipilotRouter);
-  // });
   type ThenArg<T> = T extends PromiseLike<infer U> ? U : T;
 
   describe("Unipilot Vault Skeleton", async () => {
@@ -58,6 +52,7 @@ export async function shouldBehaveLikeUnipilotFunctions(
     let nftManager: Contract;
     let uniswapPool: Contract;
     let uniswapV3PositionManager: Contract;
+    let swapRouter: Contract;
 
     before("create fixture loader", async () => {
       [wallet, other] = await (ethers as any).getSigners();
@@ -67,6 +62,7 @@ export async function shouldBehaveLikeUnipilotFunctions(
       ({
         uniswapV3Factory,
         uniswapV3PositionManager,
+        swapRouter,
         unipilotFactory,
         createVault,
       } = await loadFixture(unipilotVaultFixture));
@@ -115,8 +111,8 @@ export async function shouldBehaveLikeUnipilotFunctions(
           tickUpper: getMaxTick(60),
           fee: 3000,
           recipient: wallet0.address,
-          amount0Desired: parseUnits("1000", "18"),
-          amount1Desired: parseUnits("1000", "18"),
+          amount0Desired: parseUnits("5000", "18"),
+          amount1Desired: parseUnits("5000", "18"),
           amount0Min: 0,
           amount1Min: 0,
           deadline: 2000000000,
@@ -130,8 +126,8 @@ export async function shouldBehaveLikeUnipilotFunctions(
         tickUpper: getMaxTick(60),
         fee: 3000,
         recipient: wallet0.address,
-        amount0Desired: parseUnits("1000", "18"),
-        amount1Desired: parseUnits("1000", "18"),
+        amount0Desired: parseUnits("5000", "18"),
+        amount1Desired: parseUnits("5000", "18"),
         amount0Min: 0,
         amount1Min: 0,
         deadline: 2000000000,
@@ -155,16 +151,5 @@ export async function shouldBehaveLikeUnipilotFunctions(
         uniswapPool,
       );
     });
-
-    // it("Router Function to be executed", async () => {
-    //   await shouldBehaveLikeUnipilotRouterFunctions(
-    //     wallets,
-    //     unipilotFactory,
-    //     unipilotVault,
-    //     UnipilotRouter,
-    //     DAI,
-    //     USDT,
-    //   );
-    // });
   });
 }

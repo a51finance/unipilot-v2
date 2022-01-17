@@ -265,30 +265,30 @@ contract UnipilotVault is ERC20Permit, ERC20Burnable, IUnipilotVault {
         );
     }
 
-    // // temperory function to check position fees and reserves
-    // function getPositionDetails()
-    //     external
-    //     returns (
-    //         uint256 amount0,
-    //         uint256 amount1,
-    //         uint256 fees0,
-    //         uint256 fees1
-    //     )
-    // {
-    //     pool.updatePosition(ticksData.baseTickLower, ticksData.baseTickUpper);
+    // temperory function to check position fees and reserves
+    function getPositionDetails()
+        external
+        returns (
+            uint256 amount0,
+            uint256 amount1,
+            uint256 fees0,
+            uint256 fees1
+        )
+    {
+        pool.updatePosition(ticksData.baseTickLower, ticksData.baseTickUpper);
 
-    //     (int24 tl, int24 tu) = (
-    //         ticksData.baseTickLower,
-    //         ticksData.baseTickUpper
-    //     );
-    //     (uint128 liquidity, uint256 unclaimed0, uint256 unclaimed1) = pool
-    //         .getPositionLiquidity(tl, tu);
+        (int24 tl, int24 tu) = (
+            ticksData.baseTickLower,
+            ticksData.baseTickUpper
+        );
+        (uint128 liquidity, uint256 unclaimed0, uint256 unclaimed1) = pool
+            .getPositionLiquidity(tl, tu);
 
-    //     (amount0, amount1) = pool.getAmountsForLiquidity(liquidity, tl, tu);
+        (amount0, amount1) = pool.getAmountsForLiquidity(liquidity, tl, tu);
 
-    //     fees0 = unclaimed0;
-    //     fees1 = unclaimed1;
-    // }
+        fees0 = unclaimed0;
+        fees1 = unclaimed1;
+    }
 
     function readjustLiquidityForPassive() private onlyGovernance {
         (uint256 baseFees0, uint256 baseFees1) = pool.burnLiquidity(
@@ -455,18 +455,18 @@ contract UnipilotVault is ERC20Permit, ERC20Burnable, IUnipilotVault {
         emit Withdraw(msg.sender, recipient, liquidity, amount0, amount1);
     }
 
-    // function getVaultInfo()
-    //     external
-    //     view
-    //     override
-    //     returns (
-    //         address,
-    //         address,
-    //         address
-    //     )
-    // {
-    //     return (address(token0), address(token1), address(pool));
-    // }
+    function getVaultInfo()
+        external
+        view
+        override
+        returns (
+            address,
+            address,
+            address
+        )
+    {
+        return (address(token0), address(token1), address(pool));
+    }
 
     /// @dev fetches the new ticks for base and range positions
     function _getTicksFromUniStrategy(address pool)
