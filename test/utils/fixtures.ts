@@ -20,7 +20,7 @@ const deployWeth9 = async (wallet0: SignerWithAddress) => {
 const deployUniswap = async (wallet0: SignerWithAddress) => {
   let WETH9 = await deployWeth9(wallet0);
   let uniswapv3Contracts = await deployUniswapContracts(wallet0, WETH9);
-  console.log("uniswapv3COntracts factory", uniswapv3Contracts.factory.address);
+  // console.log("uniswapv3COntracts factory", uniswapv3Contracts.factory.address);
   return {
     uniswapV3Factory: uniswapv3Contracts.factory,
     uniswapV3PositionManager: uniswapv3Contracts.positionManager,
@@ -33,6 +33,12 @@ interface UNISWAP_V3_FIXTURES {
   uniswapV3PositionManager: Contract;
   swapRouter: Contract;
 }
+
+interface TEST_ERC20 {
+  DAI: Contract;
+  USDT: Contract;
+}
+
 interface UNIPILOT_FACTORY_FIXTURE {
   unipilotFactory: UnipilotFactory;
 }
@@ -45,7 +51,6 @@ async function unipilotFactoryFixture(
   const unipilotFactoryDep = await ethers.getContractFactory("UnipilotFactory");
   let [wallet0, wallet1] = await hre.ethers.getSigners();
 
-  console.log("wallet 1 address", wallet1.address);
   const unipilotFactory = (await unipilotFactoryDep.deploy(
     uniswapV3Factory,
     deployer.address,
@@ -74,16 +79,10 @@ export const unipilotVaultFixture: Fixture<UNIPILOT_VAULT_FIXTURE> =
       await deployUniswap(wallet0);
     const uniStrategy = await deployStrategy(wallet0);
     const router = await deployUnipilotRouter(wallet0);
-    console.log("UniStrategy address", uniStrategy.address);
     const { unipilotFactory } = await unipilotFactoryFixture(
       uniswapV3Factory.address,
       wallet0,
       uniStrategy.address,
-    );
-
-    console.log(
-      "UnipilorFactory deployed inside fixture",
-      unipilotFactory.address,
     );
 
     const unipilotVaultDep = await ethers.getContractFactory("UnipilotVault");
@@ -115,8 +114,6 @@ export const unipilotVaultFixture: Fixture<UNIPILOT_VAULT_FIXTURE> =
           tokenB,
           fee,
         );
-
-        console.log("Vault address inside fixture", vaultAddress);
         return unipilotVaultDep.attach(vaultAddress._vault) as UnipilotVault;
       },
     };

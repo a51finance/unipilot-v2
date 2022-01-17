@@ -22,6 +22,7 @@ import { shouldBehaveLikeVaultFunctions } from "../VaultFunctions/VaultFunctions
 import { MaxUint256 } from "@ethersproject/constants";
 import hre from "hardhat";
 import { encodePriceSqrt } from "../utils/encodePriceSqrt";
+import { before } from "mocha";
 export async function shouldBehaveLikeUnipilotFunctions(
   wallets: SignerWithAddress[],
   WETH9: Contract,
@@ -54,7 +55,11 @@ export async function shouldBehaveLikeUnipilotFunctions(
     let uniswapV3PositionManager: Contract;
     let swapRouter: Contract;
 
-    before("create fixture loader", async () => {
+    // before("fixtures deployer", asy() => {
+    //   [wallet, other] = await(ethers as any).getSigners();
+    //   loadFixture = createFixtureLoader([wallet, other]);
+    // });
+    beforeEach("create fixture loader", async () => {
       [wallet, other] = await (ethers as any).getSigners();
       loadFixture = createFixtureLoader([wallet, other]);
       let [wallet0, wallet1] = await hre.ethers.getSigners();
@@ -101,24 +106,6 @@ export async function shouldBehaveLikeUnipilotFunctions(
         poolAddress,
       )) as IUniswapV3Pool;
 
-      console.log("pool unoswap", poolAddress);
-      const a = await uniswapV3PositionManager
-        .connect(wallet0)
-        .callStatic.mint({
-          token0: DAI.address,
-          token1: USDT.address,
-          tickLower: getMinTick(60),
-          tickUpper: getMaxTick(60),
-          fee: 3000,
-          recipient: wallet0.address,
-          amount0Desired: parseUnits("5000", "18"),
-          amount1Desired: parseUnits("5000", "18"),
-          amount0Min: 0,
-          amount1Min: 0,
-          deadline: 2000000000,
-        });
-
-      console.log("mint on uniswp", a);
       await uniswapV3PositionManager.connect(wallet0).mint({
         token0: DAI.address,
         token1: USDT.address,
@@ -133,9 +120,7 @@ export async function shouldBehaveLikeUnipilotFunctions(
         deadline: 2000000000,
       });
 
-      const uniswapLiq = await uniswapPool.liquidity();
-
-      console.log("uniswap liq pool", uniswapLiq);
+      console.log("Before each callled -->");
     });
 
     it("Vault functions to be executed", async () => {
