@@ -137,9 +137,13 @@ contract UnipilotStrategy is IUnipilotStrategy {
      *   @notice This function updates the base range mutiplier
      *   @param _baseTicks: a mutiplier value to decide the spread of base range
      **/
-    function setBaseTicks(int24 _baseTicks) external onlyGovernance {
-        require(_baseTicks > 0, "IBM");
-        emit BaseTicksUpdated(baseTicks, baseTicks = _baseTicks);
+    function setBaseTicks(address[] memory _pools, int24[] memory _baseTicks)
+        external
+        onlyGovernance
+    {
+        for (uint256 i = 0; i < _pools.length; i++) {
+            poolStrategy[_pools[i]].baseThreshold = _baseTicks[i];
+        }
     }
 
     /**
@@ -257,13 +261,13 @@ contract UnipilotStrategy is IUnipilotStrategy {
         return readjustThreshold;
     }
 
-    function getBaseThreshold(address _pool)
+    function getBaseThreshold(address _pool, int24 _tickSpacing)
         external
         view
         override
         returns (int24 baseThreshold)
     {
-        baseThreshold = poolStrategy[_pool].baseThreshold;
+        baseThreshold = _floor(poolStrategy[_pool].baseThreshold, _tickSpacing);
     }
 
     /**

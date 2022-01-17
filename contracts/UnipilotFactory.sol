@@ -1,27 +1,28 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.7.6;
 
-import "./interfaces/IUnipilotFactory.sol";
 import "./UnipilotVault.sol";
+import "./interfaces/IUnipilotFactory.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 
 contract UnipilotFactory is IUnipilotFactory {
-    address private uniStrategy;
     address private uniswapFactory;
-    address public override governance;
+    address private governance;
+    address private strategy;
     address private indexFund;
+    address private WETH;
 
     constructor(
         address _uniswapFactory,
         address _governance,
         address _uniStrategy,
-        address _indexFund
+        address _WETH
     ) {
         governance = _governance;
-        uniStrategy = _uniStrategy;
+        strategy = _uniStrategy;
         uniswapFactory = _uniswapFactory;
-        indexFund = _indexFund;
+        WETH = _WETH;
     }
 
     mapping(address => mapping(address => mapping(uint24 => address)))
@@ -62,8 +63,6 @@ contract UnipilotFactory is IUnipilotFactory {
 
             IUniswapV3Pool(pool).initialize(_sqrtPriceX96);
         }
-        console.log("pool adress in factory", pool);
-
         _pool = pool;
         _vault = _deploy(token0, token1, _fee, pool, _name, _symbol);
         vaults[token0][token1][_fee] = _vault;
@@ -82,11 +81,20 @@ contract UnipilotFactory is IUnipilotFactory {
         _whitelisted = whitelistedVaults[_vault];
     }
 
-    function setGovernance(address _newGovernance)
+    function getUnipilotDetails()
         external
+        view
         override
-        isGovernance
+        returns (
+            address governance,
+            address strategy,
+            address indexFund
+        )
     {
+        return (governance, strategy, indexFund);
+    }
+
+    function setGovernance(address _newGovernance) external isGovernance {
         emit GovernanceChanged(governance, _newGovernance);
         governance = _newGovernance;
     }
@@ -111,15 +119,7 @@ contract UnipilotFactory is IUnipilotFactory {
         _vault = address(
             new UnipilotVault{
                 salt: keccak256(abi.encode(_tokenA, _tokenB, _fee))
-            }(
-                _pool,
-                uniStrategy,
-                governance,
-                address(this),
-                indexFund,
-                _name,
-                _symbol
-            )
+            }(_pool, address(this), WETH, _name, _symbol)
         );
     }
 }
