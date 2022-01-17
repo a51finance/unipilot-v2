@@ -2,8 +2,8 @@
 pragma solidity ^0.7.6;
 pragma abicoder v2;
 
-import "./base/PeripheryPayments.sol";
-
+import "./libraries/TransferHelper.sol";
+import "./interfaces/external/IWETH9.sol";
 import "./interfaces/IUnipilotVault.sol";
 import "./interfaces/IUnipilotStrategy.sol";
 import "./interfaces/IUnipilotFactory.sol";
@@ -13,38 +13,29 @@ import "./libraries/UniswapPoolActions.sol";
 import "@uniswap/v3-core/contracts/libraries/LowGasSafeMath.sol";
 import "@openzeppelin/contracts/drafts/ERC20Permit.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20Burnable.sol";
 
 // import "hardhat/console.sol";
 
-contract UnipilotVault is
-    ERC20Permit,
-    ERC20Burnable,
-    IUnipilotVault,
-    PeripheryPayments
-{
-    using SafeCast for uint256;
+contract UnipilotVault is ERC20Permit, ERC20Burnable, IUnipilotVault {
     using LowGasSafeMath for uint256;
     using UniswapPoolActions for IUniswapV3Pool;
     using UniswapLiquidityManagement for IUniswapV3Pool;
 
     IERC20 private token0;
     IERC20 private token1;
-    TicksData private ticksData;
     IUniswapV3Pool private pool;
-
-    address private strategy;
-    address private indexFund;
-    address private governance;
-    address private unipilotFactory;
-
-    uint24 private fee;
+    TicksData private ticksData;
     int24 private tickSpacing;
+
+    address private WETH;
+    address private unipilotFactory;
     uint8 private _unlocked = 1;
+    uint24 private fee;
 
     modifier onlyGovernance() {
-        require(msg.sender == governance, "NG");
+        (address governance, , ) = getProtocolDetails();
+        require(msg.sender == governance);
         _;
     }
 
@@ -57,14 +48,12 @@ contract UnipilotVault is
 
     constructor(
         address _pool,
-        address _strategy,
-        address _governance,
         address _unipilotFactory,
+        address _WETH,
         string memory _name,
         string memory _symbol
     ) ERC20Permit(_name) ERC20(_name, _symbol) {
-        strategy = _strategy;
-        governance = _governance;
+        WETH = _WETH;
         unipilotFactory = _unipilotFactory;
         pool = IUniswapV3Pool(_pool);
         token0 = IERC20(pool.token0());
@@ -115,7 +104,7 @@ contract UnipilotVault is
         address _depositor,
         uint256 _amount0Desired,
         uint256 _amount1Desired
-    ) internal onlyGovernance returns (uint256 amount0, uint256 amount1) {
+    ) internal returns (uint256 amount0, uint256 amount1) {
         uint128 liquidity = pool.getLiquidityForAmounts(
             _amount0Desired,
             _amount1Desired,
@@ -176,15 +165,13 @@ contract UnipilotVault is
     }
 
     function init() private {
-        IUnipilotStrategy(strategy).getTicks(address(pool));
-
-        int24 baseThreshold = tickSpacing *
-            IUnipilotStrategy(strategy).getBaseThreshold(address(pool));
-        (, int24 currentTick) = getSqrtRatioX96AndTick();
+        int24 _tickSpacing = tickSpacing;
+        int24 baseThreshold = _tickSpacing * getBaseThreshold();
+        (, int24 currentTick) = pool.getSqrtRatioX96AndTick();
 
         int24 tickFloor = UniswapLiquidityManagement.floor(
             currentTick,
-            tickSpacing
+            _tickSpacing
         );
 
         ticksData.baseTickLower = tickFloor - baseThreshold;
@@ -206,7 +193,6 @@ contract UnipilotVault is
 
     function readjustLiquidityForActive() private {
         ReadjustVars memory a;
-        (a.sqrtPriceX96, a.currentTick) = getSqrtRatioX96AndTick();
 
         (a.fees0, a.fees1) = pool.burnLiquidity(
             ticksData.baseTickLower,
@@ -214,22 +200,9 @@ contract UnipilotVault is
             address(this)
         );
 
-        if (a.fees0 > 0)
-            token0.transfer(indexFund, FullMath.mulDiv(a.fees0, 10, 100));
-        if (a.fees1 > 0)
-            token1.transfer(indexFund, FullMath.mulDiv(a.fees1, 10, 100));
+        transferFees(a.fees0, a.fees1);
 
-        emit FeesSnapshot(
-            a.fees0,
-            a.fees1,
-            _balance0(),
-            _balance1(),
-            totalSupply()
-        );
-
-        int24 baseThreshold = IUnipilotStrategy(strategy).getBaseThreshold(
-            address(pool)
-        );
+        int24 baseThreshold = getBaseThreshold();
 
         (a.tickLower, a.tickUpper) = UniswapLiquidityManagement.getBaseTicks(
             a.currentTick,
@@ -264,19 +237,7 @@ contract UnipilotVault is
             ? int256(FullMath.mulDiv(a.amount0Desired.sub(a.amount0), 50, 100))
             : int256(FullMath.mulDiv(a.amount1Desired.sub(a.amount1), 50, 100));
 
-        a.exactSqrtPriceImpact = (a.sqrtPriceX96 * (1e5 / 2)) / 1e6;
-
-        a.sqrtPriceLimitX96 = a.zeroForOne
-            ? a.sqrtPriceX96 - a.exactSqrtPriceImpact
-            : a.sqrtPriceX96 + a.exactSqrtPriceImpact;
-
-        pool.swap(
-            address(this),
-            a.zeroForOne,
-            a.amountSpecified,
-            a.sqrtPriceLimitX96,
-            abi.encode(a.zeroForOne)
-        );
+        pool.swapToken(address(this), a.zeroForOne, a.amountSpecified);
 
         a.amount0Desired = _balance0();
         a.amount1Desired = _balance1();
@@ -329,9 +290,7 @@ contract UnipilotVault is
     //     fees1 = unclaimed1;
     // }
 
-    function readjustLiquidityForPassive() private {
-        (uint160 sqrtPriceX96, ) = getSqrtRatioX96AndTick();
-
+    function readjustLiquidityForPassive() private onlyGovernance {
         (uint256 baseFees0, uint256 baseFees1) = pool.burnLiquidity(
             ticksData.baseTickLower,
             ticksData.baseTickUpper,
@@ -349,15 +308,10 @@ contract UnipilotVault is
             baseFees1.add(rangeFees1)
         );
 
-        if (fees0 > 0)
-            token0.transfer(indexFund, FullMath.mulDiv(fees0, 10, 100));
-        if (fees1 > 0)
-            token1.transfer(indexFund, FullMath.mulDiv(fees1, 10, 100));
+        transferFees(fees0, fees1);
 
         uint256 amount0 = _balance0();
         uint256 amount1 = _balance1();
-
-        emit FeesSnapshot(fees0, fees1, amount0, amount1, totalSupply());
 
         if (amount0 == 0 || amount1 == 0) {
             bool zeroForOne = amount0 > 0 ? true : false;
@@ -366,19 +320,7 @@ contract UnipilotVault is
                 ? int256(FullMath.mulDiv(amount0, 10, 100))
                 : int256(FullMath.mulDiv(amount1, 10, 100));
 
-            uint160 exactSqrtPriceImpact = (sqrtPriceX96 * (1e5 / 2)) / 1e6;
-
-            uint160 sqrtPriceLimitX96 = zeroForOne
-                ? sqrtPriceX96 - exactSqrtPriceImpact
-                : sqrtPriceX96 + exactSqrtPriceImpact;
-
-            pool.swap(
-                address(this),
-                zeroForOne,
-                amountSpecified,
-                sqrtPriceLimitX96,
-                abi.encode(zeroForOne)
-            );
+            pool.swapToken(address(this), zeroForOne, amountSpecified);
 
             amount0 = _balance0();
             amount1 = _balance1();
@@ -452,7 +394,7 @@ contract UnipilotVault is
 
         if (rangeLiquidity > 0) {
             (uint256 _rangeAmount0, uint256 _rangeAmount1) = pool.mintLiquidity(
-                _depositor,
+                address(this),
                 ticksData.rangeTickLower,
                 ticksData.rangeTickUpper,
                 rangeLiquidity
@@ -468,12 +410,15 @@ contract UnipilotVault is
         override
         returns (uint256 amount0, uint256 amount1)
     {
-        require(liquidity > 0, "IL");
+        require(liquidity > 0);
+
+        uint256 totalSupply = totalSupply();
+        uint256 liquidityShare = FullMath.mulDiv(liquidity, 1e18, totalSupply);
 
         (amount0, amount1) = pool.burnUserLiquidity(
             ticksData.baseTickLower,
             ticksData.baseTickUpper,
-            liquidityShare(liquidity),
+            liquidityShare,
             recipient
         );
 
@@ -481,14 +426,12 @@ contract UnipilotVault is
             (uint256 range0, uint256 range1) = pool.burnUserLiquidity(
                 ticksData.baseTickLower,
                 ticksData.baseTickUpper,
-                liquidityShare(liquidity),
+                liquidityShare,
                 recipient
             );
             amount0 = amount0.add(range0);
             amount1 = amount1.add(range1);
         }
-
-        uint256 totalSupply = totalSupply();
 
         uint256 unusedAmount0 = FullMath.mulDiv(
             _balance0(),
@@ -512,19 +455,18 @@ contract UnipilotVault is
         emit Withdraw(msg.sender, recipient, liquidity, amount0, amount1);
     }
 
-    function getVaultInfo()
-        external
-        view
-        override
-        returns (
-            address,
-            address,
-            address,
-            uint256
-        )
-    {
-        return (address(token0), address(token1), address(pool), fee);
-    }
+    // function getVaultInfo()
+    //     external
+    //     view
+    //     override
+    //     returns (
+    //         address,
+    //         address,
+    //         address
+    //     )
+    // {
+    //     return (address(token0), address(token1), address(pool));
+    // }
 
     /// @dev fetches the new ticks for base and range positions
     function _getTicksFromUniStrategy(address pool)
@@ -538,6 +480,7 @@ contract UnipilotVault is
             int24 rangeTickUpper
         )
     {
+        (, address strategy, ) = getProtocolDetails();
         return IUnipilotStrategy(strategy).getTicks(pool);
     }
 
@@ -557,22 +500,6 @@ contract UnipilotVault is
     /// @dev Amount of token1 held as unused balance.
     function _balance1() private view returns (uint256) {
         return token1.balanceOf(address(this));
-    }
-
-    function getSqrtRatioX96AndTick()
-        private
-        view
-        returns (uint160 _sqrtRatioX96, int24 _tick)
-    {
-        (_sqrtRatioX96, _tick, , , , , ) = pool.slot0();
-    }
-
-    function liquidityShare(uint256 liquidity)
-        internal
-        view
-        returns (uint256 liquiditySharePercentage)
-    {
-        return FullMath.mulDiv(liquidity, 1e18, totalSupply());
     }
 
     /// @inheritdoc IUnipilotVault
@@ -599,7 +526,7 @@ contract UnipilotVault is
     ) external override {
         _verifyCallback();
 
-        require(amount0 > 0 || amount1 > 0, "SBL");
+        require(amount0 > 0 || amount1 > 0);
         bool zeroForOne = abi.decode(data, (bool));
 
         if (zeroForOne)
@@ -612,8 +539,63 @@ contract UnipilotVault is
         require(msg.sender == address(pool));
     }
 
-    // @return tick Uniswap pool's current price tick
-    function currentTick() private view returns (int24 tick) {
-        (, tick, , , , , ) = pool.slot0();
+    function getProtocolDetails()
+        private
+        view
+        returns (
+            address governance,
+            address strategy,
+            address indexFund
+        )
+    {
+        return IUnipilotFactory(unipilotFactory).getUnipilotDetails();
+    }
+
+    function transferFees(uint256 fees0, uint256 fees1) private {
+        (, , address indexFund) = getProtocolDetails();
+        if (fees0 > 0)
+            token0.transfer(indexFund, FullMath.mulDiv(fees0, 10, 100));
+        if (fees0 > 0)
+            token1.transfer(indexFund, FullMath.mulDiv(fees1, 10, 100));
+
+        emit FeesSnapshot(
+            fees0,
+            fees1,
+            _balance0(),
+            _balance1(),
+            totalSupply()
+        );
+    }
+
+    function getBaseThreshold() private view returns (int24 baseThreshold) {
+        (, address strategy, ) = getProtocolDetails();
+        return
+            IUnipilotStrategy(strategy).getBaseThreshold(
+                address(pool),
+                tickSpacing
+            );
+    }
+
+    /// @param token The token to pay
+    /// @param payer The entity that must pay
+    /// @param recipient The entity that will receive payment
+    /// @param value The amount to pay
+    function pay(
+        address token,
+        address payer,
+        address recipient,
+        uint256 value
+    ) internal {
+        if (token == WETH && address(this).balance >= value) {
+            // pay with WETH9
+            IWETH9(WETH).deposit{ value: value }(); // wrap only what is needed to pay
+            IWETH9(WETH).transfer(recipient, value);
+        } else if (payer == address(this)) {
+            // pay with tokens already in the contract (for the exact input multihop case)
+            TransferHelper.safeTransfer(token, recipient, value);
+        } else {
+            // pull payment
+            TransferHelper.safeTransferFrom(token, payer, recipient, value);
+        }
     }
 }

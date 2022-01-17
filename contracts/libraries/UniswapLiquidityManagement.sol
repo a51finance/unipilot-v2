@@ -110,6 +110,14 @@ library UniswapLiquidityManagement {
         return compressed * tickSpacing;
     }
 
+    function getSqrtRatioX96AndTick(IUniswapV3Pool pool)
+        internal
+        view
+        returns (uint160 _sqrtRatioX96, int24 _tick)
+    {
+        (_sqrtRatioX96, _tick, , , , , ) = pool.slot0();
+    }
+
     /// @dev Calc base ticks depending on base threshold and tickspacing
     function getBaseTicks(
         int24 currentTick,
@@ -291,11 +299,8 @@ library UniswapLiquidityManagement {
             cache.amount0,
             cache.amount1
         );
-        // //Calc new tick(upper or lower) for imbalanced token
+        //Calc new tick(upper or lower) for imbalanced token
         if (zeroGreaterOne) {
-            // console.log("SQRT PRICE", sqrtPriceX96);
-            // console.log("LIQUIDITY", cache.liquidity);
-            // console.log("AMOUNT DESIRED", cache.amount0Desired);
             uint160 nextSqrtPrice0 = SqrtPriceMath
                 .getNextSqrtPriceFromAmount0RoundingUp(
                     sqrtPriceX96,

@@ -42,7 +42,7 @@ interface IUnipilotStrategy {
         view
         returns (PoolStrategy memory strategy);
 
-    function getBaseThreshold(address _pool)
+    function getBaseThreshold(address _pool, int24 _tickSpacing)
         external
         view
         returns (int24 baseThreshold);

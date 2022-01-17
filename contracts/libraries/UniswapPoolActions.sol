@@ -38,7 +38,6 @@ library UniswapPoolActions {
             tickLower,
             tickUpper
         );
-        console.log("liquidity", liquidity);
         if (liquidity > 0) {
             (uint256 amount0, uint256 amount1) = pool.burn(
                 tickLower,
@@ -110,5 +109,28 @@ library UniswapPoolActions {
                 abi.encode(payer)
             );
         }
+    }
+
+    function swapToken(
+        IUniswapV3Pool pool,
+        address recipient,
+        bool zeroForOne,
+        int256 amountSpecified
+    ) internal {
+        (uint160 sqrtPriceX96, ) = pool.getSqrtRatioX96AndTick();
+
+        uint160 exactSqrtPriceImpact = (sqrtPriceX96 * (1e5 / 2)) / 1e6;
+
+        uint160 sqrtPriceLimitX96 = zeroForOne
+            ? sqrtPriceX96 - exactSqrtPriceImpact
+            : sqrtPriceX96 + exactSqrtPriceImpact;
+
+        pool.swap(
+            recipient,
+            zeroForOne,
+            amountSpecified,
+            sqrtPriceLimitX96,
+            abi.encode(zeroForOne)
+        );
     }
 }

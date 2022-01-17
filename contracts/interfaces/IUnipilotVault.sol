@@ -15,7 +15,6 @@ interface IUnipilotVault {
     struct ReadjustVars {
         uint256 fees0;
         uint256 fees1;
-        uint160 sqrtPriceX96;
         int24 currentTick;
         int24 tickLower;
         int24 tickUpper;
@@ -94,19 +93,18 @@ interface IUnipilotVault {
             uint256 amount1
         );
 
-    // function withdraw(uint256 liquidity, address recipient)
-    //     external
-    //     returns (uint256 amount0, uint256 amount1);
-
-    function getVaultInfo()
+    function withdraw(uint256 liquidity, address recipient)
         external
-        view
-        returns (
-            address,
-            address,
-            address,
-            uint256
-        );
+        returns (uint256 amount0, uint256 amount1);
+
+    // function getVaultInfo()
+    //     external
+    //     view
+    //     returns (
+    //         address,
+    //         address,
+    //         address
+    //     );
 
     /// @notice Pull in tokens from sender. Called to `msg.sender` after minting liquidity to a position from IUniswapV3Pool#mint.
     /// @dev In the implementation you must pay to the pool for the minted liquidity.

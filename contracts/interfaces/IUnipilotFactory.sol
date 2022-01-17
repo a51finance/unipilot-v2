@@ -28,7 +28,12 @@ interface IUnipilotFactory {
         uint24 _fee
     ) external view returns (address _vault, bool _whitelisted);
 
-    function setGovernance(address _newGovernance) external;
-
-    function governance() external view returns (address);
+    function getUnipilotDetails()
+        external
+        view
+        returns (
+            address governance,
+            address strategy,
+            address indexFund
+        );
 }
