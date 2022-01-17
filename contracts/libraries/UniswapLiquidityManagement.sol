@@ -172,16 +172,16 @@ library UniswapLiquidityManagement {
         console.log("reserve 0", reserve0);
         console.log("reserve 1", reserve1);
 
-        // if (!isWhitelisted) {
-        //     (uint256 rangeReserve0, uint256 rangeReserve1) = getReserves(
-        //         ticks.rangeTickLower,
-        //         ticks.rangeTickUpper,
-        //         pool
-        //     );
+        if (!isWhitelisted) {
+            (uint256 rangeReserve0, uint256 rangeReserve1) = getReserves(
+                ticks.rangeTickLower,
+                ticks.rangeTickUpper,
+                pool
+            );
 
-        //     reserve0 = reserve0.add(rangeReserve0);
-        //     reserve1 = reserve1.add(rangeReserve1);
-        // }
+            reserve0 = reserve0.add(rangeReserve0);
+            reserve1 = reserve1.add(rangeReserve1);
+        }
 
         // If total supply > 0, pool can't be empty
         assert(totalSupply == 0 || reserve0 != 0 || reserve1 != 0);

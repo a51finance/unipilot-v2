@@ -86,9 +86,9 @@ contract UnipilotFactory is IUnipilotFactory {
         view
         override
         returns (
-            address governance,
-            address strategy,
-            address indexFund
+            address,
+            address,
+            address
         )
     {
         return (governance, strategy, indexFund);

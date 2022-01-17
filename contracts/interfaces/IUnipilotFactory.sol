@@ -32,8 +32,8 @@ interface IUnipilotFactory {
         external
         view
         returns (
-            address governance,
-            address strategy,
-            address indexFund
+            address,
+            address,
+            address
         );
 }

@@ -76,6 +76,7 @@ export async function shouldBehaveLikeUnipilotFunctions(
         parseUnits("1", "18"),
         parseUnits("8", "18"),
       );
+
       unipilotVault = await createVault(
         USDT.address,
         DAI.address,
