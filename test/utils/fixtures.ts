@@ -2,11 +2,7 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { deployContract, Fixture } from "ethereum-waffle";
 import { BigNumber, Contract, Wallet } from "ethers";
 import { ethers, waffle } from "hardhat";
-import {
-  UnipilotFactory,
-  UnipilotVault,
-  UniswapV3Factory,
-} from "../../typechain";
+import { UnipilotFactory, UnipilotVault } from "../../typechain";
 import { UniswapV3Deployer } from "../UniswapV3Deployer";
 import {
   deployStrategy,
@@ -24,22 +20,19 @@ const deployWeth9 = async (wallet: Wallet) => {
 
 const deployUniswap = async (wallet: Wallet) => {
   let WETH9 = await deployWeth9(wallet);
-  // let uniswapv3Contracts = await deployUniswapContracts(wallet, WETH9);
-  let uniswapFactory = await ethers.getContractFactory("UniswapV3Factory");
-  const factory = (await uniswapFactory.deploy()) as UniswapV3Factory;
-
-  console.log("uniswapv3COntracts factory", factory.address);
+  let uniswapv3Contracts = await deployUniswapContracts(wallet, WETH9);
+  console.log("uniswapv3COntracts factory", uniswapv3Contracts.factory.address);
   return {
-    uniswapV3Factory: factory,
-    uniswapV3PositionManager: factory,
-    swapRouter: factory,
+    uniswapV3Factory: uniswapv3Contracts.factory,
+    uniswapV3PositionManager: uniswapv3Contracts.positionManager,
+    swapRouter: uniswapv3Contracts.router,
   };
 };
 
 interface UNISWAP_V3_FIXTURES {
-  uniswapV3Factory: UniswapV3Factory;
-  uniswapV3PositionManager: UniswapV3Factory;
-  swapRouter: UniswapV3Factory;
+  uniswapV3Factory: Contract;
+  uniswapV3PositionManager: Contract;
+  swapRouter: Contract;
 }
 
 interface TEST_ERC20 {

@@ -9,14 +9,14 @@ import { waffle, ethers } from "hardhat";
 import { parseUnits } from "@ethersproject/units";
 import { unipilotVaultFixture } from "./utils/fixtures";
 import { encodePriceSqrt } from "./utils/encodePriceSqrt";
-import { IUniswapV3Pool, UniswapV3Factory } from "../typechain";
+import { IUniswapV3Pool } from "../typechain";
 
 use(solidity);
 
 const createFixtureLoader = waffle.createFixtureLoader;
 
 describe("Initializing the testing suite", async () => {
-  let uniswapV3Factory: UniswapV3Factory;
+  let uniswapV3Factory: Contract;
   let uniswapV3PositionManager: Contract;
   let uniStrategy: Contract;
   let unipilotFactory: Contract;
