@@ -2,7 +2,11 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { deployContract, Fixture } from "ethereum-waffle";
 import { BigNumber, Contract, Wallet } from "ethers";
 import { ethers, waffle } from "hardhat";
-import { UnipilotFactory, UnipilotVault } from "../../typechain";
+import {
+  NonfungiblePositionManager,
+  UnipilotFactory,
+  UnipilotVault,
+} from "../../typechain";
 import { UniswapV3Deployer } from "../UniswapV3Deployer";
 import {
   deployStrategy,
@@ -22,16 +26,25 @@ const deployUniswap = async (wallet: Wallet) => {
   let WETH9 = await deployWeth9(wallet);
   let uniswapv3Contracts = await deployUniswapContracts(wallet, WETH9);
   console.log("uniswapv3COntracts factory", uniswapv3Contracts.factory.address);
+  const nonFungible = await ethers.getContractFactory(
+    "NonfungiblePositionManager",
+  );
+  const nonFungbileInstance = (await nonFungible.deploy(
+    uniswapv3Contracts.factory.address,
+    WETH9.address,
+    uniswapv3Contracts.factory.address,
+  )) as NonfungiblePositionManager;
+
   return {
     uniswapV3Factory: uniswapv3Contracts.factory,
-    uniswapV3PositionManager: uniswapv3Contracts.positionManager,
+    uniswapV3PositionManager: nonFungbileInstance,
     swapRouter: uniswapv3Contracts.router,
   };
 };
 
 interface UNISWAP_V3_FIXTURES {
   uniswapV3Factory: Contract;
-  uniswapV3PositionManager: Contract;
+  uniswapV3PositionManager: NonfungiblePositionManager;
   swapRouter: Contract;
 }
 

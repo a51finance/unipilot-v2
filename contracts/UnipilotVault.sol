@@ -112,6 +112,7 @@ contract UnipilotVault is ERC20Permit, ERC20Burnable, IUnipilotVault {
             ticksData.baseTickLower,
             ticksData.baseTickUpper
         );
+        console.log("liquidity", liquidity);
         (amount0, amount1) = pool.mintLiquidity(
             _depositor,
             ticksData.baseTickLower,
