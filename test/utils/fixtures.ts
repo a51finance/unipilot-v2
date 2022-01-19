@@ -3,6 +3,7 @@ import { deployContract, Fixture } from "ethereum-waffle";
 import { BigNumber, Contract, Wallet } from "ethers";
 import { ethers, waffle } from "hardhat";
 import {
+  ERC20,
   NonfungiblePositionManager,
   UnipilotFactory,
   UnipilotVault,
@@ -51,6 +52,8 @@ interface UNISWAP_V3_FIXTURES {
 interface TEST_ERC20 {
   DAI: Contract;
   USDT: Contract;
+  PILOT: Contract;
+  SHIB: Contract;
 }
 
 interface STRATEGIES {
@@ -119,6 +122,8 @@ export const unipilotVaultFixture: Fixture<UNIPILOT_VAULT_FIXTURE> =
 
     const DAI = await deployToken(wallet, "Dai Stablecoin", "DAI", 18);
     const USDT = await deployToken(wallet, "Tether Stable", "USDT", 18);
+    const PILOT = await deployToken(wallet, "Pilot", "PILOT", 18);
+    const SHIB = await deployToken(wallet, "Shiba Inu", "SHIB", 18);
 
     const unipilotVaultDep = await ethers.getContractFactory("UnipilotVault");
 
@@ -129,6 +134,8 @@ export const unipilotVaultFixture: Fixture<UNIPILOT_VAULT_FIXTURE> =
       unipilotFactory,
       DAI,
       USDT,
+      PILOT,
+      SHIB,
       uniStrategy,
       createVault: async (
         tokenA,

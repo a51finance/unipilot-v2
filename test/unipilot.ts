@@ -9,7 +9,12 @@ import { waffle, ethers } from "hardhat";
 import { parseUnits } from "@ethersproject/units";
 import { getMaxTick, getMinTick, unipilotVaultFixture } from "./utils/fixtures";
 import { encodePriceSqrt } from "./utils/encodePriceSqrt";
-import { IUniswapV3Pool, NonfungiblePositionManager } from "../typechain";
+import {
+  UniswapV3Pool,
+  NonfungiblePositionManager,
+  UnipilotVault,
+} from "../typechain";
+import { generateFeeThroughSwap } from "./utils/SwapFunction/swap";
 
 use(solidity);
 
@@ -21,13 +26,20 @@ describe("Initializing the testing suite", async () => {
   let uniStrategy: Contract;
   let unipilotFactory: Contract;
   let swapRouter: Contract;
-  let unipilotVault: Contract;
-  let WETH9: Contract;
+  let unipilotVault: UnipilotVault;
+  let shibPilotVault: UnipilotVault;
+  let SHIB: Contract;
   let PILOT: Contract;
   let DAI: Contract;
-  let USDC: Contract;
   let USDT: Contract;
-  let uniswapPool: Contract;
+  let daiUsdtUniswapPool: UniswapV3Pool;
+  let shibPilotUniswapPool: UniswapV3Pool;
+
+  const encodedPrice = encodePriceSqrt(
+    parseUnits("1", "18"),
+    parseUnits("8", "18"),
+  );
+
   type ThenArg<T> = T extends PromiseLike<infer U> ? U : T;
   const [wallet, alice, bob, carol, other, user0, user1, user2, user3, user4] =
     waffle.provider.getWallets();
@@ -39,11 +51,11 @@ describe("Initializing the testing suite", async () => {
 
   before("fixtures deployer", async () => {
     loadFixture = createFixtureLoader([wallet, other]);
-    console.log("Before callled -->");
+    // console.log("Before callled -->");
   });
 
   beforeEach("setting up fixture contracts", async () => {
-    console.log("BeforeEach callled -->");
+    // console.log("BeforeEach callled -->");
 
     ({
       uniswapV3Factory,
@@ -52,36 +64,44 @@ describe("Initializing the testing suite", async () => {
       unipilotFactory,
       DAI,
       USDT,
+      PILOT,
+      SHIB,
       uniStrategy,
       createVault,
     } = await loadFixture(unipilotVaultFixture));
 
-    const encodedPrice = encodePriceSqrt(
-      parseUnits("1", "18"),
-      parseUnits("8", "18"),
-    );
-
-    let poolAddress = await uniswapV3Factory.getPool(
-      DAI.address,
-      USDT.address,
-      3000,
-    );
     await uniswapV3Factory.createPool(DAI.address, USDT.address, 3000);
+    await uniswapV3Factory.createPool(SHIB.address, PILOT.address, 3000);
 
-    poolAddress = await uniswapV3Factory.getPool(
+    let daiUsdtPoolAddress = await uniswapV3Factory.getPool(
       DAI.address,
       USDT.address,
       3000,
     );
 
-    uniswapPool = (await ethers.getContractAt(
-      "IUniswapV3Pool",
-      poolAddress,
-    )) as IUniswapV3Pool;
+    let shibPilotPoolAddress = await uniswapV3Factory.getPool(
+      SHIB.address,
+      PILOT.address,
+      3000,
+    );
 
-    await uniswapPool.initialize(encodedPrice);
+    daiUsdtUniswapPool = (await ethers.getContractAt(
+      "UniswapV3Pool",
+      daiUsdtPoolAddress,
+    )) as UniswapV3Pool;
 
-    await uniStrategy.setBaseTicks([poolAddress], [1800]);
+    shibPilotUniswapPool = (await ethers.getContractAt(
+      "UniswapV3Pool",
+      shibPilotPoolAddress,
+    )) as UniswapV3Pool;
+
+    await daiUsdtUniswapPool.initialize(encodedPrice);
+    await shibPilotUniswapPool.initialize(encodedPrice);
+
+    await uniStrategy.setBaseTicks(
+      [daiUsdtPoolAddress, shibPilotPoolAddress],
+      [1800, 1800],
+    );
 
     unipilotVault = await createVault(
       USDT.address,
@@ -92,21 +112,40 @@ describe("Initializing the testing suite", async () => {
       "PILOT-USDT",
     );
 
+    shibPilotVault = await createVault(
+      SHIB.address,
+      PILOT.address,
+      3000,
+      encodedPrice,
+      "unipilot PILOT-USDT",
+      "PILOT-USDT",
+    );
+
     await unipilotFactory
       .connect(wallet)
-      .whitelistVaults([unipilotVault.address]);
+      .whitelistVaults([unipilotVault.address, shibPilotVault.address]);
 
     await USDT._mint(wallet.address, parseUnits("2000000", "18"));
     await DAI._mint(wallet.address, parseUnits("2000000", "18"));
+    await SHIB._mint(wallet.address, parseUnits("2000000", "18"));
+    await PILOT._mint(wallet.address, parseUnits("2000000", "18"));
+    await SHIB._mint(alice.address, parseUnits("2000000", "18"));
+    await PILOT._mint(alice.address, parseUnits("2000000", "18"));
 
     await DAI.approve(uniswapV3PositionManager.address, MaxUint256);
     await USDT.approve(uniswapV3PositionManager.address, MaxUint256);
+    await SHIB.approve(uniswapV3PositionManager.address, MaxUint256);
+    await PILOT.approve(uniswapV3PositionManager.address, MaxUint256);
 
     await USDT.connect(wallet).approve(unipilotVault.address, MaxUint256);
     await DAI.connect(wallet).approve(unipilotVault.address, MaxUint256);
+    await SHIB.connect(wallet).approve(shibPilotVault.address, MaxUint256);
+    await PILOT.connect(wallet).approve(shibPilotVault.address, MaxUint256);
 
     await USDT.connect(wallet).approve(swapRouter.address, MaxUint256);
     await DAI.connect(wallet).approve(swapRouter.address, MaxUint256);
+    await SHIB.connect(wallet).approve(swapRouter.address, MaxUint256);
+    await PILOT.connect(wallet).approve(swapRouter.address, MaxUint256);
 
     await uniswapV3PositionManager.connect(wallet).mint(
       {
@@ -187,11 +226,9 @@ describe("Initializing the testing suite", async () => {
       expectedDaiBalanceAfterDeposit,
     );
 
-    expect(
-      await unipilotVault
-        .connect(wallet)
-        .deposit(parseUnits("1000", "18"), parseUnits("1000", "18")),
-    ).to.be.ok;
+    await unipilotVault
+      .connect(wallet)
+      .deposit(parseUnits("1000", "18"), parseUnits("1000", "18"));
 
     const daiBalance: BigNumber = await DAI.balanceOf(wallet.address);
     const usdtBalance: BigNumber = await USDT.balanceOf(wallet.address);
@@ -266,12 +303,73 @@ describe("Initializing the testing suite", async () => {
     expect(usdtBalance).to.be.equal(expectedUsdtBalanceAfterDeposit);
   });
 
-  // describe("Running the pilot functions", async () => {
-  //   it("Runs Unipilot Functions", async function () {
-  //     let [wallet0, wallet1, wallet2, wallet3] = await hre.ethers.getSigners();
-  //     let wallets: SignerWithAddress[] = [wallet0, wallet1, wallet2, wallet3];
-  //     console.log("POSITION MANAGER", uniswapPositionManager.address);
-  //     await shouldBehaveLikeUnipilotFunctions(wallets, WETH9, DAI, USDT);
-  //   });
+  // it("passive whitelist readjust", async () => {
+  //   await unipilotFactory
+  //     .connect(wallet)
+  //     .whitelistVaults([unipilotVault.address]);
+
+  //   await unipilotVault
+  //     .connect(wallet)
+  //     .deposit(parseUnits("1000", "18"), parseUnits("1000", "18"));
+
+  //   // await unipilotVault.connect(wallet).readjustLiquidity();
   // });
+
+  it("fees calculation", async () => {
+    const pilotBalanceBeforeDeposit: BigNumber = await PILOT.balanceOf(
+      wallet.address,
+    );
+
+    const shibBalanceBeforeDeposit: BigNumber = await SHIB.balanceOf(
+      wallet.address,
+    );
+
+    const shibMintedOnWallet = parseUnits("2000000", "18");
+    const pilotMintedOnWallet = parseUnits("2000000", "18");
+
+    const a = await shibPilotVault
+      .connect(wallet)
+      .callStatic.deposit(parseUnits("10000", "18"), parseUnits("80000", "18"));
+
+    console.log("deposited", a);
+    await shibPilotVault
+      .connect(wallet)
+      .deposit(parseUnits("10000", "18"), parseUnits("80000", "18"));
+
+    const lpBalance: BigNumber = await shibPilotVault
+      .connect(wallet)
+      .balanceOf(wallet.address);
+
+    await generateFeeThroughSwap(swapRouter, alice, PILOT, SHIB, "2000");
+
+    const calculatedFees = await parseUnits("2000", "18")
+      .mul(parseUnits("0.3", "18"))
+      .div(parseUnits("100", "18"));
+
+    console.log("calculated fees", calculatedFees);
+    const fees = await shibPilotVault.callStatic.getPositionDetails();
+    console.log("feeses", fees);
+
+    expect(fees[2]).to.be.equal(calculatedFees.div(parseUnits("1", "18")));
+
+    const withdrawFunds = await shibPilotVault.callStatic.withdraw(
+      lpBalance,
+      wallet.address,
+    );
+    console.log("withdrawFunds", withdrawFunds);
+
+    await shibPilotVault.withdraw(lpBalance, wallet.address);
+
+    const newPilotBalance: BigNumber = await PILOT.balanceOf(wallet.address);
+    const newShibBalance: BigNumber = await SHIB.balanceOf(wallet.address);
+
+    console.log("newPilotBalance", newPilotBalance);
+    console.log("newShibBalance", newShibBalance);
+
+    const pilotBalanceAfterWithdraw =
+      pilotBalanceBeforeDeposit.add(calculatedFees);
+
+    expect(newPilotBalance).to.be.equal(pilotBalanceAfterWithdraw);
+    expect(newShibBalance).to.be.equal(shibBalanceBeforeDeposit);
+  });
 });
