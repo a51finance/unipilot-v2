@@ -2,16 +2,6 @@
 pragma solidity ^0.7.6;
 
 interface IUnipilotVault {
-    struct AddLiquidityParams {
-        address token0;
-        address token1;
-        uint24 fee;
-        int24 tickLower;
-        int24 tickUpper;
-        uint256 amount0Desired;
-        uint256 amount1Desired;
-    }
-
     struct ReadjustVars {
         uint256 fees0;
         uint256 fees1;
@@ -36,15 +26,6 @@ interface IUnipilotVault {
         int24 rangeTickUpper;
     }
 
-    struct FeesData {
-        // accumulated protocol fees in token0/token1 units
-        uint256 indexFees0;
-        uint256 indexFees1;
-        // Total lifetime accrued fees in token0/token1 units
-        uint256 totalFees0;
-        uint256 totalFees1;
-    }
-
     struct Tick {
         int24 baseTickLower;
         int24 baseTickUpper;
@@ -52,13 +33,6 @@ interface IUnipilotVault {
         int24 bidTickUpper;
         int24 rangeTickLower;
         int24 rangeTickUpper;
-    }
-
-    struct MintCallbackData {
-        address payer;
-        address token0;
-        address token1;
-        uint24 fee;
     }
 
     event Deposit(

@@ -23,8 +23,7 @@ const deployWeth9 = async (wallet: Wallet) => {
   return WETH9;
 };
 
-const deployUniswap = async (wallet: Wallet) => {
-  let WETH9 = await deployWeth9(wallet);
+const deployUniswap = async (wallet: Wallet, WETH9: Contract) => {
   let uniswapv3Contracts = await deployUniswapContracts(wallet, WETH9);
   console.log("uniswapv3COntracts factory", uniswapv3Contracts.factory.address);
   const nonFungible = await ethers.getContractFactory(
@@ -68,6 +67,7 @@ async function unipilotFactoryFixture(
   uniswapV3Factory: string,
   deployer: Wallet,
   uniStrategy: string,
+  WETH9: Contract,
 ): Promise<UNIPILOT_FACTORY_FIXTURE> {
   const unipilotFactoryDep = await ethers.getContractFactory("UnipilotFactory");
   let [wallet0, wallet1] = await hre.ethers.getSigners();
@@ -77,6 +77,7 @@ async function unipilotFactoryFixture(
     deployer.address,
     uniStrategy,
     wallet1.address,
+    WETH9.address,
   )) as UnipilotFactory;
   return { unipilotFactory };
 }
@@ -110,14 +111,16 @@ export const unipilotVaultFixture: Fixture<UNIPILOT_VAULT_FIXTURE> =
       user3,
       user4,
     ] = waffle.provider.getWallets();
+    const WETH9 = await deployWeth9(wallet);
     const { uniswapV3Factory, uniswapV3PositionManager, swapRouter } =
-      await deployUniswap(wallet);
+      await deployUniswap(wallet, WETH9);
     const uniStrategy = await deployStrategy(wallet);
     const router = await deployUnipilotRouter(wallet);
     const { unipilotFactory } = await unipilotFactoryFixture(
       uniswapV3Factory.address,
       wallet,
       uniStrategy.address,
+      WETH9,
     );
 
     const DAI = await deployToken(wallet, "Dai Stablecoin", "DAI", 18);
@@ -154,12 +157,8 @@ export const unipilotVaultFixture: Fixture<UNIPILOT_VAULT_FIXTURE> =
           tokenSymbol,
         );
 
-        const vaultAddress = await unipilotFactory.getVaults(
-          tokenA,
-          tokenB,
-          fee,
-        );
-        return unipilotVaultDep.attach(vaultAddress._vault) as UnipilotVault;
+        const vaultAddress = await unipilotFactory.vaults(tokenA, tokenB, fee);
+        return unipilotVaultDep.attach(vaultAddress) as UnipilotVault;
       },
     };
   };

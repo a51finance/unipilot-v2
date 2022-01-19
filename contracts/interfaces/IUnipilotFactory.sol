@@ -5,7 +5,8 @@ interface IUnipilotFactory {
     event VaultCreated(
         address indexed _tokenA,
         address indexed _tokenB,
-        uint24 fee
+        uint24 fee,
+        address indexed _vault
     );
 
     event GovernanceChanged(
@@ -20,13 +21,12 @@ interface IUnipilotFactory {
         uint160 _sqrtPriceX96,
         string memory _name,
         string memory _symbol
-    ) external returns (address _vault, address _pool);
+    ) external returns (address _vault);
 
-    function getVaults(
-        address _tokenA,
-        address _tokenB,
-        uint24 _fee
-    ) external view returns (address _vault, bool _whitelisted);
+    function whitelistedVaults(address vault)
+        external
+        view
+        returns (bool _whitelisted);
 
     function getUnipilotDetails()
         external
