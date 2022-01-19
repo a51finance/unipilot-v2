@@ -1,5 +1,5 @@
 import { expect, use } from "chai";
-import { Contract } from "ethers";
+import { BigNumber, Contract } from "ethers";
 import { MaxUint256 } from "@ethersproject/constants";
 
 import { solidity } from "ethereum-waffle";
@@ -111,28 +111,6 @@ describe("Initializing the testing suite", async () => {
     await USDT.connect(wallet).approve(swapRouter.address, MaxUint256);
     await DAI.connect(wallet).approve(swapRouter.address, MaxUint256);
 
-    const amounts = await uniswapV3PositionManager
-      .connect(wallet)
-      .callStatic.mint(
-        {
-          token0: USDT.address,
-          token1: DAI.address,
-          tickLower: getMinTick(60),
-          tickUpper: getMaxTick(60),
-          fee: 3000,
-          recipient: wallet.address,
-          amount0Desired: parseUnits("5000", "18"),
-          amount1Desired: parseUnits("5000", "18"),
-          amount0Min: 0,
-          amount1Min: 0,
-          deadline: 2000000000,
-        },
-        {
-          gasLimit: "3000000",
-        },
-      );
-
-    console.log("amounts", amounts);
     await uniswapV3PositionManager.connect(wallet).mint(
       {
         token0: USDT.address,
@@ -428,25 +406,20 @@ describe("Initializing the testing suite", async () => {
     expect(totalSupply).to.be.equal("0");
   });
 
-  it("should give user balance of dai and usdt before deposit", async () => {
-    const daiBalance = await DAI.balanceOf(wallet.address);
-    const usdtBalance = await USDT.balanceOf(wallet.address);
-    expect(daiBalance).to.be.equal(parseUnits("2000000", "18"));
-  });
-
-  it("should successfully deposit liquidity", async () => {
+  it("should successfully deposit", async () => {
     const usdtMintedOnWallet0 = parseUnits("2000000", "18");
 
-    const mintedUsdtOnUniswap = parseUnits("5000", "18").div(
-      parseUnits("1", "18"),
-    );
+    const mintedUsdtOnUniswap = parseUnits("5000", "18")
+      .mul(parseUnits("1", "18"))
+      .div(parseUnits("1", "18"));
 
     const expectedUsdtBalanceBeforeDeposit =
       usdtMintedOnWallet0.sub(mintedUsdtOnUniswap);
 
-    const usdtToBeDesposited = parseUnits("1000", "18").div(
-      parseUnits("1", "18"),
-    );
+    const usdtToBeDesposited = parseUnits("1000", "18")
+      .mul(parseUnits("1", "18"))
+      .div(parseUnits("1", "18"));
+
     const expectedUsdtBalanceAfterDeposit =
       expectedUsdtBalanceBeforeDeposit.sub(usdtToBeDesposited);
 
@@ -457,16 +430,17 @@ describe("Initializing the testing suite", async () => {
 
     const daiMintedOnWallet0 = parseUnits("2000000", "18");
 
-    const mintedDaiOnUniswap = parseUnits("5000", "18").div(
-      parseUnits("8", "18"),
-    );
+    const mintedDaiOnUniswap = parseUnits("5000", "18")
+      .mul(parseUnits("1", "18"))
+      .div(parseUnits("8", "18"));
 
+    console.log("mintedDaiOnUniswap", mintedDaiOnUniswap);
     const expectedDaiBalanceBeforeDeposit =
       daiMintedOnWallet0.sub(mintedDaiOnUniswap); // 1995000
 
-    const daiToBeDesposited = parseUnits("1000", "18").div(
-      parseUnits("8", "18"),
-    ); // 125
+    const daiToBeDesposited = parseUnits("1000", "18")
+      .mul(parseUnits("1", "18"))
+      .div(parseUnits("8", "18")); // 125
 
     const expectedDaiBalanceAfterDeposit =
       expectedDaiBalanceBeforeDeposit.sub(daiToBeDesposited); //1994875
@@ -476,27 +450,81 @@ describe("Initializing the testing suite", async () => {
       expectedDaiBalanceAfterDeposit,
     );
 
-    const resultDeposit = await unipilotVault
-      .connect(wallet)
-      .callStatic.deposit(parseUnits("1000", "18"), parseUnits("1000", "18"));
-
-    console.log("resultDeposit", resultDeposit);
-
     expect(
       await unipilotVault
         .connect(wallet)
         .deposit(parseUnits("1000", "18"), parseUnits("1000", "18")),
     ).to.be.ok;
 
-    const lpBalance = await unipilotVault.balanceOf(wallet.address);
-    console.log("lpBalance", lpBalance);
+    const daiBalance: BigNumber = await DAI.balanceOf(wallet.address);
+    const usdtBalance: BigNumber = await USDT.balanceOf(wallet.address);
 
-    expect(lpBalance).to.be.equal(parseUnits("1000", "18"));
+    // console.log(
+    //   "after first deposit balance",
+    //   daiBalance,
+    //   expectedDaiBalanceAfterDeposit,
+    //   usdtBalance,
+    //   expectedUsdtBalanceAfterDeposit,
+    // );
 
-    const daiBalance = await DAI.balanceOf(wallet.address);
-    const usdtBalance = await USDT.balanceOf(wallet.address);
+    // expect(daiBalance).to.be.equal(expectedDaiBalanceAfterDeposit);
+    // expect(usdtBalance).to.be.equal(expectedUsdtBalanceAfterDeposit);
+  });
 
-    console.log("after first deposit balance", daiBalance, usdtBalance);
+  it("should successfully predict amounts after deposit", async () => {
+    await unipilotVault
+      .connect(wallet)
+      .deposit(parseUnits("1000", "18"), parseUnits("1000", "18"));
+
+    await unipilotVault.readjustLiquidity();
+
+    await unipilotVault
+      .connect(wallet)
+      .deposit(parseUnits("1000", "18"), parseUnits("1000", "18"));
+
+    const usdtMintedOnWallet0 = parseUnits("2000000", "18");
+
+    const mintedUsdtOnUniswap = parseUnits("5000", "18")
+      .mul(parseUnits("1", "18"))
+      .div(parseUnits("1", "18"));
+
+    const expectedUsdtBalanceBeforeDeposit =
+      usdtMintedOnWallet0.sub(mintedUsdtOnUniswap);
+
+    const usdtToBeDesposited = parseUnits("2000", "18")
+      .mul(parseUnits("1", "18"))
+      .div(parseUnits("1", "18"));
+
+    const expectedUsdtBalanceAfterDeposit =
+      expectedUsdtBalanceBeforeDeposit.sub(usdtToBeDesposited);
+
+    const daiMintedOnWallet0 = parseUnits("2000000", "18");
+
+    const mintedDaiOnUniswap = parseUnits("5000", "18")
+      .mul(parseUnits("1", "18"))
+      .div(parseUnits("8", "18"));
+
+    const expectedDaiBalanceBeforeDeposit =
+      daiMintedOnWallet0.sub(mintedDaiOnUniswap); // 1995000
+
+    const daiToBeDesposited = parseUnits("2000", "18")
+      .mul(parseUnits("1", "18"))
+      .div(parseUnits("8", "18")); // 125
+
+    const expectedDaiBalanceAfterDeposit =
+      expectedDaiBalanceBeforeDeposit.sub(daiToBeDesposited); //1994875
+
+    const daiBalance: BigNumber = await DAI.balanceOf(wallet.address);
+    const usdtBalance: BigNumber = await USDT.balanceOf(wallet.address);
+
+    console.log(
+      "after second deposit balance",
+      daiBalance,
+      expectedDaiBalanceAfterDeposit,
+      usdtBalance,
+      expectedUsdtBalanceAfterDeposit,
+    );
+
     expect(daiBalance).to.be.equal(expectedDaiBalanceAfterDeposit);
     expect(usdtBalance).to.be.equal(expectedUsdtBalanceAfterDeposit);
   });
