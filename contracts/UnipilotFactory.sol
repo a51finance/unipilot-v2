@@ -32,11 +32,6 @@ contract UnipilotFactory is IUnipilotFactory {
 
     mapping(address => bool) public override whitelistedVaults;
 
-    modifier onlyGovernance() {
-        require(msg.sender == governance, "NG");
-        _;
-    }
-
     function createVault(
         address _tokenA,
         address _tokenB,
@@ -76,11 +71,12 @@ contract UnipilotFactory is IUnipilotFactory {
     }
 
     function setGovernance(address _newGovernance) external {
+        require(msg.sender == governance, "NG");
         emit GovernanceChanged(governance, _newGovernance);
         governance = _newGovernance;
     }
 
-    function whitelistVaults(address[2] memory vaultAddresses) external {
+    function whitelistVaults(address[] memory vaultAddresses) external {
         for (uint256 i = 0; i < vaultAddresses.length; i++) {
             address toggleAddress = vaultAddresses[i];
             whitelistedVaults[toggleAddress] = !whitelistedVaults[

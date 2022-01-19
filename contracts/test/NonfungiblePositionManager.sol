@@ -160,8 +160,6 @@ contract NonfungiblePositionManager is
                 amount1Min: params.amount1Min
             })
         );
-        console.log("liquidiy", liquidity);
-
         // _mint(params.recipient, (tokenId = _nextId++));
 
         // bytes32 positionKey = PositionKey.compute(address(this), params.tickLower, params.tickUpper);
