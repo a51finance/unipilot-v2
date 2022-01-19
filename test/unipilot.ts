@@ -28,9 +28,12 @@ describe("Initializing the testing suite", async () => {
   let USDC: Contract;
   let USDT: Contract;
   let uniswapPool: Contract;
+
   type ThenArg<T> = T extends PromiseLike<infer U> ? U : T;
   const [wallet, alice, bob, carol, other, user0, user1, user2, user3, user4] =
     waffle.provider.getWallets();
+
+  let governance = wallet;
 
   let loadFixture: ReturnType<typeof createFixtureLoader>;
   let createVault: ThenArg<
@@ -147,6 +150,266 @@ describe("Initializing the testing suite", async () => {
       {
         gasLimit: "3000000",
       },
+    );
+  });
+
+  it("Testing Factory : Owner should governor", async () => {
+    console.log(
+      "************************ FACTORY CONTRACT TESTING **********************************",
+    );
+
+    let data = await unipilotFactory.getUnipilotDetails();
+    // console.log(await unipilotFactory.connect(wallet).governance());
+
+    expect(data[0]).to.equal(governance.address);
+    console.log("Governance address: ", data[0]);
+  });
+
+  it("Testing Factory : Should revert, set new owner", async () => {
+    // let tx = await unipilotFactory.connect(other).setGovernance(wallet.address);
+    await expect(
+      unipilotFactory.connect(other).setGovernance(wallet.address),
+    ).to.be.revertedWith("NG");
+  });
+
+  it("Testing Factory : Should set new owner", async () => {
+    let receipt = await unipilotFactory
+      .connect(wallet)
+      .setGovernance(other.address);
+    console.log("Tx hash", receipt.hash);
+    let data = await unipilotFactory.getUnipilotDetails();
+    // console.log(await unipilotFactory.connect(wallet).governance());
+
+    expect(data[0]).to.equal(other.address);
+    console.log("New Governance address: ", data[0]);
+  });
+
+  it("Testing Factory : Should create pool with 1% fee tier", async () => {
+    const encodedPrice = encodePriceSqrt(
+      parseUnits("1", "18"),
+      parseUnits("8", "18"),
+    );
+
+    await uniswapV3Factory.createPool(DAI.address, USDT.address, 10000);
+
+    let poolAddress = await uniswapV3Factory.getPool(
+      DAI.address,
+      USDT.address,
+      10000,
+    );
+
+    uniswapPool = (await ethers.getContractAt(
+      "IUniswapV3Pool",
+      poolAddress,
+    )) as IUniswapV3Pool;
+
+    await uniswapPool.initialize(encodedPrice);
+
+    await uniStrategy.setBaseTicks([poolAddress], [1800]);
+
+    const vault = await unipilotFactory
+      .connect(governance)
+      .createVault(
+        DAI.address,
+        USDT.address,
+        10000,
+        encodedPrice,
+        "unipilot PILOT-USDT",
+        "PILOT-USDT",
+      );
+    await expect(vault).to.be.ok;
+  });
+
+  it("Testing Factory : Should create pool with 0.05% fee tier", async () => {
+    const encodedPrice = encodePriceSqrt(
+      parseUnits("1", "18"),
+      parseUnits("8", "18"),
+    );
+
+    await uniswapV3Factory.createPool(DAI.address, USDT.address, 500);
+
+    let poolAddress = await uniswapV3Factory.getPool(
+      DAI.address,
+      USDT.address,
+      500,
+    );
+
+    uniswapPool = (await ethers.getContractAt(
+      "IUniswapV3Pool",
+      poolAddress,
+    )) as IUniswapV3Pool;
+
+    await uniswapPool.initialize(encodedPrice);
+
+    await uniStrategy.setBaseTicks([poolAddress], [1800]);
+
+    const vault = await unipilotFactory
+      .connect(governance)
+      .createVault(
+        DAI.address,
+        USDT.address,
+        500,
+        encodedPrice,
+        "unipilot PILOT-USDT",
+        "PILOT-USDT",
+      );
+    await expect(vault).to.be.ok;
+  });
+
+  it("Testing Factory : Should create pool with 0.05% fee tier", async () => {
+    console.log("Create Pool in reverse");
+    const encodedPrice = encodePriceSqrt(
+      parseUnits("1", "18"),
+      parseUnits("8", "18"),
+    );
+
+    await uniswapV3Factory.createPool(USDT.address, DAI.address, 500);
+
+    let poolAddress = await uniswapV3Factory.getPool(
+      USDT.address,
+      DAI.address,
+      500,
+    );
+
+    uniswapPool = (await ethers.getContractAt(
+      "IUniswapV3Pool",
+      poolAddress,
+    )) as IUniswapV3Pool;
+
+    await uniswapPool.initialize(encodedPrice);
+
+    await uniStrategy.setBaseTicks([poolAddress], [1800]);
+
+    const vault = await unipilotFactory
+      .connect(governance)
+      .createVault(
+        USDT.address,
+        DAI.address,
+        500,
+        encodedPrice,
+        "unipilot PILOT-USDT",
+        "PILOT-USDT",
+      );
+    await expect(vault).to.be.ok;
+  });
+
+  it("Testing Factory : Should create with 0.3% fee tier but revert (already Exist)", async () => {
+    const encodedPrice = encodePriceSqrt(
+      parseUnits("1", "18"),
+      parseUnits("8", "18"),
+    );
+
+    await expect(
+      unipilotFactory
+        .connect(governance)
+        .createVault(
+          DAI.address,
+          USDT.address,
+          3000,
+          encodedPrice,
+          "unipilot PILOT-USDT",
+          "PILOT-USDT",
+        ),
+    ).to.be.revertedWith("VE");
+  });
+
+  it("Testing Factory : Should fail, same token address", async () => {
+    const encodedPrice = encodePriceSqrt(
+      parseUnits("1", "18"),
+      parseUnits("8", "18"),
+    );
+
+    await uniswapV3Factory.createPool(DAI.address, USDT.address, 500);
+
+    let poolAddress = await uniswapV3Factory.getPool(
+      DAI.address,
+      DAI.address,
+      500,
+    );
+
+    uniswapPool = (await ethers.getContractAt(
+      "IUniswapV3Pool",
+      poolAddress,
+    )) as IUniswapV3Pool;
+
+    await uniswapPool.initialize(encodedPrice);
+
+    await uniStrategy.setBaseTicks([poolAddress], [1800]);
+
+    await expect(
+      unipilotFactory
+        .connect(governance)
+        .createVault(
+          DAI.address,
+          DAI.address,
+          500,
+          encodedPrice,
+          "unipilot PILOT-USDT",
+          "PILOT-USDT",
+        ),
+    ).to.be.revertedWith("TE");
+  });
+
+  it("Testing Factory : Pool should not whitelisted but include after run ", async () => {
+    const encodedPrice = encodePriceSqrt(
+      parseUnits("1", "18"),
+      parseUnits("8", "18"),
+    );
+
+    await uniswapV3Factory.createPool(DAI.address, USDT.address, 500);
+
+    let poolAddress = await uniswapV3Factory.getPool(
+      DAI.address,
+      USDT.address,
+      500,
+    );
+
+    uniswapPool = (await ethers.getContractAt(
+      "IUniswapV3Pool",
+      poolAddress,
+    )) as IUniswapV3Pool;
+
+    await uniswapPool.initialize(encodedPrice);
+
+    await uniStrategy.setBaseTicks([poolAddress], [1800]);
+
+    const vault = await unipilotFactory
+      .connect(governance)
+      .callStatic.createVault(
+        DAI.address,
+        USDT.address,
+        500,
+        encodedPrice,
+        "unipilot PILOT-USDT",
+        "PILOT-USDT",
+      );
+
+    await unipilotFactory
+      .connect(governance)
+      .createVault(
+        DAI.address,
+        USDT.address,
+        500,
+        encodedPrice,
+        "unipilot PILOT-USDT",
+        "PILOT-USDT",
+      );
+
+    let receipt = await unipilotFactory.getVaults(
+      DAI.address,
+      USDT.address,
+      500,
+    );
+    console.log("1. receipt ::", receipt._whitelisted);
+    expect(receipt._whitelisted).to.be.equals(false);
+
+    await unipilotFactory.connect(governance).whitelistVaults([vault[0]]);
+    receipt = await unipilotFactory.getVaults(DAI.address, USDT.address, 500);
+    console.log("2. receipt ::", receipt._whitelisted);
+    expect(receipt._whitelisted).to.be.equals(true);
+
+    console.log(
+      "*********************FACTORY TEST COMPLETE**********************",
     );
   });
 
