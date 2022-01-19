@@ -56,8 +56,27 @@ export async function shouldBehaveLikeVaultFunctions(
     });
 
     it("should successfully deposit liquidity", async () => {
-      const uniswapPool = await vault.getVaultInfo();
-      console.log("uniswapPool in deposit", uniswapPool);
+      const daiMintedOnWallet0 = parseUnits("2000000", "18");
+      const mintedDaiOnUniswap = parseUnits("5000", "18");
+      const daiReserve = parseUnits("5000", "18");
+      const daiRatio = mintedDaiOnUniswap.div(daiReserve);
+      const expectedDaiBalanceBeforeDeposit = daiMintedOnWallet0.sub(daiRatio);
+      const expectedDaiBalanceAfterDeposit =
+        expectedDaiBalanceBeforeDeposit.sub(
+          parseUnits("1000", "18").div(daiReserve),
+        );
+
+      const usdtMintedOnWallet0 = parseUnits("2000000", "18");
+      const mintedUsdtOnUniswap = parseUnits("5000", "18");
+      const usdtReserve = parseUnits("5000", "18");
+      const usdtRatio = mintedUsdtOnUniswap.div(daiReserve);
+      const expectedUsdtBalanceBeforeDeposit =
+        usdtMintedOnWallet0.sub(usdtRatio);
+      const expectedUsdtBalanceAfterDeposit =
+        expectedUsdtBalanceBeforeDeposit.sub(
+          parseUnits("1000", "18").div(usdtReserve),
+        );
+
       const resultDeposit = await vault
         .connect(wallets[0])
         .callStatic.deposit(parseUnits("1000", "18"), parseUnits("1000", "18"));
@@ -71,36 +90,19 @@ export async function shouldBehaveLikeVaultFunctions(
       const lpBalance = await vault.balanceOf(wallets[0].address);
       console.log("lpBalance", lpBalance);
 
+      expect(lpBalance).to.be.equal(parseUnits("1000", "18"));
+
       const daiBalance = await DAI.balanceOf(wallets[0].address);
       const usdtBalance = await USDT.balanceOf(wallets[0].address);
 
-      console.log("pilot balance", daiBalance, usdtBalance);
-      // expect(daiBalance).to.be.equal(parseUnits("3000", "18"));
-      // expect(usdtBalance).to.be.equal(parseUnits("3000", "18"));
+      console.log("after first deposit balance", daiBalance, usdtBalance);
+      expect(daiBalance).to.be.equal(expectedDaiBalanceAfterDeposit);
+      expect(usdtBalance).to.be.equal(expectedUsdtBalanceAfterDeposit);
     });
 
-    // it("should successfully readjust active vault", async () => {
-    //   expect(await vault.readjustLiquidity()).to.be.ok;
-    //   const daiBalance = await DAI.balanceOf(vault.address);
-    //   const usdtBalance = await USDT.balanceOf(vault.address);
-    //   const indexFund = await vault.getVaultInfo();
-
-    //   // expect(daiBalance).to.be.equal(parseUnits("0", "18"));
-    //   // expect(usdtBalance).to.be.equal(parseUnits("0", "18"));
-    //   // const indexFundDai = await DAI.balanceOf(indexFund[2]);
-    //   // const indexFundUsdt = await USDT.balanceOf(indexFund[2]);
-    //   // expect(indexFundDai).be.equal(parseUnits("0", "18"));
-    //   // expect(indexFundUsdt).be.equal(parseUnits("0", "18"));
-    // });
-
-    // it("should successfully withdraw from active vault", async () => {
-    //   expect(await vault.withdraw(parseUnits("10", "18"), wallets[0].address))
-    //     .to.be.ok;
-    //   const daiBalance = await DAI.balanceOf(wallets[0].address);
-    //   const usdtBalance = await USDT.balanceOf(wallets[0].address);
-    //   expect(daiBalance).to.be.gt(parseUnits("3999", "18"));
-    //   expect(usdtBalance).to.be.gt(parseUnits("3999", "18"));
-    // });
+    it("should successfully readjust active vault", async () => {
+      expect(await vault.readjustLiquidity()).to.be.ok;
+    });
 
     it("fees compounding for user", async () => {
       await vault.deposit(parseUnits("3000", "18"), parseUnits("3000", "18"));
@@ -128,9 +130,85 @@ export async function shouldBehaveLikeVaultFunctions(
 
       expect(percentageOfFees0Collected).to.be.equal(daiBalance);
       expect(percentageOfFees1Collected).to.be.equal(usdtBalance);
-
-      // expect(daiBalance).to.be.gt(parseUnits("0", "18"));
-      // expect(usdtBalance).to.be.gt(parseUnits("0", "18"));
     });
+
+    // it("fees calculations in indexfund", async () => {
+    //   const positionDetails = await vault.callStatic.getPositionDetails();
+    //   console.log("positionDetails", positionDetails);
+    //   const vaultDai = await DAI.balanceOf(vault.address);
+    //   console.log("vaultDai", vaultDai);
+    //   const actualDeposit = await vault.callStatic.deposit(
+    //     parseUnits("3000", "18"),
+    //     parseUnits("3000", "18"),
+    //   );
+
+    //   console.log("actualDeposit", actualDeposit);
+
+    //   await vault.deposit(parseUnits("3000", "18"), parseUnits("3000", "18"));
+    //   await generateFeeThroughSwap(swapRouter, wallets[0], DAI, USDT, "2000");
+    //   const fees = await vault.callStatic.getPositionDetails();
+    //   console.log("after swap position detail", fees);
+    //   const fees0 = fees[2];
+    //   const fees1 = fees[3];
+
+    //   const percentageOfFees0Collected = fees0
+    //     .mul(parseInt("10"))
+    //     .div(parseInt("100"));
+
+    //   const percentageOfFees1Collected = fees1
+    //     .mul(parseInt("10"))
+    //     .div(parseInt("100"));
+
+    //   console.log("percentageOfFeesCollected", percentageOfFees0Collected);
+    //   await vault.readjustLiquidity();
+
+    //   const indexFund = wallets[1].address;
+    //   console.log("index fund address", indexFund);
+    //   const daiBalance = await DAI.balanceOf(indexFund);
+    //   const usdtBalance = await USDT.balanceOf(indexFund);
+
+    //   expect(percentageOfFees0Collected).to.be.equal(daiBalance);
+    //   expect(percentageOfFees1Collected).to.be.equal(usdtBalance);
+    // });
+
+    // it("should successfully withdraw from active vault", async () => {
+    //   const daiBalanceBeforeWithdraw = await DAI.balanceOf(wallets[0].address);
+    //   const usdtBalanceBeforeWithdraw = await USDT.balanceOf(
+    //     wallets[0].address,
+    //   );
+    //   console.log("daiBalanceBeforeWithdraw", daiBalanceBeforeWithdraw);
+    //   console.log("usdtBalanceBeforeWithdraw", usdtBalanceBeforeWithdraw);
+
+    //   const lpBalanceOfUserBeforeWithdraw = await vault.balanceOf(
+    //     wallets[0].address,
+    //   );
+    //   console.log("lpBalance", lpBalanceOfUserBeforeWithdraw);
+    //   const withdrawActual = await vault.callStatic.withdraw(
+    //     lpBalanceOfUserBeforeWithdraw,
+    //     wallets[0].address,
+    //   );
+    //   console.log("withdrawActual", withdrawActual);
+    //   expect(
+    //     await vault.withdraw(lpBalanceOfUserBeforeWithdraw, wallets[0].address),
+    //   ).to.be.ok;
+    //   const daiBalanceAfterWithdraw = await DAI.balanceOf(wallets[0].address);
+    //   const usdtBalanceAfterWithdraw = await USDT.balanceOf(wallets[0].address);
+    //   console.log("daiBalanceAfterWithdraw", daiBalanceAfterWithdraw);
+    //   console.log("usdtBalanceAfterWithdraw", usdtBalanceAfterWithdraw);
+
+    //   console.log(
+    //     "total dai that was deposited",
+    //     daiBalanceAfterWithdraw - daiBalanceBeforeWithdraw,
+    //   );
+    //   console.log(
+    //     "total usdt that was deposited",
+    //     usdtBalanceAfterWithdraw - usdtBalanceBeforeWithdraw,
+    //   );
+    //   const lpBalanceOfUserAfterWithdraw = await vault.balanceOf(
+    //     wallets[0].address,
+    //   );
+    //   expect(lpBalanceOfUserAfterWithdraw).to.be.equal(0);
+    //   // expect(daiBalanceAfterWithdraw).to.gte()
+    // });
   });
 }

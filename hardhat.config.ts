@@ -46,6 +46,7 @@ function createTestnetConfig(
     accounts: [`${process.env.PK1}`, `${process.env.PK2}`],
     chainId: chainIds[network],
     url,
+    gas: 2100000,
     gasPrice: 120000000000,
   };
 }

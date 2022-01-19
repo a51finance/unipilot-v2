@@ -1,8 +1,12 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { deployContract, Fixture } from "ethereum-waffle";
 import { BigNumber, Contract, Wallet } from "ethers";
-import { ethers } from "hardhat";
-import { UnipilotFactory, UnipilotVault } from "../../typechain";
+import { ethers, waffle } from "hardhat";
+import {
+  NonfungiblePositionManager,
+  UnipilotFactory,
+  UnipilotVault,
+} from "../../typechain";
 import { UniswapV3Deployer } from "../UniswapV3Deployer";
 import {
   deployStrategy,
@@ -11,41 +15,60 @@ import {
   deployWETH9,
 } from "../stubs";
 import hre from "hardhat";
+import { deployToken } from "../TokenDeployer/TokenStubs";
 
-const deployWeth9 = async (wallet0: SignerWithAddress) => {
-  let WETH9 = await deployWETH9(wallet0);
+const deployWeth9 = async (wallet: Wallet) => {
+  let WETH9 = await deployWETH9(wallet);
   return WETH9;
 };
 
-const deployUniswap = async (wallet0: SignerWithAddress) => {
-  let WETH9 = await deployWeth9(wallet0);
-  let uniswapv3Contracts = await deployUniswapContracts(wallet0, WETH9);
+const deployUniswap = async (wallet: Wallet) => {
+  let WETH9 = await deployWeth9(wallet);
+  let uniswapv3Contracts = await deployUniswapContracts(wallet, WETH9);
   console.log("uniswapv3COntracts factory", uniswapv3Contracts.factory.address);
+  const nonFungible = await ethers.getContractFactory(
+    "NonfungiblePositionManager",
+  );
+  const nonFungbileInstance = (await nonFungible.deploy(
+    uniswapv3Contracts.factory.address,
+    WETH9.address,
+    uniswapv3Contracts.factory.address,
+  )) as NonfungiblePositionManager;
+
   return {
     uniswapV3Factory: uniswapv3Contracts.factory,
-    uniswapV3PositionManager: uniswapv3Contracts.positionManager,
+    uniswapV3PositionManager: nonFungbileInstance,
     swapRouter: uniswapv3Contracts.router,
   };
 };
 
 interface UNISWAP_V3_FIXTURES {
   uniswapV3Factory: Contract;
-  uniswapV3PositionManager: Contract;
+  uniswapV3PositionManager: NonfungiblePositionManager;
   swapRouter: Contract;
 }
+
+interface TEST_ERC20 {
+  DAI: Contract;
+  USDT: Contract;
+}
+
+interface STRATEGIES {
+  uniStrategy: Contract;
+}
+
 interface UNIPILOT_FACTORY_FIXTURE {
   unipilotFactory: UnipilotFactory;
 }
 
 async function unipilotFactoryFixture(
   uniswapV3Factory: string,
-  deployer: SignerWithAddress,
+  deployer: Wallet,
   uniStrategy: string,
 ): Promise<UNIPILOT_FACTORY_FIXTURE> {
   const unipilotFactoryDep = await ethers.getContractFactory("UnipilotFactory");
   let [wallet0, wallet1] = await hre.ethers.getSigners();
 
-  console.log("wallet 1 address", wallet1.address);
   const unipilotFactory = (await unipilotFactoryDep.deploy(
     uniswapV3Factory,
     deployer.address,
@@ -55,7 +78,10 @@ async function unipilotFactoryFixture(
   return { unipilotFactory };
 }
 
-type FACTORIES = UNIPILOT_FACTORY_FIXTURE & UNISWAP_V3_FIXTURES;
+type FACTORIES = UNIPILOT_FACTORY_FIXTURE &
+  UNISWAP_V3_FIXTURES &
+  TEST_ERC20 &
+  STRATEGIES;
 interface UNIPILOT_VAULT_FIXTURE extends FACTORIES {
   createVault(
     tokenA: string,
@@ -69,22 +95,30 @@ interface UNIPILOT_VAULT_FIXTURE extends FACTORIES {
 
 export const unipilotVaultFixture: Fixture<UNIPILOT_VAULT_FIXTURE> =
   async function (): Promise<UNIPILOT_VAULT_FIXTURE> {
-    let [wallet0, wallet1] = await hre.ethers.getSigners();
+    const [
+      wallet,
+      alice,
+      bob,
+      carol,
+      other,
+      user0,
+      user1,
+      user2,
+      user3,
+      user4,
+    ] = waffle.provider.getWallets();
     const { uniswapV3Factory, uniswapV3PositionManager, swapRouter } =
-      await deployUniswap(wallet0);
-    const uniStrategy = await deployStrategy(wallet0);
-    const router = await deployUnipilotRouter(wallet0);
-    console.log("UniStrategy address", uniStrategy.address);
+      await deployUniswap(wallet);
+    const uniStrategy = await deployStrategy(wallet);
+    const router = await deployUnipilotRouter(wallet);
     const { unipilotFactory } = await unipilotFactoryFixture(
       uniswapV3Factory.address,
-      wallet0,
+      wallet,
       uniStrategy.address,
     );
 
-    console.log(
-      "UnipilorFactory deployed inside fixture",
-      unipilotFactory.address,
-    );
+    const DAI = await deployToken(wallet, "Dai Stablecoin", "DAI", 18);
+    const USDT = await deployToken(wallet, "Tether Stable", "USDT", 18);
 
     const unipilotVaultDep = await ethers.getContractFactory("UnipilotVault");
 
@@ -93,6 +127,9 @@ export const unipilotVaultFixture: Fixture<UNIPILOT_VAULT_FIXTURE> =
       uniswapV3PositionManager,
       swapRouter,
       unipilotFactory,
+      DAI,
+      USDT,
+      uniStrategy,
       createVault: async (
         tokenA,
         tokenB,
@@ -115,8 +152,6 @@ export const unipilotVaultFixture: Fixture<UNIPILOT_VAULT_FIXTURE> =
           tokenB,
           fee,
         );
-
-        console.log("Vault address inside fixture", vaultAddress);
         return unipilotVaultDep.attach(vaultAddress._vault) as UnipilotVault;
       },
     };
