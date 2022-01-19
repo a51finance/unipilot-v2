@@ -15,7 +15,7 @@ import {
   deployWETH9,
 } from "../stubs";
 import hre from "hardhat";
-import { deployToken } from "../TokenDeployer/TokenStubs";
+import { deployPilot, deployToken } from "../TokenDeployer/TokenStubs";
 
 const deployWeth9 = async (wallet: Wallet) => {
   let WETH9 = await deployWETH9(wallet);
@@ -49,6 +49,7 @@ interface UNISWAP_V3_FIXTURES {
 }
 
 interface TEST_ERC20 {
+  PILOT: Contract;
   DAI: Contract;
   USDT: Contract;
 }
@@ -119,7 +120,7 @@ export const unipilotVaultFixture: Fixture<UNIPILOT_VAULT_FIXTURE> =
 
     const DAI = await deployToken(wallet, "Dai Stablecoin", "DAI", 18);
     const USDT = await deployToken(wallet, "Tether Stable", "USDT", 18);
-
+    const PILOT = await deployPilot(wallet);
     const unipilotVaultDep = await ethers.getContractFactory("UnipilotVault");
 
     return {
@@ -127,6 +128,7 @@ export const unipilotVaultFixture: Fixture<UNIPILOT_VAULT_FIXTURE> =
       uniswapV3PositionManager,
       swapRouter,
       unipilotFactory,
+      PILOT,
       DAI,
       USDT,
       uniStrategy,
