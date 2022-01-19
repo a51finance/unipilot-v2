@@ -80,7 +80,8 @@ task("deploy-unipilotFactory", "Deploy unipilot factory contract")
     const args = {
       uniswapFactory: "0x1f98431c8ad98523631ae4a59f267346ea31f984",
       governance: cliArgs.governance,
-      uniStrategy: "0x3EA6730e0d14C9A6e006B3adca225097e4312847",
+      uniStrategy: "0x8a023FcC1D727Ea74711a0d70109F9fcB2586eAA",
+      indexFund: cliArgs.governance,
       WETH: "0xc778417e063141139fce010982780140aa0cd5ab",
     };
 
@@ -93,7 +94,13 @@ task("deploy-unipilotFactory", "Deploy unipilot factory contract")
       "UnipilotFactory",
       await ethers.getContractFactory("UnipilotFactory"),
       signer,
-      [args.uniswapFactory, args.governance, args.uniStrategy, args.WETH],
+      [
+        args.uniswapFactory,
+        args.governance,
+        args.uniStrategy,
+        args.indexFund,
+        args.WETH,
+      ],
     );
 
     await unipilotFactory.deployTransaction.wait(5);
@@ -106,6 +113,7 @@ task("deploy-unipilotFactory", "Deploy unipilot factory contract")
         args.uniswapFactory,
         args.governance,
         args.uniStrategy,
+        args.indexFund,
         args.WETH,
       ],
     });

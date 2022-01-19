@@ -51,7 +51,11 @@ contract UnipilotFactory is IUnipilotFactory {
             pool = uniswapFactory.createPool(token0, token1, _fee);
             IUniswapV3Pool(pool).initialize(_sqrtPriceX96);
         }
-        _vault = _deploy(token0, token1, _fee, pool, _name, _symbol);
+        _vault = address(
+            new UnipilotVault{
+                salt: keccak256(abi.encodePacked(_tokenA, _tokenB, _fee))
+            }(pool, address(this), WETH, _name, _symbol)
+        );
         vaults[token0][token1][_fee] = _vault;
         vaults[token1][token0][_fee] = _vault; // populate mapping in the reverse direction
         emit VaultCreated(token0, token1, _fee, _vault);
@@ -83,20 +87,5 @@ contract UnipilotFactory is IUnipilotFactory {
                 toggleAddress
             ];
         }
-    }
-
-    function _deploy(
-        address _tokenA,
-        address _tokenB,
-        uint24 _fee,
-        address _pool,
-        string memory _name,
-        string memory _symbol
-    ) private returns (address _vault) {
-        _vault = address(
-            new UnipilotVault{
-                salt: keccak256(abi.encode(_tokenA, _tokenB, _fee))
-            }(_pool, address(this), WETH, _name, _symbol)
-        );
     }
 }
