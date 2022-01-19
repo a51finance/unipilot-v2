@@ -50,22 +50,16 @@ contract UnipilotFactory is IUnipilotFactory {
             ? (_tokenA, _tokenB)
             : (_tokenB, _tokenA);
         require(vaults[token0][token1][_fee] == address(0), "VE");
-        int24 tickSpacing = uniswapFactory.feeAmountTickSpacing(_fee);
-        require(tickSpacing != 0, "IF");
         address pool = uniswapFactory.getPool(token0, token1, _fee);
 
         if (pool == address(0)) {
             pool = uniswapFactory.createPool(token0, token1, _fee);
             IUniswapV3Pool(pool).initialize(_sqrtPriceX96);
         }
-        _vault = _deploy(
-            token0,
-            token1,
-            _fee,
-            tickSpacing,
-            pool,
-            _name,
-            _symbol
+        _vault = address(
+            new UnipilotVault{
+                salt: keccak256(abi.encodePacked(_tokenA, _tokenB, _fee))
+            }(pool, address(this), WETH, _name, _symbol)
         );
         vaults[token0][token1][_fee] = _vault;
         vaults[token1][token0][_fee] = _vault; // populate mapping in the reverse direction
@@ -85,33 +79,17 @@ contract UnipilotFactory is IUnipilotFactory {
         return (governance, strategy, indexFund);
     }
 
-    function setGovernance(address _newGovernance) external {
+    function setGovernance(address _newGovernance) external onlyGovernance {
         emit GovernanceChanged(governance, _newGovernance);
         governance = _newGovernance;
     }
 
-    function whitelistVaults(address[2] memory vaultAddresses) external {
+    function whitelistVaults(address[] memory vaultAddresses) external {
         for (uint256 i = 0; i < vaultAddresses.length; i++) {
             address toggleAddress = vaultAddresses[i];
             whitelistedVaults[toggleAddress] = !whitelistedVaults[
                 toggleAddress
             ];
         }
-    }
-
-    function _deploy(
-        address _tokenA,
-        address _tokenB,
-        uint24 _fee,
-        int24 _tickSpacing,
-        address _pool,
-        string memory _name,
-        string memory _symbol
-    ) private returns (address _vault) {
-        _vault = address(
-            new UnipilotVault{
-                salt: keccak256(abi.encode(_tokenA, _tokenB, _fee))
-            }(_pool, address(this), WETH, _tickSpacing, _name, _symbol)
-        );
     }
 }
