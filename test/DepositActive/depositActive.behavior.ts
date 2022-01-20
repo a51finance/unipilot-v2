@@ -325,7 +325,7 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
     ).to.be.revertedWith("TE");
   });
 
-  it("Testing Factory : Pool should not whitelisted but include after run ", async () => {
+  it("Testing Factory : Pool should not whitelisted but should be run after add in whitelist", async () => {
     await uniswapV3Factory.createPool(DAI.address, USDT.address, 500);
 
     let poolAddress = await uniswapV3Factory.getPool(
