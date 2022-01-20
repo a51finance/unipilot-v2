@@ -7,7 +7,7 @@ import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 
 contract UnipilotFactory is IUnipilotFactory {
-    address private uniswapFactory;
+    IUniswapV3Factory private uniswapFactory;
     address private governance;
     address private strategy;
     address private indexFund;
@@ -17,23 +17,20 @@ contract UnipilotFactory is IUnipilotFactory {
         address _uniswapFactory,
         address _governance,
         address _uniStrategy,
+        address _indexFund,
         address _WETH
     ) {
         governance = _governance;
         strategy = _uniStrategy;
-        uniswapFactory = _uniswapFactory;
+        uniswapFactory = IUniswapV3Factory(_uniswapFactory);
+        indexFund = _indexFund;
         WETH = _WETH;
     }
 
     mapping(address => mapping(address => mapping(uint24 => address)))
-        private vaults;
+        public vaults;
 
-    mapping(address => bool) private whitelistedVaults;
-
-    modifier isGovernance() {
-        require(msg.sender == governance, "NG");
-        _;
-    }
+    mapping(address => bool) public override whitelistedVaults;
 
     function createVault(
         address _tokenA,
@@ -42,43 +39,26 @@ contract UnipilotFactory is IUnipilotFactory {
         uint160 _sqrtPriceX96,
         string memory _name,
         string memory _symbol
-    ) external override returns (address _vault, address _pool) {
+    ) external override returns (address _vault) {
         require(_tokenA != _tokenB, "TE");
         (address token0, address token1) = _tokenA < _tokenB
             ? (_tokenA, _tokenB)
             : (_tokenB, _tokenA);
         require(vaults[token0][token1][_fee] == address(0), "VE");
-        address pool = IUniswapV3Factory(uniswapFactory).getPool(
-            token0,
-            token1,
-            _fee
-        );
+        address pool = uniswapFactory.getPool(token0, token1, _fee);
 
         if (pool == address(0)) {
-            pool = IUniswapV3Factory(uniswapFactory).createPool(
-                token0,
-                token1,
-                _fee
-            );
-
+            pool = uniswapFactory.createPool(token0, token1, _fee);
             IUniswapV3Pool(pool).initialize(_sqrtPriceX96);
         }
-        _pool = pool;
-        _vault = _deploy(token0, token1, _fee, pool, _name, _symbol);
+        _vault = address(
+            new UnipilotVault{
+                salt: keccak256(abi.encodePacked(_tokenA, _tokenB, _fee))
+            }(pool, address(this), WETH, _name, _symbol)
+        );
         vaults[token0][token1][_fee] = _vault;
-        emit VaultCreated(token0, token1, _fee);
-    }
-
-    function getVaults(
-        address _tokenA,
-        address _tokenB,
-        uint24 _fee
-    ) external view override returns (address _vault, bool _whitelisted) {
-        (address token0, address token1) = _tokenA < _tokenB
-            ? (_tokenA, _tokenB)
-            : (_tokenB, _tokenA);
-        _vault = vaults[token0][token1][_fee];
-        _whitelisted = whitelistedVaults[_vault];
+        vaults[token1][token0][_fee] = _vault; // populate mapping in the reverse direction
+        emit VaultCreated(token0, token1, _fee, _vault);
     }
 
     function getUnipilotDetails()
@@ -94,32 +74,18 @@ contract UnipilotFactory is IUnipilotFactory {
         return (governance, strategy, indexFund);
     }
 
-    function setGovernance(address _newGovernance) external isGovernance {
+    function setGovernance(address _newGovernance) external {
+        require(msg.sender == governance, "NG");
         emit GovernanceChanged(governance, _newGovernance);
         governance = _newGovernance;
     }
 
-    function whitelistVaults(address[] memory vaults) external isGovernance {
-        for (uint256 i = 0; i < vaults.length; i++) {
-            address toggleAddress = vaults[i];
+    function whitelistVaults(address[] memory vaultAddresses) external {
+        for (uint256 i = 0; i < vaultAddresses.length; i++) {
+            address toggleAddress = vaultAddresses[i];
             whitelistedVaults[toggleAddress] = !whitelistedVaults[
                 toggleAddress
             ];
         }
-    }
-
-    function _deploy(
-        address _tokenA,
-        address _tokenB,
-        uint24 _fee,
-        address _pool,
-        string memory _name,
-        string memory _symbol
-    ) private returns (address _vault) {
-        _vault = address(
-            new UnipilotVault{
-                salt: keccak256(abi.encode(_tokenA, _tokenB, _fee))
-            }(_pool, address(this), WETH, _name, _symbol)
-        );
     }
 }

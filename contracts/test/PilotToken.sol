@@ -131,7 +131,7 @@ contract Pilot is ERC20Burnable {
             );
     }
 
-    function getChainId() public view returns (uint256 chainId) {
+    function getChainId() public pure returns (uint256 chainId) {
         assembly {
             chainId := chainid()
         }

@@ -104,33 +104,33 @@ export async function shouldBehaveLikeVaultFunctions(
       expect(await vault.readjustLiquidity()).to.be.ok;
     });
 
-    it("fees compounding for user", async () => {
-      await vault.deposit(parseUnits("3000", "18"), parseUnits("3000", "18"));
+    // it("fees compounding for user", async () => {
+    //   await vault.deposit(parseUnits("3000", "18"), parseUnits("3000", "18"));
 
-      await generateFeeThroughSwap(swapRouter, wallets[0], DAI, USDT, "10000");
-      const fees = await vault.callStatic.getPositionDetails();
-      const fees0 = fees[2];
-      const fees1 = fees[3];
+    //   await generateFeeThroughSwap(swapRouter, wallets[0], DAI, USDT, "10000");
+    //   const fees = await vault.callStatic.getPositionDetails();
+    //   const fees0 = fees[2];
+    //   const fees1 = fees[3];
 
-      const percentageOfFees0Collected = fees0
-        .mul(parseInt("10"))
-        .div(parseInt("100"));
+    //   const percentageOfFees0Collected = fees0
+    //     .mul(parseInt("10"))
+    //     .div(parseInt("100"));
 
-      const percentageOfFees1Collected = fees1
-        .mul(parseInt("10"))
-        .div(parseInt("100"));
+    //   const percentageOfFees1Collected = fees1
+    //     .mul(parseInt("10"))
+    //     .div(parseInt("100"));
 
-      console.log("percentageOfFeesCollected", percentageOfFees0Collected);
-      await vault.readjustLiquidity();
+    //   console.log("percentageOfFeesCollected", percentageOfFees0Collected);
+    //   await vault.readjustLiquidity();
 
-      const indexFund = wallets[1].address;
-      console.log("index fund address", indexFund);
-      const daiBalance = await DAI.balanceOf(indexFund);
-      const usdtBalance = await USDT.balanceOf(indexFund);
+    //   const indexFund = wallets[1].address;
+    //   console.log("index fund address", indexFund);
+    //   const daiBalance = await DAI.balanceOf(indexFund);
+    //   const usdtBalance = await USDT.balanceOf(indexFund);
 
-      expect(percentageOfFees0Collected).to.be.equal(daiBalance);
-      expect(percentageOfFees1Collected).to.be.equal(usdtBalance);
-    });
+    //   expect(percentageOfFees0Collected).to.be.equal(daiBalance);
+    //   expect(percentageOfFees1Collected).to.be.equal(usdtBalance);
+    // });
 
     // it("fees calculations in indexfund", async () => {
     //   const positionDetails = await vault.callStatic.getPositionDetails();

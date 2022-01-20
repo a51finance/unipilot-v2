@@ -10,9 +10,7 @@ import "./interfaces/IUnipilotFactory.sol";
 import "./libraries/UniswapLiquidityManagement.sol";
 import "./libraries/UniswapPoolActions.sol";
 
-import "@uniswap/v3-core/contracts/libraries/LowGasSafeMath.sol";
 import "@openzeppelin/contracts/drafts/ERC20Permit.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20Burnable.sol";
 
 import "hardhat/console.sol";
@@ -25,11 +23,11 @@ contract UnipilotVault is ERC20Permit, ERC20Burnable, IUnipilotVault {
     IERC20 private token0;
     IERC20 private token1;
     IUniswapV3Pool private pool;
+    IUnipilotFactory private unipilotFactory;
+
     TicksData private ticksData;
     int24 private tickSpacing;
-
     address private WETH;
-    address private unipilotFactory;
     uint8 private _unlocked = 1;
     uint24 private fee;
 
@@ -54,16 +52,15 @@ contract UnipilotVault is ERC20Permit, ERC20Burnable, IUnipilotVault {
         string memory _symbol
     ) ERC20Permit(_name) ERC20(_name, _symbol) {
         WETH = _WETH;
-        unipilotFactory = _unipilotFactory;
+        unipilotFactory = IUnipilotFactory(_unipilotFactory);
         pool = IUniswapV3Pool(_pool);
         token0 = IERC20(pool.token0());
         token1 = IERC20(pool.token1());
         fee = pool.fee();
         tickSpacing = pool.tickSpacing();
-        init();
     }
 
-    function deposit(uint256 _amount0Desired, uint256 _amount1Desired)
+    function deposit(uint256 amount0Desired, uint256 amount1Desired)
         external
         payable
         override
@@ -74,28 +71,27 @@ contract UnipilotVault is ERC20Permit, ERC20Burnable, IUnipilotVault {
         )
     {
         address sender = _msgSender();
-        bool _isPoolWhitelisted = _isPoolWhitelisted();
+        bool isPoolWhitelisted = _isPoolWhitelisted();
         uint256 totalSupply = totalSupply();
 
         (lpShares, amount0, amount1) = pool.computeLpShares(
-            _isPoolWhitelisted,
-            _amount0Desired,
-            _amount1Desired,
+            isPoolWhitelisted,
+            amount0Desired,
+            amount1Desired,
             totalSupply,
             ticksData
         );
 
-        if (_isPoolWhitelisted) {
+        if (isPoolWhitelisted) {
             (amount0, amount1) = depositForActive(sender, amount0, amount1);
+        } else {
+            (amount0, amount1) = depositForPassive(
+                sender,
+                amount0,
+                amount1,
+                totalSupply
+            );
         }
-        // else {
-        //     (amount0, amount1) = depositForPassive(
-        //         sender,
-        //         amount0,
-        //         amount1,
-        //         totalSupply
-        //     );
-        // }
 
         _mint(sender, lpShares);
         emit Deposit(sender, amount0, amount1, lpShares);
@@ -121,52 +117,52 @@ contract UnipilotVault is ERC20Permit, ERC20Burnable, IUnipilotVault {
         );
     }
 
-    // function depositForPassive(
-    //     address _depositor,
-    //     uint256 _amount0Desired,
-    //     uint256 _amount1Desired,
-    //     uint256 _totalSupply
-    // ) internal returns (uint256 amount0, uint256 amount1) {
-    //     if (_totalSupply == 0) {
-    //         (amount0, amount1) = setPassivePositions(
-    //             _depositor,
-    //             _amount0Desired,
-    //             _amount1Desired
-    //         );
-    //     } else {
-    //         uint128 liquidity = pool.getLiquidityForAmounts(
-    //             _amount0Desired,
-    //             _amount1Desired,
-    //             ticksData.baseTickLower,
-    //             ticksData.baseTickUpper
-    //         );
+    function depositForPassive(
+        address _depositor,
+        uint256 _amount0Desired,
+        uint256 _amount1Desired,
+        uint256 _totalSupply
+    ) internal returns (uint256 amount0, uint256 amount1) {
+        if (_totalSupply == 0) {
+            (amount0, amount1) = setPassivePositions(
+                _depositor,
+                _amount0Desired,
+                _amount1Desired
+            );
+        } else {
+            uint128 liquidity = pool.getLiquidityForAmounts(
+                _amount0Desired,
+                _amount1Desired,
+                ticksData.baseTickLower,
+                ticksData.baseTickUpper
+            );
 
-    //         (uint256 _amount0, uint256 _amount1) = pool.mintLiquidity(
-    //             _depositor,
-    //             ticksData.baseTickLower,
-    //             ticksData.baseTickUpper,
-    //             liquidity
-    //         );
+            (uint256 _amount0, uint256 _amount1) = pool.mintLiquidity(
+                _depositor,
+                ticksData.baseTickLower,
+                ticksData.baseTickUpper,
+                liquidity
+            );
 
-    //         liquidity = pool.getLiquidityForAmounts(
-    //             _amount0Desired.sub(_amount0),
-    //             _amount1Desired.sub(_amount1),
-    //             ticksData.rangeTickLower,
-    //             ticksData.rangeTickUpper
-    //         );
+            liquidity = pool.getLiquidityForAmounts(
+                _amount0Desired.sub(_amount0),
+                _amount1Desired.sub(_amount1),
+                ticksData.rangeTickLower,
+                ticksData.rangeTickUpper
+            );
 
-    //         (amount0, amount1) = pool.mintLiquidity(
-    //             _depositor,
-    //             ticksData.rangeTickLower,
-    //             ticksData.rangeTickUpper,
-    //             liquidity
-    //         );
-    //         amount0 = amount0.add(_amount0);
-    //         amount1 = amount1.add(_amount1);
-    //     }
-    // }
+            (amount0, amount1) = pool.mintLiquidity(
+                _depositor,
+                ticksData.rangeTickLower,
+                ticksData.rangeTickUpper,
+                liquidity
+            );
+            amount0 = amount0.add(_amount0);
+            amount1 = amount1.add(_amount1);
+        }
+    }
 
-    function init() private {
+    function init() external {
         int24 _tickSpacing = tickSpacing;
         int24 baseThreshold = _tickSpacing * getBaseThreshold();
         (, int24 currentTick) = pool.getSqrtRatioX96AndTick();
@@ -188,10 +184,9 @@ contract UnipilotVault is ERC20Permit, ERC20Burnable, IUnipilotVault {
     function readjustLiquidity() external override {
         if (_isPoolWhitelisted()) {
             readjustLiquidityForActive();
+        } else {
+            readjustLiquidityForPassive();
         }
-        // else {
-        //     readjustLiquidityForPassive();
-        // }
     }
 
     function readjustLiquidityForActive() private {
@@ -296,7 +291,7 @@ contract UnipilotVault is ERC20Permit, ERC20Burnable, IUnipilotVault {
         fees1 = unclaimed1;
     }
 
-    function readjustLiquidityForPassive() private onlyGovernance {
+    function readjustLiquidityForPassive() private {
         (uint256 baseFees0, uint256 baseFees1) = pool.burnLiquidity(
             ticksData.baseTickLower,
             ticksData.baseTickUpper,
@@ -400,7 +395,7 @@ contract UnipilotVault is ERC20Permit, ERC20Burnable, IUnipilotVault {
 
         if (rangeLiquidity > 0) {
             (uint256 _rangeAmount0, uint256 _rangeAmount1) = pool.mintLiquidity(
-                address(this),
+                _depositor,
                 ticksData.rangeTickLower,
                 ticksData.rangeTickUpper,
                 rangeLiquidity
@@ -474,7 +469,7 @@ contract UnipilotVault is ERC20Permit, ERC20Burnable, IUnipilotVault {
     }
 
     /// @dev fetches the new ticks for base and range positions
-    function _getTicksFromUniStrategy(address pool)
+    function _getTicksFromUniStrategy(address _pool)
         private
         returns (
             int24 baseTickLower,
@@ -486,15 +481,11 @@ contract UnipilotVault is ERC20Permit, ERC20Burnable, IUnipilotVault {
         )
     {
         (, address strategy, ) = getProtocolDetails();
-        return IUnipilotStrategy(strategy).getTicks(pool);
+        return IUnipilotStrategy(strategy).getTicks(_pool);
     }
 
-    function _isPoolWhitelisted() internal view returns (bool isWhitelisted) {
-        (, isWhitelisted) = IUnipilotFactory(unipilotFactory).getVaults(
-            address(token0),
-            address(token1),
-            fee
-        );
+    function _isPoolWhitelisted() internal view returns (bool) {
+        return unipilotFactory.whitelistedVaults(address(this));
     }
 
     /// @dev Amount of token0 held as unused balance.
@@ -531,7 +522,7 @@ contract UnipilotVault is ERC20Permit, ERC20Burnable, IUnipilotVault {
     ) external override {
         _verifyCallback();
 
-        require(amount0 > 0 || amount1 > 0);
+        require(amount0 > 0 || amount1 > 0, "SBL");
         bool zeroForOne = abi.decode(data, (bool));
 
         if (zeroForOne)
@@ -553,7 +544,7 @@ contract UnipilotVault is ERC20Permit, ERC20Burnable, IUnipilotVault {
             address indexFund
         )
     {
-        return IUnipilotFactory(unipilotFactory).getUnipilotDetails();
+        return unipilotFactory.getUnipilotDetails();
     }
 
     function transferFees(uint256 fees0, uint256 fees1) private {
@@ -603,4 +594,8 @@ contract UnipilotVault is ERC20Permit, ERC20Burnable, IUnipilotVault {
             TransferHelper.safeTransferFrom(token, payer, recipient, value);
         }
     }
+
+    receive() external payable {}
+
+    fallback() external payable {}
 }

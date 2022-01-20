@@ -1,11 +1,11 @@
-import { BigNumber, Contract } from "ethers";
+import { BigNumber, Contract, Wallet } from "ethers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { parseUnits } from "@ethersproject/units";
 import { MaxUint256 } from "@ethersproject/constants";
 
 export async function generateFeeThroughSwap(
   swapRouter: Contract,
-  wallet: SignerWithAddress,
+  wallet: Wallet,
   tokenIn: Contract,
   tokenOut: Contract,
   amountIn: string,
@@ -38,8 +38,8 @@ export async function generateFeeThroughSwap(
     sqrtPriceLimitX96: "0",
   };
 
-  for (let i = 0; i < 2; i++) {
-    await swapRouter.exactInputSingle(sellOrderParams);
-    await swapRouter.exactInputSingle(buyOrderParams);
-  }
+  // for (let i = 0; i < 2; i++) {
+  await swapRouter.exactInputSingle(sellOrderParams);
+  //   await swapRouter.exactInputSingle(buyOrderParams);
+  // }
 }

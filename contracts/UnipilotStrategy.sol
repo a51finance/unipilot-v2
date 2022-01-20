@@ -1,3 +1,5 @@
+//SPDX-License-Identifier: MIT
+
 pragma solidity =0.7.6;
 pragma abicoder v2;
 
@@ -6,8 +8,6 @@ import "./base/oracle/libraries/OracleLibrary.sol";
 
 import "@uniswap/v3-core/contracts/libraries/TickMath.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
-
-//import "hardhat/console.sol";
 
 /**
  *
@@ -86,7 +86,10 @@ contract UnipilotStrategy is IUnipilotStrategy {
     {
         (int24 tick, int24 tickSpacing) = getCurrentTick(_pool);
 
-        if (poolStrategy[_pool].baseThreshold == 0) {
+        if (
+            poolStrategy[_pool].baseThreshold == 0 ||
+            poolStrategy[_pool].rangeThreshold == 0
+        ) {
             int24 baseFloor = _floor(baseTicks, tickSpacing);
 
             poolStrategy[_pool] = PoolStrategy({

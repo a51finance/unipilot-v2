@@ -221,7 +221,7 @@ library UniswapLiquidityManagement {
         uint256 totalSupply
     )
         internal
-        view
+        pure
         returns (
             uint256 shares,
             uint256 amount0,

@@ -28,6 +28,10 @@ let wallet2: Signer;
 let privateKey: any = process.env.PK1;
 let privateKey2: any = process.env.PK2;
 
+const DAI_TOKEN_ADDRESS = "0xc7ad46e0b8a400bb3c915120d284aafba8fc4735";
+const USDT_TOKEN_ADDRESS = "0xD9BA894E0097f8cC2BBc9D24D308b98e36dc6D02";
+const USDC_TOKEN_ADDRESS = "0x4DBCdF9B62e891a7cec5A2568C3F4FAF9E8Abe2b";
+const WETH_TOKEN_ADDRESS = "0xc778417e063141139fce010982780140aa0cd5ab";
 const TKN1_TOKEN_ADDRESS = "0x6df730f6e52c57be77db98a65116d2c38ec2be2b"; // DST
 const TKN2_TOKEN_ADDRESS = "0xdf98809bbaee8d72ba88a80bc99308e30e04e4ab";
 const TTC33 = "0xB6118140b5Ad8A1449D1FeF850dA49eE4677D77A";
@@ -134,13 +138,13 @@ const checkGovernance = async (contractAddress: string) => {
 const main = async () => {
   await updateStateVariables();
   await updateStateVariables2();
-  await deployUnipilotFactory();
+  // await deployUnipilotFactory();
   //await deployUnipilotStrategy();
-  // await getERC20Approval(TTC99, "0x089d97D30934125691544c81a0e158F84dDb2190");
-  // await getERC20Approval(
-  //   TKN2_TOKEN_ADDRESS,
-  //   "0x089d97D30934125691544c81a0e158F84dDb2190",
-  // );
+  await getERC20Approval(
+    TKN2_TOKEN_ADDRESS,
+    "0x32C968abAac3584DfB51a7f94dB8865Bc9974415",
+  );
+  await getERC20Approval(TTC99, "0x32C968abAac3584DfB51a7f94dB8865Bc9974415");
   // await checkGovernance("0xcE8f9628aD97D45ee6B7088ccd316D11B37cce71");
 };
 
