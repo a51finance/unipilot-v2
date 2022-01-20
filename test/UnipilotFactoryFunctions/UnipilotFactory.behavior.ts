@@ -5,6 +5,7 @@ import { unipilotVaultFixture } from "../utils/fixtures";
 import { ethers, waffle } from "hardhat";
 import { encodePriceSqrt } from "../utils/encodePriceSqrt";
 import { UniswapV3Pool, UnipilotVault } from "../../typechain";
+import snapshotGasCost from "../utils/snapshotGasCost";
 
 export async function shouldBehaveLikeUnipilotFactory(): Promise<void> {
   const createFixtureLoader = waffle.createFixtureLoader;
@@ -96,6 +97,36 @@ export async function shouldBehaveLikeUnipilotFactory(): Promise<void> {
       .setGovernance(other.address);
     let data = await unipilotFactory.getUnipilotDetails();
     expect(data[0]).to.equal(other.address);
+  });
+
+  it("Testing Factory : Should take gas snapshot of create vault func", async () => {
+    await uniswapV3Factory.createPool(DAI.address, USDT.address, 10000);
+    let poolAddress = await uniswapV3Factory.getPool(
+      DAI.address,
+      USDT.address,
+      10000,
+    );
+
+    let uniswapPool = (await ethers.getContractAt(
+      "UniswapV3Pool",
+      poolAddress,
+    )) as UniswapV3Pool;
+
+    await uniswapPool.initialize(encodedPrice);
+
+    await uniStrategy.setBaseTicks([poolAddress], [1800]);
+    await snapshotGasCost(
+      await unipilotFactory
+        .connect(governance)
+        .createVault(
+          DAI.address,
+          USDT.address,
+          10000,
+          encodedPrice,
+          "unipilot PILOT-USDT",
+          "PILOT-USDT",
+        ),
+    );
   });
 
   it("Testing Factory : Should create pool with 1% fee tier", async () => {
