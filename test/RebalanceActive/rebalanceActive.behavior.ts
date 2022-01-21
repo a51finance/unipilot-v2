@@ -20,11 +20,11 @@ import { generateFeeThroughSwap } from "../utils/SwapFunction/swap";
 export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
   const createFixtureLoader = waffle.createFixtureLoader;
   let uniswapV3Factory: Contract;
+  let uniswapV3PositionManager: NonfungiblePositionManager;
   let uniStrategy: Contract;
   let unipilotFactory: Contract;
   let swapRouter: Contract;
-  let unipilotVault: UnipilotVault;
-  let shibPilotVault: UnipilotVault;
+  let daiUsdtVault: UnipilotVault;
   let SHIB: Contract;
   let PILOT: Contract;
   let DAI: Contract;
@@ -52,6 +52,7 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
   beforeEach("setting up fixture contracts", async () => {
     ({
       uniswapV3Factory,
+      uniswapV3PositionManager,
       swapRouter,
       unipilotFactory,
       DAI,
@@ -78,7 +79,7 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
 
     await uniStrategy.setBaseTicks([daiUsdtPoolAddress], [1800]);
 
-    unipilotVault = await createVault(
+    daiUsdtVault = await createVault(
       USDT.address,
       DAI.address,
       3000,
@@ -89,7 +90,7 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
 
     await unipilotFactory
       .connect(wallet)
-      .whitelistVaults([unipilotVault.address]);
+      .whitelistVaults([daiUsdtVault.address]);
 
     await USDT._mint(wallet.address, parseUnits("2000000", "18"));
     await DAI._mint(wallet.address, parseUnits("2000000", "18"));
@@ -97,9 +98,20 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
     await PILOT._mint(wallet.address, parseUnits("2000000", "18"));
     await SHIB._mint(alice.address, parseUnits("2000000", "18"));
     await PILOT._mint(alice.address, parseUnits("2000000", "18"));
+    await SHIB._mint(bob.address, parseUnits("100000000000", "18"));
+    await PILOT._mint(bob.address, parseUnits("100000000000", "18"));
 
-    await USDT.connect(wallet).approve(unipilotVault.address, MaxUint256);
-    await DAI.connect(wallet).approve(unipilotVault.address, MaxUint256);
+    await USDT.connect(wallet).approve(daiUsdtVault.address, MaxUint256);
+    await DAI.connect(wallet).approve(daiUsdtVault.address, MaxUint256);
+
+    await DAI.connect(wallet).approve(
+      uniswapV3PositionManager.address,
+      MaxUint256,
+    );
+    await USDT.connect(wallet).approve(
+      uniswapV3PositionManager.address,
+      MaxUint256,
+    );
 
     await USDT.connect(wallet).approve(swapRouter.address, MaxUint256);
     await DAI.connect(wallet).approve(swapRouter.address, MaxUint256);
@@ -107,64 +119,91 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
     await PILOT.connect(wallet).approve(swapRouter.address, MaxUint256);
     await SHIB.connect(alice).approve(swapRouter.address, MaxUint256);
     await PILOT.connect(alice).approve(swapRouter.address, MaxUint256);
+
+    await SHIB.connect(bob).approve(swapRouter.address, MaxUint256);
+    await PILOT.connect(bob).approve(swapRouter.address, MaxUint256);
+    await uniswapV3PositionManager.connect(wallet).mint(
+      {
+        token0: USDT.address,
+        token1: DAI.address,
+        tickLower: getMinTick(60),
+        tickUpper: getMaxTick(60),
+        fee: 3000,
+        recipient: wallet.address,
+        amount0Desired: parseUnits("1", "18"),
+        amount1Desired: parseUnits("1", "18"),
+        amount0Min: 0,
+        amount1Min: 0,
+        deadline: 2000000000,
+      },
+      {
+        gasLimit: "3000000",
+      },
+    );
   });
 
-  it("rebalance with 50/50", async () => {
-    const pilotBalanceBeforeDeposit: BigNumber = await PILOT.balanceOf(
-      wallet.address,
-    );
+  // it("rebalance with 50/50", async () => {
+  //   // const usdtMindtedOnWallet = parseUnits("2000000", "18");
+  //   // const daiMintedOnWallet = parseUnits("2000000", "18");
 
-    const shibBalanceBeforeDeposit: BigNumber = await SHIB.balanceOf(
-      wallet.address,
-    );
+  //   await daiUsdtVault.init();
 
-    const shibMintedOnWallet = parseUnits("2000000", "18");
-    const pilotMintedOnWallet = parseUnits("2000000", "18");
+  //   await daiUsdtVault
+  //     .connect(wallet)
+  //     .deposit(parseUnits("5000", "18"), parseUnits("5000", "18"));
 
-    await shibPilotVault.init();
-    const a = await shibPilotVault
+  //   let positionDetails = await daiUsdtVault.callStatic.getPositionDetails();
+
+  //   console.log("positionDetails before swap", positionDetails);
+
+  //   await generateFeeThroughSwap(swapRouter, bob, USDT, DAI, "5000");
+
+  //   positionDetails = await daiUsdtVault.callStatic.getPositionDetails();
+
+  //   console.log("positionDetails after swap", positionDetails);
+
+  //   // await daiUsdtVault.readjustLiquidity();
+
+  //   // positionDetails = await daiUsdtVault.callStatic.getPositionDetails();
+
+  //   // console.log("positionDetails", positionDetails);
+  // });
+
+  it(" Index fund account should recieve 10% of the pool fees earned.", async () => {
+    await daiUsdtVault.init();
+
+    await daiUsdtVault
       .connect(wallet)
-      .callStatic.deposit(parseUnits("10000", "18"), parseUnits("80000", "18"));
+      .deposit(parseUnits("5000", "18"), parseUnits("5000", "18"));
 
-    console.log("deposited", a);
-    await shibPilotVault
-      .connect(wallet)
-      .deposit(parseUnits("10000", "18"), parseUnits("80000", "18"));
+    await generateFeeThroughSwap(swapRouter, bob, USDT, DAI, "5000");
 
-    const lpBalance: BigNumber = await shibPilotVault
-      .connect(wallet)
-      .balanceOf(wallet.address);
+    let positionDetails = await daiUsdtVault.callStatic.getPositionDetails();
 
-    await generateFeeThroughSwap(swapRouter, alice, PILOT, SHIB, "2000");
+    console.log("positionDetails after swap", positionDetails);
 
-    const calculatedFees = await parseUnits("2000", "18")
-      .mul(parseUnits("0.3", "18"))
-      .div(parseUnits("100", "18"));
+    await daiUsdtVault.readjustLiquidity();
 
-    console.log("calculated fees", calculatedFees);
-    const fees = await shibPilotVault.callStatic.getPositionDetails();
-    console.log("feeses", fees);
+    const fees0 = positionDetails[2];
+    const fees1 = positionDetails[3];
 
-    expect(fees[2]).to.be.equal(calculatedFees.div(parseUnits("1", "18")));
+    const percentageOfFees0Collected = fees0
+      .mul(parseInt("10"))
+      .div(parseInt("100"));
 
-    const withdrawFunds = await shibPilotVault.callStatic.withdraw(
-      lpBalance,
-      wallet.address,
-    );
-    console.log("withdrawFunds", withdrawFunds);
+    const percentageOfFees1Collected = fees1
+      .mul(parseInt("10"))
+      .div(parseInt("100"));
 
-    await shibPilotVault.withdraw(lpBalance, wallet.address);
+    const indexFund = carol.address;
 
-    const newPilotBalance: BigNumber = await PILOT.balanceOf(wallet.address);
-    const newShibBalance: BigNumber = await SHIB.balanceOf(wallet.address);
+    const usdtBalanceOfIndexFund = await USDT.balanceOf(indexFund);
+    const daiBalanceOfIndexFund = await DAI.balanceOf(indexFund);
 
-    console.log("newPilotBalance", newPilotBalance);
-    console.log("newShibBalance", newShibBalance);
+    console.log("percentageOfFees0Collected", percentageOfFees0Collected);
+    console.log("percentageOfFees1Collected", percentageOfFees1Collected);
 
-    const pilotBalanceAfterWithdraw =
-      pilotBalanceBeforeDeposit.add(calculatedFees);
-
-    expect(newPilotBalance).to.be.equal(pilotBalanceAfterWithdraw);
-    expect(newShibBalance).to.be.equal(shibBalanceBeforeDeposit);
+    expect(percentageOfFees0Collected).to.be.equal(usdtBalanceOfIndexFund);
+    expect(percentageOfFees1Collected).to.be.equal(daiBalanceOfIndexFund);
   });
 }

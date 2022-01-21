@@ -108,7 +108,6 @@ contract UnipilotVault is ERC20Permit, ERC20Burnable, IUnipilotVault {
             ticksData.baseTickLower,
             ticksData.baseTickUpper
         );
-        console.log("liquidity", liquidity);
         (amount0, amount1) = pool.mintLiquidity(
             _depositor,
             ticksData.baseTickLower,
@@ -261,9 +260,6 @@ contract UnipilotVault is ERC20Permit, ERC20Burnable, IUnipilotVault {
             ticksData.baseTickUpper,
             a.liquidity
         );
-
-        console.log("amount0 minted", amount0);
-        console.log("amount1 minted", amount1);
     }
 
     // temperory function to check position fees and reserves

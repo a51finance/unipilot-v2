@@ -22,8 +22,8 @@ export async function generateFeeThroughSwap(
     fee: 3000,
     recipient: wallet.address,
     deadline: Math.round(Date.now() / 1000) + 86400,
-    amountIn: parseUnits(amountIn, decimalsIn.toString()),
-    amountOutMinimum: parseUnits("0", decimalsOut.toString()),
+    amountIn: parseUnits(amountIn, "18"),
+    amountOutMinimum: parseUnits("0", "18"),
     sqrtPriceLimitX96: "0",
   };
 
@@ -39,7 +39,9 @@ export async function generateFeeThroughSwap(
   };
 
   // for (let i = 0; i < 2; i++) {
-  await swapRouter.exactInputSingle(sellOrderParams);
+  await swapRouter.exactInputSingle(sellOrderParams, {
+    gasLimit: "3000000",
+  });
   //   await swapRouter.exactInputSingle(buyOrderParams);
   // }
 }
