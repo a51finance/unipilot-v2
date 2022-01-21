@@ -3,6 +3,7 @@ import { solidity } from "ethereum-waffle";
 
 import { shouldBehaveLikeDepositActive } from "./DepositActive/depositActive.behavior";
 import { shouldBehaveLikeRebalanceActive } from "./RebalanceActive/rebalanceActive.behavior";
+import { shouldBehaveLikeDepositPassive } from "./DepositPassive/depositPassive.behavior";
 import { shouldBehaveLikeUnipilotFactory } from "./UnipilotFactoryFunctions/UnipilotFactory.behavior";
 
 use(solidity);
@@ -14,7 +15,6 @@ use(solidity);
 describe("Invokes Rebalance Active Tests", async () => {
   await shouldBehaveLikeRebalanceActive();
 });
-
 // describe("Invokes Unipilot Factory Tests", async () => {
 //   await shouldBehaveLikeUnipilotFactory();
-// });
+// })

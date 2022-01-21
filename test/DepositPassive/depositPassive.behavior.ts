@@ -11,7 +11,12 @@ import { MaxUint256 } from "@ethersproject/constants";
 import { ethers, waffle } from "hardhat";
 import { createFixtureLoader } from "ethereum-waffle";
 import { encodePriceSqrt } from "../utils/encodePriceSqrt";
-import { IUniswapV3Pool, NonfungiblePositionManager } from "../../typechain";
+import {
+  UniswapV3Pool,
+  NonfungiblePositionManager,
+  UnipilotVault,
+} from "../../typechain";
+import { generateFeeThroughSwap } from "../utils/SwapFunction/swap";
 export async function shouldBehaveLikeDepositPassive(): Promise<void> {
   const createFixtureLoader = waffle.createFixtureLoader;
   let uniswapV3Factory: Contract;
@@ -19,15 +24,21 @@ export async function shouldBehaveLikeDepositPassive(): Promise<void> {
   let uniStrategy: Contract;
   let unipilotFactory: Contract;
   let swapRouter: Contract;
-  let unipilotVault: Contract;
-  let WETH9: Contract;
+  let unipilotVault: UnipilotVault;
+  let shibPilotVault: UnipilotVault;
+  let SHIB: Contract;
   let PILOT: Contract;
   let DAI: Contract;
-  let USDC: Contract;
   let USDT: Contract;
-  let uniswapPool: Contract;
+  let daiUsdtUniswapPool: UniswapV3Pool;
+  let shibPilotUniswapPool: UniswapV3Pool;
   let token0: string;
   let token1: string;
+  const encodedPrice = encodePriceSqrt(
+    parseUnits("1", "18"),
+    parseUnits("8", "18"),
+  );
+
   type ThenArg<T> = T extends PromiseLike<infer U> ? U : T;
   const [wallet, alice, bob, carol, other, user0, user1, user2, user3, user4] =
     waffle.provider.getWallets();
@@ -41,29 +52,24 @@ export async function shouldBehaveLikeDepositPassive(): Promise<void> {
 
   before("fixtures deployer", async () => {
     loadFixture = createFixtureLoader([wallet, other]);
-    console.log("Before callled -->");
+    // console.log("Before callled -->");
   });
 
   beforeEach("setting up fixture contracts", async () => {
-    console.log("BeforeEach callled -->");
+    // console.log("BeforeEach callled -->");
 
     ({
       uniswapV3Factory,
       uniswapV3PositionManager,
       swapRouter,
       unipilotFactory,
-      PILOT,
       DAI,
       USDT,
+      PILOT,
+      SHIB,
       uniStrategy,
       createVault,
     } = await loadFixture(unipilotVaultFixture));
-
-    const encodedPrice = encodePriceSqrt(
-      parseUnits("1", "18"),
-      parseUnits("8", "18"),
-    );
-
     if (PILOT.address < USDT.address) {
       token0 = PILOT.address;
       token1 = USDT.address;
@@ -71,45 +77,74 @@ export async function shouldBehaveLikeDepositPassive(): Promise<void> {
       token0 = USDT.address;
       token1 = PILOT.address;
     }
-
-    let poolAddress = await uniswapV3Factory.getPool(token0, token1, 3000);
     await uniswapV3Factory.createPool(token0, token1, 3000);
+    await uniswapV3Factory.createPool(SHIB.address, PILOT.address, 3000);
 
-    poolAddress = await uniswapV3Factory.getPool(token0, token1, 3000);
+    let daiUsdtPoolAddress = await uniswapV3Factory.getPool(
+      token0,
+      token1,
+      3000,
+    );
 
-    uniswapPool = (await ethers.getContractAt(
-      "IUniswapV3Pool",
-      poolAddress,
-    )) as IUniswapV3Pool;
+    let shibPilotPoolAddress = await uniswapV3Factory.getPool(
+      SHIB.address,
+      PILOT.address,
+      3000,
+    );
 
-    await uniswapPool.initialize(encodedPrice);
+    daiUsdtUniswapPool = (await ethers.getContractAt(
+      "UniswapV3Pool",
+      daiUsdtPoolAddress,
+    )) as UniswapV3Pool;
 
-    await uniStrategy.setBaseTicks([poolAddress], [1800]);
+    shibPilotUniswapPool = (await ethers.getContractAt(
+      "UniswapV3Pool",
+      shibPilotPoolAddress,
+    )) as UniswapV3Pool;
+
+    await daiUsdtUniswapPool.initialize(encodedPrice);
+    await shibPilotUniswapPool.initialize(encodedPrice);
+
+    await uniStrategy.setBaseTicks(
+      [daiUsdtPoolAddress, shibPilotPoolAddress],
+      [1800, 1800],
+    );
 
     unipilotVault = await createVault(
-      token1,
       token0,
+      token1,
       3000,
       encodedPrice,
       "unipilot PILOT-USDT",
       "PILOT-USDT",
     );
 
-    // await unipilotFactory
-    //   .connect(wallet)
-    //   .whitelistVaults([unipilotVault.address]);
+    shibPilotVault = await createVault(
+      SHIB.address,
+      PILOT.address,
+      3000,
+      encodedPrice,
+      "unipilot PILOT-USDT",
+      "PILOT-USDT",
+    );
 
     await USDT._mint(wallet.address, parseUnits("2000000", "18"));
-    //await PILOT._mint(wallet.address, parseUnits("2000000", "18"));
+    await SHIB._mint(wallet.address, parseUnits("2000000", "18"));
+    await PILOT._mint(wallet.address, parseUnits("2000000", "18"));
+    await SHIB._mint(alice.address, parseUnits("2000000", "18"));
 
-    await PILOT.approve(uniswapV3PositionManager.address, MaxUint256);
     await USDT.approve(uniswapV3PositionManager.address, MaxUint256);
+    await SHIB.approve(uniswapV3PositionManager.address, MaxUint256);
+    await PILOT.approve(uniswapV3PositionManager.address, MaxUint256);
 
     await USDT.connect(wallet).approve(unipilotVault.address, MaxUint256);
     await PILOT.connect(wallet).approve(unipilotVault.address, MaxUint256);
+    await SHIB.connect(wallet).approve(shibPilotVault.address, MaxUint256);
+    await PILOT.connect(wallet).approve(shibPilotVault.address, MaxUint256);
 
     await USDT.connect(wallet).approve(swapRouter.address, MaxUint256);
     await PILOT.connect(wallet).approve(swapRouter.address, MaxUint256);
+    await SHIB.connect(wallet).approve(swapRouter.address, MaxUint256);
 
     await uniswapV3PositionManager.connect(wallet).mint(
       {
@@ -128,244 +163,6 @@ export async function shouldBehaveLikeDepositPassive(): Promise<void> {
       {
         gasLimit: "3000000",
       },
-    );
-  });
-
-  it("Testing Factory : Owner should governor", async () => {
-    console.log(
-      "************************ FACTORY CONTRACT TESTING **********************************",
-    );
-
-    let data = await unipilotFactory.getUnipilotDetails();
-    // console.log(await unipilotFactory.connect(wallet).governance());
-
-    expect(data[0]).to.equal(governance.address);
-    console.log("Governance address: ", data[0]);
-  });
-
-  it("Testing Factory : Should revert, set new owner", async () => {
-    // let tx = await unipilotFactory.connect(other).setGovernance(wallet.address);
-    await expect(
-      unipilotFactory.connect(other).setGovernance(wallet.address),
-    ).to.be.revertedWith("NG");
-  });
-
-  it("Testing Factory : Should set new owner", async () => {
-    let receipt = await unipilotFactory
-      .connect(wallet)
-      .setGovernance(other.address, {
-        gasLimit: "3000000",
-      });
-    console.log("Tx hash", receipt.hash);
-    let data = await unipilotFactory.getUnipilotDetails();
-    // console.log(await unipilotFactory.connect(wallet).governance());
-
-    expect(data[0]).to.equal(other.address);
-    console.log("New Governance address: ", data[0]);
-  });
-
-  it("Testing Factory : Should create pool with 1% fee tier", async () => {
-    const encodedPrice = encodePriceSqrt(
-      parseUnits("1", "18"),
-      parseUnits("8", "18"),
-    );
-
-    await uniswapV3Factory.createPool(token0, token1, 10000);
-
-    let poolAddress = await uniswapV3Factory.getPool(token0, token1, 10000);
-
-    uniswapPool = (await ethers.getContractAt(
-      "IUniswapV3Pool",
-      poolAddress,
-    )) as IUniswapV3Pool;
-
-    await uniswapPool.initialize(encodedPrice);
-
-    await uniStrategy.setBaseTicks([poolAddress], [1800]);
-
-    const vault = await unipilotFactory
-      .connect(governance)
-      .createVault(
-        token0,
-        token1,
-        10000,
-        encodedPrice,
-        "unipilot PILOT-USDT",
-        "PILOT-USDT",
-      );
-    await expect(vault).to.be.ok;
-  });
-
-  it("Testing Factory : Should create pool with 0.05% fee tier", async () => {
-    const encodedPrice = encodePriceSqrt(
-      parseUnits("1", "18"),
-      parseUnits("8", "18"),
-    );
-
-    await uniswapV3Factory.createPool(token0, token1, 500);
-
-    let poolAddress = await uniswapV3Factory.getPool(token0, token1, 500);
-
-    uniswapPool = (await ethers.getContractAt(
-      "IUniswapV3Pool",
-      poolAddress,
-    )) as IUniswapV3Pool;
-
-    await uniswapPool.initialize(encodedPrice);
-
-    await uniStrategy.setBaseTicks([poolAddress], [1800]);
-
-    const vault = await unipilotFactory
-      .connect(governance)
-      .createVault(
-        token0,
-        token1,
-        500,
-        encodedPrice,
-        "unipilot PILOT-USDT",
-        "PILOT-USDT",
-      );
-    await expect(vault).to.be.ok;
-  });
-
-  it("Testing Factory : Should create pool with 0.05% fee tier", async () => {
-    console.log("Create Pool in reverse");
-    const encodedPrice = encodePriceSqrt(
-      parseUnits("1", "18"),
-      parseUnits("8", "18"),
-    );
-
-    await uniswapV3Factory.createPool(token0, token1, 500);
-
-    let poolAddress = await uniswapV3Factory.getPool(token0, token1, 500);
-
-    uniswapPool = (await ethers.getContractAt(
-      "IUniswapV3Pool",
-      poolAddress,
-    )) as IUniswapV3Pool;
-
-    await uniswapPool.initialize(encodedPrice);
-
-    await uniStrategy.setBaseTicks([poolAddress], [1800]);
-
-    const vault = await unipilotFactory
-      .connect(governance)
-      .createVault(
-        token0,
-        token1,
-        500,
-        encodedPrice,
-        "unipilot PILOT-USDT",
-        "PILOT-USDT",
-      );
-    await expect(vault).to.be.ok;
-  });
-
-  it("Testing Factory : Should create with 0.3% fee tier but revert (already Exist)", async () => {
-    const encodedPrice = encodePriceSqrt(
-      parseUnits("1", "18"),
-      parseUnits("8", "18"),
-    );
-
-    await expect(
-      unipilotFactory
-        .connect(governance)
-        .createVault(
-          token0,
-          token1,
-          3000,
-          encodedPrice,
-          "unipilot PILOT-USDT",
-          "PILOT-USDT",
-        ),
-    ).to.be.revertedWith("VE");
-  });
-
-  it("Testing Factory : Should fail, same token address", async () => {
-    const encodedPrice = encodePriceSqrt(
-      parseUnits("1", "18"),
-      parseUnits("8", "18"),
-    );
-
-    await uniswapV3Factory.createPool(token0, token1, 500);
-
-    let poolAddress = await uniswapV3Factory.getPool(token0, token0, 500);
-
-    uniswapPool = (await ethers.getContractAt(
-      "IUniswapV3Pool",
-      poolAddress,
-    )) as IUniswapV3Pool;
-
-    await uniswapPool.initialize(encodedPrice);
-
-    await uniStrategy.setBaseTicks([poolAddress], [1800]);
-
-    await expect(
-      unipilotFactory
-        .connect(governance)
-        .createVault(
-          token0,
-          token0,
-          500,
-          encodedPrice,
-          "unipilot PILOT-USDT",
-          "PILOT-USDT",
-        ),
-    ).to.be.revertedWith("TE");
-  });
-
-  it("Testing Factory : Pool should not whitelisted but include after run ", async () => {
-    const encodedPrice = encodePriceSqrt(
-      parseUnits("1", "18"),
-      parseUnits("8", "18"),
-    );
-
-    await uniswapV3Factory.createPool(token0, token1, 500);
-
-    let poolAddress = await uniswapV3Factory.getPool(token0, token1, 500);
-
-    uniswapPool = (await ethers.getContractAt(
-      "IUniswapV3Pool",
-      poolAddress,
-    )) as IUniswapV3Pool;
-
-    await uniswapPool.initialize(encodedPrice);
-
-    await uniStrategy.setBaseTicks([poolAddress], [1800]);
-
-    const vault = await unipilotFactory
-      .connect(governance)
-      .callStatic.createVault(
-        token0,
-        token1,
-        500,
-        encodedPrice,
-        "unipilot PILOT-USDT",
-        "PILOT-USDT",
-      );
-
-    await unipilotFactory
-      .connect(governance)
-      .createVault(
-        token0,
-        token1,
-        500,
-        encodedPrice,
-        "unipilot PILOT-USDT",
-        "PILOT-USDT",
-      );
-
-    let receipt = await unipilotFactory.getVaults(token0, token1, 500);
-    console.log("1. receipt ::", receipt._whitelisted);
-    expect(receipt._whitelisted).to.be.equals(false);
-
-    await unipilotFactory.connect(governance).whitelistVaults([vault[0]]);
-    receipt = await unipilotFactory.getVaults(token0, token1, 500);
-    console.log("2. receipt ::", receipt._whitelisted);
-    expect(receipt._whitelisted).to.be.equals(true);
-
-    console.log(
-      "*********************FACTORY TEST COMPLETE**********************",
     );
   });
 
@@ -428,11 +225,10 @@ export async function shouldBehaveLikeDepositPassive(): Promise<void> {
       expectedDaiBalanceAfterDeposit,
     );
 
-    expect(
-      await unipilotVault
-        .connect(wallet)
-        .deposit(parseUnits("1000", "18"), parseUnits("1000", "18")),
-    ).to.be.ok;
+    await unipilotVault.init();
+    await unipilotVault
+      .connect(wallet)
+      .deposit(parseUnits("1000", "18"), parseUnits("1000", "18"));
 
     const daiBalance: BigNumber = await PILOT.balanceOf(wallet.address);
     const usdtBalance: BigNumber = await USDT.balanceOf(wallet.address);
@@ -450,6 +246,7 @@ export async function shouldBehaveLikeDepositPassive(): Promise<void> {
   });
 
   it("should successfully predict amounts after deposit", async () => {
+    await unipilotVault.init();
     await unipilotVault
       .connect(wallet)
       .deposit(parseUnits("1000", "18"), parseUnits("1000", "18"));
@@ -476,7 +273,7 @@ export async function shouldBehaveLikeDepositPassive(): Promise<void> {
     const expectedUsdtBalanceAfterDeposit =
       expectedUsdtBalanceBeforeDeposit.sub(usdtToBeDesposited);
 
-    const daiMintedOnWallet0 = parseUnits("50000", "18");
+    const daiMintedOnWallet0 = parseUnits("2000000", "18");
 
     const mintedDaiOnUniswap = parseUnits("5000", "18")
       .mul(parseUnits("1", "18"))
@@ -507,12 +304,75 @@ export async function shouldBehaveLikeDepositPassive(): Promise<void> {
     expect(usdtBalance).to.be.equal(expectedUsdtBalanceAfterDeposit);
   });
 
-  it("Deposit separate Passive", async () => {
-    expect(
-      await unipilotVault.deposit(
-        parseUnits("1000", "18"),
-        parseUnits("1000", "18"),
-      ),
+  // it("passive whitelist readjust", async () => {
+  //   await unipilotFactory
+  //     .connect(wallet)
+  //     .whitelistVaults([unipilotVault.address]);
+
+  //   await unipilotVault.init();
+  //   await unipilotVault
+  //     .connect(wallet)
+  //     .deposit(parseUnits("1000", "18"), parseUnits("1000", "18"));
+
+  //   // await unipilotVault.connect(wallet).readjustLiquidity();
+  // });
+
+  it("fees calculation", async () => {
+    const pilotBalanceBeforeDeposit: BigNumber = await PILOT.balanceOf(
+      wallet.address,
     );
+
+    const shibBalanceBeforeDeposit: BigNumber = await SHIB.balanceOf(
+      wallet.address,
+    );
+
+    const shibMintedOnWallet = parseUnits("2000000", "18");
+    const pilotMintedOnWallet = parseUnits("2000000", "18");
+
+    await shibPilotVault.init();
+    const a = await shibPilotVault
+      .connect(wallet)
+      .callStatic.deposit(parseUnits("10000", "18"), parseUnits("80000", "18"));
+
+    console.log("deposited", a);
+    await shibPilotVault
+      .connect(wallet)
+      .deposit(parseUnits("10000", "18"), parseUnits("80000", "18"));
+
+    const lpBalance: BigNumber = await shibPilotVault
+      .connect(wallet)
+      .balanceOf(wallet.address);
+
+    await generateFeeThroughSwap(swapRouter, alice, PILOT, SHIB, "2000");
+
+    const calculatedFees = await parseUnits("2000", "18")
+      .mul(parseUnits("0.3", "18"))
+      .div(parseUnits("100", "18"));
+
+    console.log("calculated fees", calculatedFees);
+    const fees = await shibPilotVault.callStatic.getPositionDetails();
+    console.log("feeses", fees);
+
+    expect(fees[2]).to.be.equal(calculatedFees.div(parseUnits("1", "18")));
+
+    const withdrawFunds = await shibPilotVault.callStatic.withdraw(
+      lpBalance,
+      wallet.address,
+    );
+    console.log("withdrawFunds", withdrawFunds);
+
+    await shibPilotVault.withdraw(lpBalance, wallet.address);
+
+    const newPilotBalance: BigNumber = await PILOT.balanceOf(wallet.address);
+    const newShibBalance: BigNumber = await SHIB.balanceOf(wallet.address);
+
+    console.log("newPilotBalance", newPilotBalance);
+    console.log("newShibBalance", newShibBalance);
+
+    const pilotBalanceAfterWithdraw =
+      pilotBalanceBeforeDeposit.add(calculatedFees);
+
+    expect(newPilotBalance).to.be.equal(pilotBalanceAfterWithdraw);
+    expect(newShibBalance).to.be.equal(shibBalanceBeforeDeposit);
   });
 }
