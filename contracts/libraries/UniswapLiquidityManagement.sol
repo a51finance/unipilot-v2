@@ -7,8 +7,6 @@ import "@uniswap/v3-periphery/contracts/libraries/PositionKey.sol";
 import "@uniswap/v3-periphery/contracts/libraries/LiquidityAmounts.sol";
 import "../interfaces/IUnipilotVault.sol";
 
-import "hardhat/console.sol";
-
 /// @title Liquidity and ticks functions
 /// @notice Provides functions for computing liquidity and ticks for token amounts and prices
 library UniswapLiquidityManagement {
@@ -168,9 +166,6 @@ library UniswapLiquidityManagement {
             ticks.baseTickUpper,
             pool
         );
-
-        console.log("reserve 0", reserve0);
-        console.log("reserve 1", reserve1);
 
         if (!isWhitelisted) {
             (uint256 rangeReserve0, uint256 rangeReserve1) = getReserves(
