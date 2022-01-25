@@ -1,5 +1,5 @@
 //SPDX-License-Identifier: MIT
-pragma solidity ^0.7.6;
+pragma solidity 0.7.6;
 pragma abicoder v2;
 
 import "./libraries/TransferHelper.sol";
@@ -31,7 +31,7 @@ contract UnipilotVault is ERC20Permit, ERC20Burnable, IUnipilotVault {
 
     modifier onlyGovernance() {
         (address governance, , ) = getProtocolDetails();
-        require(msg.sender == governance);
+        require(_msgSender() == governance);
         _;
     }
 
@@ -69,8 +69,8 @@ contract UnipilotVault is ERC20Permit, ERC20Burnable, IUnipilotVault {
         )
     {
         address sender = _msgSender();
-        bool isPoolWhitelisted = _isPoolWhitelisted();
         uint256 totalSupply = totalSupply();
+        bool isPoolWhitelisted = _isPoolWhitelisted();
 
         (lpShares, amount0, amount1) = pool.computeLpShares(
             isPoolWhitelisted,
@@ -106,6 +106,7 @@ contract UnipilotVault is ERC20Permit, ERC20Burnable, IUnipilotVault {
             ticksData.baseTickLower,
             ticksData.baseTickUpper
         );
+        console.log("liquidity", liquidity);
         (amount0, amount1) = pool.mintLiquidity(
             _depositor,
             ticksData.baseTickLower,
@@ -250,7 +251,7 @@ contract UnipilotVault is ERC20Permit, ERC20Burnable, IUnipilotVault {
             ticksData.baseTickUpper
         );
 
-        (uint256 amount0, uint256 amount1) = pool.mintLiquidity(
+        pool.mintLiquidity(
             address(this),
             ticksData.baseTickLower,
             ticksData.baseTickUpper,
