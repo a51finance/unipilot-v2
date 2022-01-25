@@ -256,10 +256,6 @@ contract UnipilotStrategy is IUnipilotStrategy {
         override
         returns (int24 readjustThreshold)
     {
-        // console.log(
-        //     "readjustThreshold",
-        //     uint256(poolStrategy[_pool].readjustThreshold)
-        // );
         readjustThreshold = poolStrategy[_pool].readjustThreshold;
         return readjustThreshold;
     }

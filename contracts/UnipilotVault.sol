@@ -13,8 +13,6 @@ import "./libraries/UniswapPoolActions.sol";
 import "@openzeppelin/contracts/drafts/ERC20Permit.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20Burnable.sol";
 
-import "hardhat/console.sol";
-
 contract UnipilotVault is ERC20Permit, ERC20Burnable, IUnipilotVault {
     using LowGasSafeMath for uint256;
     using UniswapPoolActions for IUniswapV3Pool;
@@ -222,7 +220,6 @@ contract UnipilotVault is ERC20Permit, ERC20Burnable, IUnipilotVault {
             a.tickLower,
             a.tickUpper
         );
-
         a.zeroForOne = UniswapLiquidityManagement.amountsDirection(
             a.amount0Desired,
             a.amount1Desired,
@@ -233,7 +230,6 @@ contract UnipilotVault is ERC20Permit, ERC20Burnable, IUnipilotVault {
         a.amountSpecified = a.zeroForOne
             ? int256(FullMath.mulDiv(a.amount0Desired.sub(a.amount0), 50, 100))
             : int256(FullMath.mulDiv(a.amount1Desired.sub(a.amount1), 50, 100));
-
         pool.swapToken(address(this), a.zeroForOne, a.amountSpecified);
 
         a.amount0Desired = _balance0();

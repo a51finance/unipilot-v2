@@ -39,7 +39,7 @@ export async function generateFeeThroughSwap(
   };
 
   // for (let i = 0; i < 2; i++) {
-  await swapRouter.exactInputSingle(sellOrderParams, {
+  await swapRouter.connect(wallet).exactInputSingle(sellOrderParams, {
     gasLimit: "3000000",
   });
   //   await swapRouter.exactInputSingle(buyOrderParams);
