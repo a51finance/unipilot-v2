@@ -51,7 +51,6 @@ interface IUnipilotVault {
     );
 
     event Withdraw(
-        address indexed sender,
         address indexed recipient,
         uint256 shares,
         uint256 amount0,
