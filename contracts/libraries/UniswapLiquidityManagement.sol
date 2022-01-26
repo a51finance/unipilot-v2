@@ -131,7 +131,16 @@ library UniswapLiquidityManagement {
         int24 _lowerTick,
         int24 _upperTick,
         IUniswapV3Pool pool
-    ) internal view returns (uint256, uint256) {
+    )
+        internal
+        view
+        returns (
+            uint256,
+            uint256,
+            uint256,
+            uint256
+        )
+    {
         (
             uint128 liquidity,
             uint128 earnable0,
@@ -140,7 +149,7 @@ library UniswapLiquidityManagement {
         (uint256 burnable0, uint256 burnable1) = UniswapLiquidityManagement
             .getAmountsForLiquidity(pool, liquidity, _lowerTick, _upperTick);
 
-        return (burnable0 + earnable0, burnable1 + earnable1);
+        return (burnable0, burnable1, earnable0, earnable1);
     }
 
     function computeLpShares(
@@ -158,25 +167,15 @@ library UniswapLiquidityManagement {
             uint256 amount1
         )
     {
-        uint256 reserve0;
-        uint256 reserve1;
+        (
+            uint256 res0,
+            uint256 res1,
+            uint256 fees0,
+            uint256 fees1
+        ) = getTotalAmounts(pool, isWhitelisted, ticks);
 
-        (reserve0, reserve1) = getReserves(
-            ticks.baseTickLower,
-            ticks.baseTickUpper,
-            pool
-        );
-
-        if (!isWhitelisted) {
-            (uint256 rangeReserve0, uint256 rangeReserve1) = getReserves(
-                ticks.rangeTickLower,
-                ticks.rangeTickUpper,
-                pool
-            );
-
-            reserve0 = reserve0.add(rangeReserve0);
-            reserve1 = reserve1.add(rangeReserve1);
-        }
+        uint256 reserve0 = res0.add(fees0);
+        uint256 reserve1 = res1.add(fees1);
 
         // If total supply > 0, pool can't be empty
         assert(totalSupply == 0 || reserve0 != 0 || reserve1 != 0);
@@ -189,18 +188,60 @@ library UniswapLiquidityManagement {
         );
     }
 
+    function getTotalAmounts(
+        IUniswapV3Pool pool,
+        bool isWhitelisted,
+        IUnipilotVault.TicksData memory ticks
+    )
+        internal
+        returns (
+            uint256 amount0,
+            uint256 amount1,
+            uint256 fees0,
+            uint256 fees1
+        )
+    {
+        (amount0, amount1, fees0, fees1) = getReserves(
+            ticks.baseTickLower,
+            ticks.baseTickUpper,
+            pool
+        );
+
+        if (!isWhitelisted) {
+            (
+                uint256 range0,
+                uint256 range1,
+                uint256 rangeFees0,
+                uint256 rangeFees1
+            ) = getReserves(ticks.rangeTickLower, ticks.rangeTickUpper, pool);
+
+            amount0 = amount0.add(range0);
+            amount1 = amount1.add(range1);
+            fees0 = fees0.add(rangeFees0);
+            fees1 = fees1.add(rangeFees1);
+        }
+    }
+
     function getReserves(
         int24 tickLower,
         int24 tickUpper,
         IUniswapV3Pool pool
-    ) internal returns (uint256 reserve0, uint256 reserve1) {
+    )
+        internal
+        returns (
+            uint256 amount0,
+            uint256 amount1,
+            uint256 fees0,
+            uint256 fees1
+        )
+    {
         uint128 liquidity = UniswapPoolActions.updatePosition(
             pool,
             tickLower,
             tickUpper
         );
         if (liquidity > 0) {
-            (reserve0, reserve1) = collectableAmountsInPosition(
+            (amount0, amount1, fees0, fees1) = collectableAmountsInPosition(
                 tickLower,
                 tickUpper,
                 pool
