@@ -128,25 +128,33 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
 
     await USDT._mint(wallet.address, parseUnits("2000000", "18"));
     await DAI._mint(wallet.address, parseUnits("2000000", "18"));
+
     await SHIB._mint(wallet.address, parseUnits("2000000", "18"));
     await PILOT._mint(wallet.address, parseUnits("2000000", "18"));
+
     await SHIB._mint(alice.address, parseUnits("2000000", "18"));
     await PILOT._mint(alice.address, parseUnits("2000000", "18"));
 
     await DAI.approve(uniswapV3PositionManager.address, MaxUint256);
     await USDT.approve(uniswapV3PositionManager.address, MaxUint256);
+
     await SHIB.approve(uniswapV3PositionManager.address, MaxUint256);
     await PILOT.approve(uniswapV3PositionManager.address, MaxUint256);
 
     await USDT.connect(wallet).approve(unipilotVault.address, MaxUint256);
     await DAI.connect(wallet).approve(unipilotVault.address, MaxUint256);
+
     await SHIB.connect(wallet).approve(shibPilotVault.address, MaxUint256);
     await PILOT.connect(wallet).approve(shibPilotVault.address, MaxUint256);
 
     await USDT.connect(wallet).approve(swapRouter.address, MaxUint256);
     await DAI.connect(wallet).approve(swapRouter.address, MaxUint256);
+
     await SHIB.connect(wallet).approve(swapRouter.address, MaxUint256);
     await PILOT.connect(wallet).approve(swapRouter.address, MaxUint256);
+
+    await SHIB.connect(alice).approve(swapRouter.address, MaxUint256);
+    await PILOT.connect(alice).approve(swapRouter.address, MaxUint256);
 
     await uniswapV3PositionManager.connect(wallet).mint(
       {

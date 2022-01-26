@@ -92,12 +92,21 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
       .connect(wallet)
       .whitelistVaults([daiUsdtVault.address]);
 
-    await USDT._mint(wallet.address, parseUnits("2000000", "18"));
-    await DAI._mint(wallet.address, parseUnits("2000000", "18"));
+    await USDT._mint(wallet.address, parseUnits("5000", "18"));
+    await DAI._mint(wallet.address, parseUnits("5000", "18"));
+
+    await USDT._mint(bob.address, parseUnits("5000", "18"));
+    await DAI._mint(bob.address, parseUnits("5000", "18"));
+
+    await USDT._mint(alice.address, parseUnits("2000000", "18"));
+    await DAI._mint(alice.address, parseUnits("2000000", "18"));
+
     await SHIB._mint(wallet.address, parseUnits("2000000", "18"));
     await PILOT._mint(wallet.address, parseUnits("2000000", "18"));
+
     await SHIB._mint(alice.address, parseUnits("2000000", "18"));
     await PILOT._mint(alice.address, parseUnits("2000000", "18"));
+
     await SHIB._mint(bob.address, parseUnits("100000000000", "18"));
     await PILOT._mint(bob.address, parseUnits("100000000000", "18"));
 
@@ -108,21 +117,37 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
       uniswapV3PositionManager.address,
       MaxUint256,
     );
+
     await USDT.connect(wallet).approve(
+      uniswapV3PositionManager.address,
+      MaxUint256,
+    );
+
+    await USDT.connect(alice).approve(
+      uniswapV3PositionManager.address,
+      MaxUint256,
+    );
+    await DAI.connect(alice).approve(
       uniswapV3PositionManager.address,
       MaxUint256,
     );
 
     await USDT.connect(wallet).approve(swapRouter.address, MaxUint256);
     await DAI.connect(wallet).approve(swapRouter.address, MaxUint256);
+
+    await USDT.connect(bob).approve(swapRouter.address, MaxUint256);
+    await DAI.connect(bob).approve(swapRouter.address, MaxUint256);
+
     await SHIB.connect(wallet).approve(swapRouter.address, MaxUint256);
     await PILOT.connect(wallet).approve(swapRouter.address, MaxUint256);
+
     await SHIB.connect(alice).approve(swapRouter.address, MaxUint256);
     await PILOT.connect(alice).approve(swapRouter.address, MaxUint256);
 
     await SHIB.connect(bob).approve(swapRouter.address, MaxUint256);
     await PILOT.connect(bob).approve(swapRouter.address, MaxUint256);
-    await uniswapV3PositionManager.connect(wallet).mint(
+
+    await uniswapV3PositionManager.connect(alice).mint(
       {
         token0: USDT.address,
         token1: DAI.address,
@@ -130,8 +155,8 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
         tickUpper: getMaxTick(60),
         fee: 3000,
         recipient: wallet.address,
-        amount0Desired: parseUnits("1", "18"),
-        amount1Desired: parseUnits("1", "18"),
+        amount0Desired: parseUnits("1000", "18"),
+        amount1Desired: parseUnits("1000", "18"),
         amount0Min: 0,
         amount1Min: 0,
         deadline: 2000000000,
@@ -142,32 +167,40 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
     );
   });
 
-  // it("rebalance with 50/50", async () => {
-  //   // const usdtMindtedOnWallet = parseUnits("2000000", "18");
-  //   // const daiMintedOnWallet = parseUnits("2000000", "18");
+  it("rebalance with 50/50", async () => {
+    // const usdtMindtedOnWallet = parseUnits("2000000", "18");
+    // const daiMintedOnWallet = parseUnits("2000000", "18");
 
-  //   await daiUsdtVault.init();
+    await daiUsdtVault.init();
 
-  //   await daiUsdtVault
-  //     .connect(wallet)
-  //     .deposit(parseUnits("5000", "18"), parseUnits("5000", "18"));
+    await daiUsdtVault
+      .connect(wallet)
+      .deposit(parseUnits("5000", "18"), parseUnits("5000", "18"));
 
-  //   let positionDetails = await daiUsdtVault.callStatic.getPositionDetails();
+    let positionDetails = await daiUsdtVault.callStatic.getPositionDetails();
 
-  //   console.log("positionDetails before swap", positionDetails);
+    console.log("positionDetails before swap", positionDetails);
 
-  //   await generateFeeThroughSwap(swapRouter, bob, USDT, DAI, "5000");
+    await generateFeeThroughSwap(swapRouter, bob, USDT, DAI, "5000");
 
-  //   positionDetails = await daiUsdtVault.callStatic.getPositionDetails();
+    positionDetails = await daiUsdtVault.callStatic.getPositionDetails();
 
-  //   console.log("positionDetails after swap", positionDetails);
+    console.log("positionDetails after swap", positionDetails);
 
-  //   // await daiUsdtVault.readjustLiquidity();
+    // await daiUsdtVault.readjustLiquidity();
 
-  //   // positionDetails = await daiUsdtVault.callStatic.getPositionDetails();
+    // positionDetails = await daiUsdtVault.callStatic.getPositionDetails();
 
-  //   // console.log("positionDetails", positionDetails);
-  // });
+    // console.log("positionDetails", positionDetails);
+  });
+
+  it("Only called by owner and whitelisted vaults are eligible for rebalance", async () => {
+    await daiUsdtVault.init();
+    await daiUsdtVault
+      .connect(wallet)
+      .deposit(parseUnits("5000", "18"), parseUnits("5000", "18"));
+    await expect(daiUsdtVault.readjustLiquidity()).to.be.revertedWith("NG");
+  });
 
   it(" Index fund account should recieve 10% of the pool fees earned.", async () => {
     await daiUsdtVault.init();
@@ -205,5 +238,47 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
 
     expect(percentageOfFees0Collected).to.be.equal(usdtBalanceOfIndexFund);
     expect(percentageOfFees1Collected).to.be.equal(daiBalanceOfIndexFund);
+  });
+
+  it("check fees compounding", async () => {
+    await daiUsdtVault.init();
+
+    await daiUsdtVault
+      .connect(wallet)
+      .deposit(parseUnits("5000", "18"), parseUnits("5000", "18"));
+
+    const usdtBalanceAfterDeposit = await USDT.balanceOf(wallet.address);
+    const daiBalanceAfterDeposit = await DAI.balanceOf(wallet.address);
+
+    let positionDetails = await daiUsdtVault.callStatic.getPositionDetails();
+    await generateFeeThroughSwap(swapRouter, bob, USDT, DAI, "5000");
+
+    positionDetails = await daiUsdtVault.callStatic.getPositionDetails();
+
+    console.log("positionDetails after swap", positionDetails);
+
+    expect(positionDetails[2]).to.be.gt(parseUnits("0", "18"));
+
+    await daiUsdtVault.readjustLiquidity();
+
+    let positionDetailsAferReadjust =
+      await daiUsdtVault.callStatic.getPositionDetails();
+
+    console.log("position details after readjust", positionDetailsAferReadjust);
+    expect(positionDetailsAferReadjust[2]).to.be.eq(parseUnits("0", "18"));
+
+    let lpBalance = await daiUsdtVault.balanceOf(wallet.address);
+
+    await daiUsdtVault.withdraw(lpBalance, wallet.address);
+
+    lpBalance = await daiUsdtVault.balanceOf(wallet.address);
+
+    expect(lpBalance).to.be.equal(parseUnits("0", "18"));
+
+    const usdtBalanceAfterWithdraw = await USDT.balanceOf(wallet.address);
+    const daiBalanceAfterWithdraw = await DAI.balanceOf(wallet.address);
+
+    expect(usdtBalanceAfterWithdraw).to.be.gt(usdtBalanceAfterDeposit);
+    expect(daiBalanceAfterWithdraw).to.be.gt(daiBalanceAfterDeposit);
   });
 }

@@ -220,7 +220,6 @@ contract UnipilotVault is ERC20Permit, ERC20Burnable, IUnipilotVault {
             a.tickLower,
             a.tickUpper
         );
-
         a.zeroForOne = UniswapLiquidityManagement.amountsDirection(
             a.amount0Desired,
             a.amount1Desired,
@@ -231,7 +230,6 @@ contract UnipilotVault is ERC20Permit, ERC20Burnable, IUnipilotVault {
         a.amountSpecified = a.zeroForOne
             ? int256(FullMath.mulDiv(a.amount0Desired.sub(a.amount0), 50, 100))
             : int256(FullMath.mulDiv(a.amount1Desired.sub(a.amount1), 50, 100));
-
         pool.swapToken(address(this), a.zeroForOne, a.amountSpecified);
 
         a.amount0Desired = _balance0();

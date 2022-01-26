@@ -6,6 +6,8 @@ import "./interfaces/IUnipilotFactory.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 
+/// @title Unipilot factory
+/// @notice Deploys Unipilot vaults and manages ownership and control over active and passive vaults
 contract UnipilotFactory is IUnipilotFactory {
     IUniswapV3Factory private uniswapFactory;
     address private governance;
@@ -27,11 +29,15 @@ contract UnipilotFactory is IUnipilotFactory {
         WETH = _WETH;
     }
 
+    /// @notice Used to give address of vaults
+    /// @return vault address
     mapping(address => mapping(address => mapping(uint24 => address)))
         public vaults;
 
+    /// @inheritdoc IUnipilotFactory
     mapping(address => bool) public override whitelistedVaults;
 
+    /// @inheritdoc IUnipilotFactory
     function createVault(
         address _tokenA,
         address _tokenB,
@@ -61,6 +67,7 @@ contract UnipilotFactory is IUnipilotFactory {
         emit VaultCreated(token0, token1, _fee, _vault);
     }
 
+    /// @inheritdoc IUnipilotFactory
     function getUnipilotDetails()
         external
         view
@@ -74,15 +81,22 @@ contract UnipilotFactory is IUnipilotFactory {
         return (governance, strategy, indexFund);
     }
 
+    /// @notice Updates the governance of the Unipilot factory
+    /// @dev Must be called by the current governance
+    /// @param _newGovernance The new governance of the Unipilot factory
     function setGovernance(address _newGovernance) external {
         require(msg.sender == governance, "NG");
         emit GovernanceChanged(governance, _newGovernance);
         governance = _newGovernance;
     }
 
-    function whitelistVaults(address[] memory vaultAddresses) external {
-        for (uint256 i = 0; i < vaultAddresses.length; i++) {
-            address toggleAddress = vaultAddresses[i];
+    /// @notice toggles to the acitve or passive strategy of the vaults
+    /// @dev Must be called by the current governance
+    /// @param _vaultAddresses Array of address of vaults for bulk update
+    function whitelistVaults(address[] memory _vaultAddresses) external {
+        require(msg.sender == governance, "NG");
+        for (uint256 i = 0; i < _vaultAddresses.length; i++) {
+            address toggleAddress = _vaultAddresses[i];
             whitelistedVaults[toggleAddress] = !whitelistedVaults[
                 toggleAddress
             ];
