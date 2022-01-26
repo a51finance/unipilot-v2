@@ -23,7 +23,7 @@ contract UnipilotVault is ERC20Permit, ERC20Burnable, IUnipilotVault {
     IUniswapV3Pool private pool;
     IUnipilotFactory private unipilotFactory;
 
-    TicksData private ticksData;
+    TicksData public ticksData;
     int24 private tickSpacing;
     address private WETH;
     uint8 private _unlocked = 1;
@@ -106,7 +106,6 @@ contract UnipilotVault is ERC20Permit, ERC20Burnable, IUnipilotVault {
             ticksData.baseTickLower,
             ticksData.baseTickUpper
         );
-        console.log("liquidity", liquidity);
         (amount0, amount1) = pool.mintLiquidity(
             _depositor,
             ticksData.baseTickLower,
@@ -262,28 +261,16 @@ contract UnipilotVault is ERC20Permit, ERC20Burnable, IUnipilotVault {
     }
 
     // temperory function to check position fees and reserves
-    function getPositionDetails()
+    function getPositionDetails(bool isWhitelisted)
         external
         returns (
-            uint256 amount0,
-            uint256 amount1,
-            uint256 fees0,
-            uint256 fees1
+            uint256,
+            uint256,
+            uint256,
+            uint256
         )
     {
-        pool.updatePosition(ticksData.baseTickLower, ticksData.baseTickUpper);
-
-        (int24 tl, int24 tu) = (
-            ticksData.baseTickLower,
-            ticksData.baseTickUpper
-        );
-        (uint128 liquidity, uint256 unclaimed0, uint256 unclaimed1) = pool
-            .getPositionLiquidity(tl, tu);
-
-        (amount0, amount1) = pool.getAmountsForLiquidity(liquidity, tl, tu);
-
-        fees0 = unclaimed0;
-        fees1 = unclaimed1;
+        return pool.getTotalAmounts(isWhitelisted, ticksData);
     }
 
     function readjustLiquidityForPassive() private {
@@ -448,7 +435,7 @@ contract UnipilotVault is ERC20Permit, ERC20Burnable, IUnipilotVault {
         amount1 = amount1.add(unusedAmount1);
 
         _burn(msg.sender, liquidity);
-        emit Withdraw(msg.sender, recipient, liquidity, amount0, amount1);
+        emit Withdraw(recipient, liquidity, amount0, amount1);
     }
 
     function getVaultInfo()
