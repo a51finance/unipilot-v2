@@ -128,9 +128,9 @@ library UniswapLiquidityManagement {
     }
 
     function collectableAmountsInPosition(
+        IUniswapV3Pool pool,
         int24 _lowerTick,
-        int24 _upperTick,
-        IUniswapV3Pool pool
+        int24 _upperTick
     )
         internal
         view
@@ -202,9 +202,9 @@ library UniswapLiquidityManagement {
         )
     {
         (amount0, amount1, fees0, fees1) = getReserves(
+            pool,
             ticks.baseTickLower,
-            ticks.baseTickUpper,
-            pool
+            ticks.baseTickUpper
         );
 
         if (!isWhitelisted) {
@@ -213,7 +213,7 @@ library UniswapLiquidityManagement {
                 uint256 range1,
                 uint256 rangeFees0,
                 uint256 rangeFees1
-            ) = getReserves(ticks.rangeTickLower, ticks.rangeTickUpper, pool);
+            ) = getReserves(pool, ticks.rangeTickLower, ticks.rangeTickUpper);
 
             amount0 = amount0.add(range0);
             amount1 = amount1.add(range1);
@@ -223,9 +223,9 @@ library UniswapLiquidityManagement {
     }
 
     function getReserves(
+        IUniswapV3Pool pool,
         int24 tickLower,
-        int24 tickUpper,
-        IUniswapV3Pool pool
+        int24 tickUpper
     )
         internal
         returns (
@@ -242,9 +242,9 @@ library UniswapLiquidityManagement {
         );
         if (liquidity > 0) {
             (amount0, amount1, fees0, fees1) = collectableAmountsInPosition(
+                pool,
                 tickLower,
-                tickUpper,
-                pool
+                tickUpper
             );
         }
     }
