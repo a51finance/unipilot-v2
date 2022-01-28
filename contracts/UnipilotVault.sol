@@ -394,6 +394,7 @@ contract UnipilotVault is ERC20Permit, ERC20Burnable, IUnipilotVault {
         require(liquidity > 0);
 
         uint256 totalSupply = totalSupply();
+        bool isPoolWhitelisted = _isPoolWhitelisted();
         uint256 liquidityShare = FullMath.mulDiv(liquidity, 1e18, totalSupply);
 
         (amount0, amount1) = pool.burnUserLiquidity(
@@ -403,13 +404,26 @@ contract UnipilotVault is ERC20Permit, ERC20Burnable, IUnipilotVault {
             recipient
         );
 
-        if (!_isPoolWhitelisted()) {
+        pool.collectPendingFees(
+            address(this),
+            ticksData.baseTickLower,
+            ticksData.baseTickUpper
+        );
+
+        if (!isPoolWhitelisted) {
             (uint256 range0, uint256 range1) = pool.burnUserLiquidity(
-                ticksData.baseTickLower,
-                ticksData.baseTickUpper,
+                ticksData.rangeTickLower,
+                ticksData.rangeTickUpper,
                 liquidityShare,
                 recipient
             );
+
+            pool.collectPendingFees(
+                address(this),
+                ticksData.rangeTickLower,
+                ticksData.rangeTickUpper
+            );
+
             amount0 = amount0.add(range0);
             amount1 = amount1.add(range1);
         }
@@ -431,6 +445,24 @@ contract UnipilotVault is ERC20Permit, ERC20Burnable, IUnipilotVault {
 
         amount0 = amount0.add(unusedAmount0);
         amount1 = amount1.add(unusedAmount1);
+
+        pool.compoundLiquidity(
+            address(this),
+            _balance0(),
+            _balance1(),
+            ticksData.baseTickLower,
+            ticksData.baseTickUpper
+        );
+
+        if (!isPoolWhitelisted) {
+            pool.compoundLiquidity(
+                address(this),
+                _balance0(),
+                _balance1(),
+                ticksData.rangeTickLower,
+                ticksData.rangeTickUpper
+            );
+        }
 
         _burn(msg.sender, liquidity);
         emit Withdraw(recipient, liquidity, amount0, amount1);
