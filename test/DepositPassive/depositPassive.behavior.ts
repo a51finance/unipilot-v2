@@ -350,7 +350,7 @@ export async function shouldBehaveLikeDepositPassive(): Promise<void> {
       .div(parseUnits("100", "18"));
 
     console.log("calculated fees", calculatedFees);
-    const fees = await shibPilotVault.callStatic.getPositionDetails();
+    const fees = await shibPilotVault.callStatic.getPositionDetails(false);
     console.log("feeses", fees);
 
     expect(fees[2]).to.be.equal(calculatedFees.div(parseUnits("1", "18")));

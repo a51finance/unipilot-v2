@@ -22,7 +22,6 @@ const deployWeth9 = async (wallet: Wallet) => {
 
 const deployUniswap = async (wallet: Wallet, WETH9: Contract) => {
   let uniswapv3Contracts = await deployUniswapContracts(wallet, WETH9);
-  console.log("uniswapv3COntracts factory", uniswapv3Contracts.factory.address);
   const nonFungible = await ethers.getContractFactory(
     "NonfungiblePositionManager",
   );
