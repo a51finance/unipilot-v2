@@ -1,22 +1,23 @@
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { expect } from "chai";
-import { BigNumber, Contract, Wallet, constants } from "ethers";
+import { Contract, constants, BigNumber } from "ethers";
 import { parseUnits } from "ethers/lib/utils";
 import {
   getMaxTick,
   getMinTick,
   unipilotVaultFixture,
 } from "../utils/fixtures";
-import { MaxUint256 } from "@ethersproject/constants";
 import { ethers, waffle } from "hardhat";
-import { createFixtureLoader } from "ethereum-waffle";
 import { encodePriceSqrt } from "../utils/encodePriceSqrt";
-import { UnipilotVault, UniswapV3Pool } from "../../typechain";
+import {
+  UnipilotVault,
+  UniswapV3Pool,
+  NonfungiblePositionManager,
+} from "../../typechain";
 import { generateFeeThroughSwap } from "../utils/SwapFunction/swap";
-import { userInfo } from "os";
 
 export async function shouldBehaveLikeWithdraw(): Promise<void> {
   const createFixtureLoader = waffle.createFixtureLoader;
+  let uniswapV3PositionManager: NonfungiblePositionManager;
   let uniswapV3Factory: Contract;
   let uniStrategy: Contract;
   let unipilotFactory: Contract;
@@ -41,6 +42,7 @@ export async function shouldBehaveLikeWithdraw(): Promise<void> {
   beforeEach("basic setup", async () => {
     ({
       uniswapV3Factory,
+      uniswapV3PositionManager,
       swapRouter,
       unipilotFactory,
       DAI,
@@ -77,8 +79,44 @@ export async function shouldBehaveLikeWithdraw(): Promise<void> {
     await USDT._mint(wallet.address, parseUnits("1000", "18"));
     await DAI._mint(wallet.address, parseUnits("1000", "18"));
 
-    await USDT.approve(vault.address, MaxUint256);
-    await DAI.approve(vault.address, MaxUint256);
+    await USDT._mint(other.address, parseUnits("4000", "18"));
+    await DAI._mint(other.address, parseUnits("4000", "18"));
+
+    await USDT.approve(vault.address, constants.MaxUint256);
+    await DAI.approve(vault.address, constants.MaxUint256);
+
+    await DAI.connect(other).approve(vault.address, constants.MaxUint256);
+    await DAI.connect(other).approve(
+      uniswapV3PositionManager.address,
+      constants.MaxUint256,
+    );
+    await DAI.connect(other).approve(swapRouter.address, constants.MaxUint256);
+
+    await USDT.connect(other).approve(vault.address, constants.MaxUint256);
+    await USDT.connect(other).approve(
+      uniswapV3PositionManager.address,
+      constants.MaxUint256,
+    );
+    await USDT.connect(other).approve(swapRouter.address, constants.MaxUint256);
+
+    await uniswapV3PositionManager.connect(other).mint(
+      {
+        token0: DAI.address,
+        token1: USDT.address,
+        tickLower: getMinTick(60),
+        tickUpper: getMaxTick(60),
+        fee: 3000,
+        recipient: other.address,
+        amount0Desired: parseUnits("1500", "18"),
+        amount1Desired: parseUnits("1500", "18"),
+        amount0Min: 0,
+        amount1Min: 0,
+        deadline: 2000000000,
+      },
+      {
+        gasLimit: "3000000",
+      },
+    );
   });
 
   describe("#withdraw for active pools", () => {
@@ -101,11 +139,11 @@ export async function shouldBehaveLikeWithdraw(): Promise<void> {
 
     it("emits an event", async () => {
       const liquidity = await vault.balanceOf(wallet.address);
-      const { amount0, amount1 } = await vault.callStatic.getPositionDetails();
+      const reserves = await vault.callStatic.getPositionDetails(true);
 
       await expect(await vault.withdraw(liquidity, wallet.address))
         .to.emit(vault, "Withdraw")
-        .withArgs(wallet.address, wallet.address, liquidity, amount0, amount1);
+        .withArgs(wallet.address, liquidity, reserves[0], reserves[1]);
     });
 
     it("fails if liquidity is zero", async () => {
@@ -129,7 +167,52 @@ export async function shouldBehaveLikeWithdraw(): Promise<void> {
         .be.reverted;
     });
 
-    it("", async () => {});
+    it("withdraw with fees earned", async () => {
+      await generateFeeThroughSwap(swapRouter, other, USDT, DAI, "1000");
+      await generateFeeThroughSwap(swapRouter, other, DAI, USDT, "1000");
+
+      const blnceBefore = await USDT.balanceOf(wallet.address);
+      const fees = await vault.callStatic.getPositionDetails(true);
+      await vault.withdraw(parseUnits("1000", "18"), wallet.address);
+      const userDaiBalance = await DAI.balanceOf(wallet.address);
+      const userUsdtBalance = await USDT.balanceOf(wallet.address);
+
+      const total0 = fees[0].add(fees[2]);
+      const total1 = fees[1].add(fees[3]);
+
+      expect(userDaiBalance).to.be.equal(total0);
+      expect(userUsdtBalance).to.be.equal(total1.add(blnceBefore));
+    });
+
+    it("fees compounding on withdraw", async () => {
+      await vault
+        .connect(other)
+        .deposit(parseUnits("1000", "18"), parseUnits("1000", "18"));
+
+      const user0LP = await vault.balanceOf(wallet.address);
+      const user1LP = await vault.balanceOf(other.address);
+
+      await generateFeeThroughSwap(swapRouter, other, USDT, DAI, "1000");
+      await generateFeeThroughSwap(swapRouter, other, DAI, USDT, "1000");
+
+      const blnceBefore = await USDT.balanceOf(wallet.address);
+      const reservesBefore = await vault.callStatic.getPositionDetails(true);
+      const amount0ToCompound = reservesBefore[0].add(reservesBefore[2]).div(2);
+      const amount1ToCompound = reservesBefore[1].add(reservesBefore[3]).div(2);
+
+      await vault.connect(other).withdraw(user1LP, other.address);
+      const reservesAfter = await vault.callStatic.getPositionDetails(true);
+
+      expect(amount0ToCompound).to.be.eq(reservesAfter[0]);
+      expect(amount1ToCompound).to.be.gte(reservesAfter[1]);
+
+      await vault.withdraw(user0LP, wallet.address);
+      const userDaiBalance = await DAI.balanceOf(wallet.address);
+      const userUsdtBalance = await USDT.balanceOf(wallet.address);
+
+      expect(userDaiBalance).to.be.eq(reservesAfter[0]);
+      expect(userUsdtBalance).to.be.gte(reservesAfter[1].add(blnceBefore));
+    });
 
     it("", async () => {});
   });
