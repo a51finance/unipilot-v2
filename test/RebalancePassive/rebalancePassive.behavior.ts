@@ -209,7 +209,9 @@ export async function shouldBehaveLikeRebalancePassive(): Promise<void> {
     console.log("latest block", latestBlock);
 
     await daiUsdtVault.readjustLiquidity();
-    const positionDetails = await daiUsdtVault.callStatic.getPositionDetails();
+    const positionDetails = await daiUsdtVault.callStatic.getPositionDetails(
+      false,
+    );
 
     let reserve0: BigNumber = positionDetails[0];
     let reserve1: BigNumber = positionDetails[1];

@@ -133,12 +133,16 @@ export async function shouldBehaveLikeDepositPassive(): Promise<void> {
 
   it("deposit suceed for eth", async () => {
     const ethBalanceBeforeDeposit = await wallet.getBalance();
+
     await unipilotVault
       .connect(wallet)
       .deposit(parseUnits("1000", "18"), parseUnits("2000", "18"), {
         value: parseUnits("1000", "18"),
       });
-    let positionDetails = await unipilotVault.callStatic.getPositionDetails();
+
+    let positionDetails = await unipilotVault.callStatic.getPositionDetails(
+      false,
+    );
     console.log("potiondetails", positionDetails);
 
     const ethBalanceAfterDeposit = await wallet.getBalance();
@@ -151,17 +155,12 @@ export async function shouldBehaveLikeDepositPassive(): Promise<void> {
     const balance0ETH = await provider.getBalance(unipilotVault.address);
     console.log("balanceEth", balance0ETH);
 
-    // const lpBalance = await unipilotVault.balanceOf(wallet.address);
-    // await unipilotVault.connect(wallet).withdraw(lpBalance, wallet.address);
-    await unipilotVault
-      .connect(wallet)
-      .deposit(parseUnits("1000", "18"), parseUnits("2000", "18"), {
-        value: parseUnits("1000", "18"),
-      });
-    positionDetails = await unipilotVault.callStatic.getPositionDetails();
-    console.log("potiondetails", positionDetails);
-    // expect(positionDetails[0]).to.be.equal(
-    //   ethBalanceBeforeDeposit.sub(ethBalanceAfterDeposit),
-    // );
+    const ethDeposited = ethBalanceBeforeDeposit.sub(ethBalanceAfterDeposit);
+    console.log("positionDetails", positionDetails[0], ethDeposited);
+    expect(
+      parseUnits("999", "18").lte(positionDetails[0]) &&
+        positionDetails[0].lte(ethDeposited) &&
+        ethDeposited.lt(parseUnits("1001", "18")),
+    ).to.be.true;
   });
 }

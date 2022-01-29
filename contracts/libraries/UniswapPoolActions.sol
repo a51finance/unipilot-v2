@@ -132,4 +132,47 @@ library UniswapPoolActions {
             abi.encode(zeroForOne)
         );
     }
+
+    function collectPendingFees(
+        IUniswapV3Pool pool,
+        address recipient,
+        int24 tickLower,
+        int24 tickUpper
+    ) internal returns (uint256 collect0, uint256 collect1) {
+        updatePosition(pool, tickLower, tickUpper);
+
+        (collect0, collect1) = pool.collect(
+            recipient,
+            tickLower,
+            tickUpper,
+            type(uint128).max,
+            type(uint128).max
+        );
+    }
+
+    function compoundLiquidity(
+        IUniswapV3Pool pool,
+        address payer,
+        uint256 balance0,
+        uint256 balance1,
+        int24 tickLower,
+        int24 tickUpper
+    ) internal returns (uint256 amount0, uint256 amount1) {
+        uint128 liquidity = pool.getLiquidityForAmounts(
+            balance0,
+            balance1,
+            tickLower,
+            tickUpper
+        );
+
+        if (liquidity > 0) {
+            (amount0, amount1) = mintLiquidity(
+                pool,
+                payer,
+                tickLower,
+                tickUpper,
+                liquidity
+            );
+        }
+    }
 }
