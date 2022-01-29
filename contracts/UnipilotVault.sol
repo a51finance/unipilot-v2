@@ -23,7 +23,7 @@ contract UnipilotVault is ERC20Permit, ERC20Burnable, IUnipilotVault {
     IUniswapV3Pool private pool;
     IUnipilotFactory private unipilotFactory;
 
-    TicksData private ticksData;
+    TicksData public ticksData;
     int24 private tickSpacing;
     address private WETH;
     uint8 private _unlocked = 1;
@@ -106,7 +106,6 @@ contract UnipilotVault is ERC20Permit, ERC20Burnable, IUnipilotVault {
             ticksData.baseTickLower,
             ticksData.baseTickUpper
         );
-        console.log("liquidity", liquidity);
         (amount0, amount1) = pool.mintLiquidity(
             _depositor,
             ticksData.baseTickLower,
@@ -500,7 +499,6 @@ contract UnipilotVault is ERC20Permit, ERC20Burnable, IUnipilotVault {
         _verifyCallback();
         address recipient = msg.sender;
         address payer = abi.decode(data, (address));
-
         if (amount0Owed > 0)
             pay(address(token0), payer, recipient, amount0Owed);
         if (amount1Owed > 0)
