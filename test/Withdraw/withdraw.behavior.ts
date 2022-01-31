@@ -216,4 +216,21 @@ export async function shouldBehaveLikeWithdraw(): Promise<void> {
 
     it("", async () => {});
   });
+
+  describe("#withdraw for passive pools", () => {
+    beforeEach("Deposit in unipilot vault", async () => {
+      await vault.deposit(parseUnits("1000", "18"), parseUnits("1000", "18"));
+    });
+
+    it("withdraw", async () => {
+      await vault.withdraw(parseUnits("1000", "18"), wallet.address);
+      const userLpBalance = await vault.balanceOf(wallet.address);
+      const userDaiBalance = await DAI.balanceOf(wallet.address);
+      const userUsdtBalance = await USDT.balanceOf(wallet.address);
+
+      expect(userLpBalance).to.be.equal(0);
+      expect(userDaiBalance).to.be.gte(parseUnits("999", "18"));
+      expect(userUsdtBalance).to.be.gte(parseUnits("999", "18"));
+    });
+  });
 }
