@@ -488,7 +488,6 @@ contract UnipilotVault is ERC20Permit, ERC20Burnable, IUnipilotVault {
         _verifyCallback();
         address recipient = msg.sender;
         address payer = abi.decode(data, (address));
-
         if (amount0Owed > 0)
             pay(address(token0), payer, recipient, amount0Owed);
         if (amount1Owed > 0)

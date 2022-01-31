@@ -1,4 +1,3 @@
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { expect } from "chai";
 import { BigNumber, Contract, Wallet } from "ethers";
 import { parseUnits } from "ethers/lib/utils";
@@ -9,7 +8,6 @@ import {
 } from "../utils/fixtures";
 import { MaxUint256 } from "@ethersproject/constants";
 import { ethers, waffle } from "hardhat";
-import { createFixtureLoader } from "ethereum-waffle";
 import { encodePriceSqrt } from "../utils/encodePriceSqrt";
 import {
   UniswapV3Pool,
@@ -17,6 +15,7 @@ import {
   UnipilotVault,
 } from "../../typechain";
 import { generateFeeThroughSwap } from "../utils/SwapFunction/swap";
+
 export async function shouldBehaveLikeDepositPassive(): Promise<void> {
   const createFixtureLoader = waffle.createFixtureLoader;
   let uniswapV3Factory: Contract;
@@ -25,18 +24,15 @@ export async function shouldBehaveLikeDepositPassive(): Promise<void> {
   let unipilotFactory: Contract;
   let swapRouter: Contract;
   let unipilotVault: UnipilotVault;
-  let shibPilotVault: UnipilotVault;
-  let SHIB: Contract;
-  let PILOT: Contract;
   let DAI: Contract;
   let USDT: Contract;
-  let daiUsdtUniswapPool: UniswapV3Pool;
-  let shibPilotUniswapPool: UniswapV3Pool;
-  let token0: string;
-  let token1: string;
+  let WETH9: Contract;
+  let wethUsdtUniswapPool: UniswapV3Pool;
+  const provider = waffle.provider;
+
   const encodedPrice = encodePriceSqrt(
     parseUnits("1", "18"),
-    parseUnits("8", "18"),
+    parseUnits("2", "18"),
   );
 
   type ThenArg<T> = T extends PromiseLike<infer U> ? U : T;
@@ -52,12 +48,9 @@ export async function shouldBehaveLikeDepositPassive(): Promise<void> {
 
   before("fixtures deployer", async () => {
     loadFixture = createFixtureLoader([wallet, other]);
-    // console.log("Before callled -->");
   });
 
   beforeEach("setting up fixture contracts", async () => {
-    // console.log("BeforeEach callled -->");
-
     ({
       uniswapV3Factory,
       uniswapV3PositionManager,
@@ -65,314 +58,109 @@ export async function shouldBehaveLikeDepositPassive(): Promise<void> {
       unipilotFactory,
       DAI,
       USDT,
-      PILOT,
-      SHIB,
+      WETH9,
       uniStrategy,
       createVault,
     } = await loadFixture(unipilotVaultFixture));
-    if (PILOT.address < USDT.address) {
-      token0 = PILOT.address;
-      token1 = USDT.address;
-    } else {
-      token0 = USDT.address;
-      token1 = PILOT.address;
-    }
-    await uniswapV3Factory.createPool(token0, token1, 3000);
-    await uniswapV3Factory.createPool(SHIB.address, PILOT.address, 3000);
 
-    let daiUsdtPoolAddress = await uniswapV3Factory.getPool(
-      token0,
-      token1,
+    await uniswapV3Factory.createPool(WETH9.address, USDT.address, 3000);
+
+    let wethUsdtPoolAddress = await uniswapV3Factory.getPool(
+      WETH9.address,
+      USDT.address,
       3000,
     );
 
-    let shibPilotPoolAddress = await uniswapV3Factory.getPool(
-      SHIB.address,
-      PILOT.address,
-      3000,
-    );
-
-    daiUsdtUniswapPool = (await ethers.getContractAt(
+    wethUsdtUniswapPool = (await ethers.getContractAt(
       "UniswapV3Pool",
-      daiUsdtPoolAddress,
+      wethUsdtPoolAddress,
     )) as UniswapV3Pool;
 
-    shibPilotUniswapPool = (await ethers.getContractAt(
-      "UniswapV3Pool",
-      shibPilotPoolAddress,
-    )) as UniswapV3Pool;
+    await wethUsdtUniswapPool.initialize(encodedPrice);
 
-    await daiUsdtUniswapPool.initialize(encodedPrice);
-    await shibPilotUniswapPool.initialize(encodedPrice);
-
-    await uniStrategy.setBaseTicks(
-      [daiUsdtPoolAddress, shibPilotPoolAddress],
-      [1800, 1800],
-    );
+    await uniStrategy.setBaseTicks([wethUsdtPoolAddress], [1800]);
 
     unipilotVault = await createVault(
-      token0,
-      token1,
+      WETH9.address,
+      USDT.address,
       3000,
       encodedPrice,
       "unipilot PILOT-USDT",
       "PILOT-USDT",
     );
 
-    shibPilotVault = await createVault(
-      SHIB.address,
-      PILOT.address,
-      3000,
-      encodedPrice,
-      "unipilot PILOT-USDT",
-      "PILOT-USDT",
+    await USDT._mint(wallet.address, parseUnits("5000", "18"));
+    await USDT.connect(alice)._mint(alice.address, parseUnits("5000", "18"));
+
+    await WETH9.connect(alice).approve(
+      uniswapV3PositionManager.address,
+      MaxUint256,
     );
-
-    await USDT._mint(wallet.address, parseUnits("2000000", "18"));
-    await SHIB._mint(wallet.address, parseUnits("2000000", "18"));
-    await PILOT._mint(wallet.address, parseUnits("2000000", "18"));
-    await SHIB._mint(alice.address, parseUnits("2000000", "18"));
-
-    await USDT.approve(uniswapV3PositionManager.address, MaxUint256);
-    await SHIB.approve(uniswapV3PositionManager.address, MaxUint256);
-    await PILOT.approve(uniswapV3PositionManager.address, MaxUint256);
+    await USDT.connect(alice).approve(
+      uniswapV3PositionManager.address,
+      MaxUint256,
+    );
 
     await USDT.connect(wallet).approve(unipilotVault.address, MaxUint256);
-    await PILOT.connect(wallet).approve(unipilotVault.address, MaxUint256);
-    await SHIB.connect(wallet).approve(shibPilotVault.address, MaxUint256);
-    await PILOT.connect(wallet).approve(shibPilotVault.address, MaxUint256);
+    await WETH9.connect(wallet).approve(unipilotVault.address, MaxUint256);
 
     await USDT.connect(wallet).approve(swapRouter.address, MaxUint256);
-    await PILOT.connect(wallet).approve(swapRouter.address, MaxUint256);
-    await SHIB.connect(wallet).approve(swapRouter.address, MaxUint256);
+    await WETH9.connect(wallet).approve(swapRouter.address, MaxUint256);
 
-    await uniswapV3PositionManager.connect(wallet).mint(
-      {
-        token0: token0,
-        token1: token1,
-        tickLower: getMinTick(60),
-        tickUpper: getMaxTick(60),
-        fee: 3000,
-        recipient: wallet.address,
-        amount0Desired: parseUnits("5000", "18"),
-        amount1Desired: parseUnits("5000", "18"),
-        amount0Min: 0,
-        amount1Min: 0,
-        deadline: 2000000000,
-      },
-      {
-        gasLimit: "3000000",
-      },
-    );
-  });
+    await USDT.connect(wallet).approve(wethUsdtPoolAddress, MaxUint256);
+    await WETH9.connect(wallet).approve(wethUsdtPoolAddress, MaxUint256);
 
-  it("checking name of vault LP Token", async () => {
-    const vaultName = (await unipilotVault.name()).toString();
-    expect(vaultName).to.be.equal("unipilot PILOT-USDT");
-  });
-
-  it("checking symbol of vault LP Token", async () => {
-    const vaultSymbol = (await unipilotVault.symbol()).toString();
-    expect(vaultSymbol).to.be.equal("PILOT-USDT");
-  });
-
-  it("checking total supply of vault LP Token", async () => {
-    const totalSupply = (await unipilotVault.totalSupply()).toString();
-    expect(totalSupply).to.be.equal("0");
-  });
-
-  it("should successfully deposit", async () => {
-    const usdtMintedOnWallet0 = parseUnits("2000000", "18");
-
-    const mintedUsdtOnUniswap = parseUnits("5000", "18")
-      .mul(parseUnits("1", "18"))
-      .div(parseUnits("1", "18"));
-
-    const expectedUsdtBalanceBeforeDeposit =
-      usdtMintedOnWallet0.sub(mintedUsdtOnUniswap);
-
-    const usdtToBeDesposited = parseUnits("1000", "18")
-      .mul(parseUnits("1", "18"))
-      .div(parseUnits("1", "18"));
-
-    const expectedUsdtBalanceAfterDeposit =
-      expectedUsdtBalanceBeforeDeposit.sub(usdtToBeDesposited);
-
-    console.log(
-      "expectedUsdtBalanceAfterDeposit",
-      expectedUsdtBalanceAfterDeposit,
-    );
-
-    const daiMintedOnWallet0 = parseUnits("2000000", "18");
-
-    const mintedDaiOnUniswap = parseUnits("5000", "18")
-      .mul(parseUnits("1", "18"))
-      .div(parseUnits("8", "18"));
-
-    console.log("mintedDaiOnUniswap", mintedDaiOnUniswap);
-    const expectedDaiBalanceBeforeDeposit =
-      daiMintedOnWallet0.sub(mintedDaiOnUniswap); // 1995000
-
-    const daiToBeDesposited = parseUnits("1000", "18")
-      .mul(parseUnits("1", "18"))
-      .div(parseUnits("8", "18")); // 125
-
-    const expectedDaiBalanceAfterDeposit =
-      expectedDaiBalanceBeforeDeposit.sub(daiToBeDesposited); //1994875
-
-    console.log(
-      "expectedDaiBalanceAfterDeposit",
-      expectedDaiBalanceAfterDeposit,
-    );
-
-    await unipilotVault.init();
-    await unipilotVault
-      .connect(wallet)
-      .deposit(parseUnits("1000", "18"), parseUnits("1000", "18"));
-
-    const daiBalance: BigNumber = await PILOT.balanceOf(wallet.address);
-    const usdtBalance: BigNumber = await USDT.balanceOf(wallet.address);
-
-    // console.log(
-    //   "after first deposit balance",
-    //   daiBalance,
-    //   expectedDaiBalanceAfterDeposit,
-    //   usdtBalance,
-    //   expectedUsdtBalanceAfterDeposit,
+    // await uniswapV3PositionManager.connect(alice).mint(
+    //   {
+    //     token0: WETH9.address,
+    //     token1: USDT.address,
+    //     tickLower: getMinTick(60),
+    //     tickUpper: getMaxTick(60),
+    //     fee: 3000,
+    //     recipient: wallet.address,
+    //     amount0Desired: parseUnits("1000", "18"),
+    //     amount1Desired: parseUnits("1000", "18"),
+    //     amount0Min: 0,
+    //     amount1Min: 0,
+    //     deadline: 2000000000,
+    //   },
+    //   {
+    //     gasLimit: "3000000",
+    //     value: parseUnits("1000", "18"),
+    //   },
     // );
-
-    // expect(daiBalance).to.be.equal(expectedDaiBalanceAfterDeposit);
-    // expect(usdtBalance).to.be.equal(expectedUsdtBalanceAfterDeposit);
   });
 
-  it("should successfully predict amounts after deposit", async () => {
-    await unipilotVault.init();
-    await unipilotVault
-      .connect(wallet)
-      .deposit(parseUnits("1000", "18"), parseUnits("1000", "18"));
-
-    await unipilotVault.readjustLiquidity();
+  it("deposit suceed for eth", async () => {
+    const ethBalanceBeforeDeposit = await wallet.getBalance();
 
     await unipilotVault
       .connect(wallet)
-      .deposit(parseUnits("1000", "18"), parseUnits("1000", "18"));
+      .deposit(parseUnits("1000", "18"), parseUnits("2000", "18"), {
+        value: parseUnits("1000", "18"),
+      });
 
-    const usdtMintedOnWallet0 = parseUnits("2000000", "18");
+    let positionDetails = await unipilotVault.callStatic.getPositionDetails(
+      false,
+    );
+    console.log("potiondetails", positionDetails);
 
-    const mintedUsdtOnUniswap = parseUnits("5000", "18")
-      .mul(parseUnits("1", "18"))
-      .div(parseUnits("1", "18"));
-
-    const expectedUsdtBalanceBeforeDeposit =
-      usdtMintedOnWallet0.sub(mintedUsdtOnUniswap);
-
-    const usdtToBeDesposited = parseUnits("2000", "18")
-      .mul(parseUnits("1", "18"))
-      .div(parseUnits("1", "18"));
-
-    const expectedUsdtBalanceAfterDeposit =
-      expectedUsdtBalanceBeforeDeposit.sub(usdtToBeDesposited);
-
-    const daiMintedOnWallet0 = parseUnits("2000000", "18");
-
-    const mintedDaiOnUniswap = parseUnits("5000", "18")
-      .mul(parseUnits("1", "18"))
-      .div(parseUnits("8", "18"));
-
-    const expectedDaiBalanceBeforeDeposit =
-      daiMintedOnWallet0.sub(mintedDaiOnUniswap); // 1995000
-
-    const daiToBeDesposited = parseUnits("2000", "18")
-      .mul(parseUnits("1", "18"))
-      .div(parseUnits("8", "18")); // 125
-
-    const expectedDaiBalanceAfterDeposit =
-      expectedDaiBalanceBeforeDeposit.sub(daiToBeDesposited); //1994875
-
-    const daiBalance: BigNumber = await PILOT.balanceOf(wallet.address);
-    const usdtBalance: BigNumber = await USDT.balanceOf(wallet.address);
-
+    const ethBalanceAfterDeposit = await wallet.getBalance();
     console.log(
-      "after second deposit balance",
-      daiBalance,
-      expectedDaiBalanceAfterDeposit,
-      usdtBalance,
-      expectedUsdtBalanceAfterDeposit,
+      "ethBalanceAfterDeposit",
+      ethBalanceAfterDeposit,
+      ethBalanceBeforeDeposit,
     );
 
-    expect(daiBalance).to.be.equal(expectedDaiBalanceAfterDeposit);
-    expect(usdtBalance).to.be.equal(expectedUsdtBalanceAfterDeposit);
-  });
+    const balance0ETH = await provider.getBalance(unipilotVault.address);
+    console.log("balanceEth", balance0ETH);
 
-  // it("passive whitelist readjust", async () => {
-  //   await unipilotFactory
-  //     .connect(wallet)
-  //     .whitelistVaults([unipilotVault.address]);
-
-  //   await unipilotVault.init();
-  //   await unipilotVault
-  //     .connect(wallet)
-  //     .deposit(parseUnits("1000", "18"), parseUnits("1000", "18"));
-
-  //   // await unipilotVault.connect(wallet).readjustLiquidity();
-  // });
-
-  it("fees calculation", async () => {
-    const pilotBalanceBeforeDeposit: BigNumber = await PILOT.balanceOf(
-      wallet.address,
-    );
-
-    const shibBalanceBeforeDeposit: BigNumber = await SHIB.balanceOf(
-      wallet.address,
-    );
-
-    const shibMintedOnWallet = parseUnits("2000000", "18");
-    const pilotMintedOnWallet = parseUnits("2000000", "18");
-
-    await shibPilotVault.init();
-    const a = await shibPilotVault
-      .connect(wallet)
-      .callStatic.deposit(parseUnits("10000", "18"), parseUnits("80000", "18"));
-
-    console.log("deposited", a);
-    await shibPilotVault
-      .connect(wallet)
-      .deposit(parseUnits("10000", "18"), parseUnits("80000", "18"));
-
-    const lpBalance: BigNumber = await shibPilotVault
-      .connect(wallet)
-      .balanceOf(wallet.address);
-
-    await generateFeeThroughSwap(swapRouter, alice, PILOT, SHIB, "2000");
-
-    const calculatedFees = await parseUnits("2000", "18")
-      .mul(parseUnits("0.3", "18"))
-      .div(parseUnits("100", "18"));
-
-    console.log("calculated fees", calculatedFees);
-    const fees = await shibPilotVault.callStatic.getPositionDetails(false);
-    console.log("feeses", fees);
-
-    expect(fees[2]).to.be.equal(calculatedFees.div(parseUnits("1", "18")));
-
-    const withdrawFunds = await shibPilotVault.callStatic.withdraw(
-      lpBalance,
-      wallet.address,
-    );
-    console.log("withdrawFunds", withdrawFunds);
-
-    await shibPilotVault.withdraw(lpBalance, wallet.address);
-
-    const newPilotBalance: BigNumber = await PILOT.balanceOf(wallet.address);
-    const newShibBalance: BigNumber = await SHIB.balanceOf(wallet.address);
-
-    console.log("newPilotBalance", newPilotBalance);
-    console.log("newShibBalance", newShibBalance);
-
-    const pilotBalanceAfterWithdraw =
-      pilotBalanceBeforeDeposit.add(calculatedFees);
-
-    expect(newPilotBalance).to.be.equal(pilotBalanceAfterWithdraw);
-    expect(newShibBalance).to.be.equal(shibBalanceBeforeDeposit);
+    const ethDeposited = ethBalanceBeforeDeposit.sub(ethBalanceAfterDeposit);
+    console.log("positionDetails", positionDetails[0], ethDeposited);
+    expect(
+      parseUnits("999", "18").lte(positionDetails[0]) &&
+        positionDetails[0].lte(ethDeposited) &&
+        ethDeposited.lt(parseUnits("1001", "18")),
+    ).to.be.true;
   });
 }

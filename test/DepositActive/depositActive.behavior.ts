@@ -1,4 +1,3 @@
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { expect } from "chai";
 import { BigNumber, Contract, Wallet } from "ethers";
 import { parseUnits } from "ethers/lib/utils";
@@ -9,7 +8,6 @@ import {
 } from "../utils/fixtures";
 import { MaxUint256 } from "@ethersproject/constants";
 import { ethers, waffle } from "hardhat";
-import { createFixtureLoader } from "ethereum-waffle";
 import { encodePriceSqrt } from "../utils/encodePriceSqrt";
 import {
   UniswapV3Pool,

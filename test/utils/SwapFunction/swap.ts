@@ -10,8 +10,8 @@ export async function generateFeeThroughSwap(
   tokenOut: Contract,
   amountIn: string,
 ) {
-  await tokenIn.approve(swapRouter.address, MaxUint256);
-  await tokenOut.approve(swapRouter.address, MaxUint256);
+  // await tokenIn.approve(swapRouter.address, MaxUint256);
+  // await tokenOut.approve(swapRouter.address, MaxUint256);
 
   const decimalsIn: BigNumber = await tokenIn.decimals();
   const decimalsOut: BigNumber = await tokenOut.decimals();
