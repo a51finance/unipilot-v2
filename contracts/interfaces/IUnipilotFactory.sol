@@ -37,7 +37,9 @@ interface IUnipilotFactory {
         address _tokenA,
         address _tokenB,
         uint24 _fee,
-        uint160 _sqrtPriceX96
+        uint160 _sqrtPriceX96,
+        string memory _name,
+        string memory _symbol
     ) external returns (address _vault);
 
     /// @notice Used to check whether the pool is active or passive
