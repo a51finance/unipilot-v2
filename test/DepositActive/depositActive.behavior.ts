@@ -191,12 +191,12 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
 
   it("checking name of vault LP Token", async () => {
     const vaultName = (await unipilotVault.name()).toString();
-    expect(vaultName).to.be.equal("Token Name");
+    expect(vaultName).to.be.equal("unipilot PILOT-USDT");
   });
 
   it("checking symbol of vault LP Token", async () => {
     const vaultSymbol = (await unipilotVault.symbol()).toString();
-    expect(vaultSymbol).to.be.equal("Token Symbol");
+    expect(vaultSymbol).to.be.equal("PILOT-USDT");
   });
 
   it("checking total supply of vault LP Token", async () => {
