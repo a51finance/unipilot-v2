@@ -32,7 +32,7 @@ export async function shouldBehaveLikeDepositPassive(): Promise<void> {
 
   const encodedPrice = encodePriceSqrt(
     parseUnits("1", "18"),
-    parseUnits("2", "18"),
+    parseUnits("8", "18"),
   );
 
   type ThenArg<T> = T extends PromiseLike<infer U> ? U : T;
@@ -89,8 +89,8 @@ export async function shouldBehaveLikeDepositPassive(): Promise<void> {
       "PILOT-USDT",
     );
 
-    await USDT._mint(wallet.address, parseUnits("5000", "18"));
-    await USDT.connect(alice)._mint(alice.address, parseUnits("5000", "18"));
+    await USDT._mint(wallet.address, parseUnits("10000", "18"));
+    await USDT.connect(alice)._mint(alice.address, parseUnits("10000", "18"));
 
     await WETH9.connect(alice).approve(
       uniswapV3PositionManager.address,
@@ -136,7 +136,7 @@ export async function shouldBehaveLikeDepositPassive(): Promise<void> {
 
     await unipilotVault
       .connect(wallet)
-      .deposit(parseUnits("1000", "18"), parseUnits("2000", "18"), {
+      .deposit(parseUnits("1000", "18"), parseUnits("10000", "18"), {
         value: parseUnits("1000", "18"),
       });
 
@@ -162,5 +162,15 @@ export async function shouldBehaveLikeDepositPassive(): Promise<void> {
         positionDetails[0].lte(ethDeposited) &&
         ethDeposited.lt(parseUnits("1001", "18")),
     ).to.be.true;
+  });
+
+  it("deposit events emitted", async () => {
+    await expect(
+      await unipilotVault
+        .connect(wallet)
+        .deposit(parseUnits("1000", "18"), parseUnits("10000", "18"), {
+          value: parseUnits("1000", "18"),
+        }),
+    ).to.emit(unipilotVault, "Deposit");
   });
 }
