@@ -3,7 +3,6 @@ pragma solidity ^0.7.6;
 
 import "./UnipilotVault.sol";
 import "./interfaces/IUnipilotFactory.sol";
-import "./interfaces/IERC20Token.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 
@@ -43,7 +42,9 @@ contract UnipilotFactory is IUnipilotFactory {
         address _tokenA,
         address _tokenB,
         uint24 _fee,
-        uint160 _sqrtPriceX96
+        uint160 _sqrtPriceX96,
+        string memory _name,
+        string memory _symbol
     ) external override returns (address _vault) {
         require(_tokenA != _tokenB, "TE");
         (address token0, address token1) = _tokenA < _tokenB
@@ -56,33 +57,10 @@ contract UnipilotFactory is IUnipilotFactory {
             pool = uniswapFactory.createPool(token0, token1, _fee);
             IUniswapV3Pool(pool).initialize(_sqrtPriceX96);
         }
-
-        // string memory name = string(
-        //     abi.encodePacked(
-        //         IERC20Token(token0).name(),
-        //         "-",
-        //         IERC20Token(token1).name(),
-        //         "-",
-        //         _fee
-        //     )
-        // );
-
-        // string memory symbol = string(
-        //     abi.encodePacked(
-        //         IERC20Token(token0).symbol(),
-        //         "-",
-        //         IERC20Token(token1).symbol(),
-        //         "-",
-        //         _fee
-        //     )
-        // );
-        string memory name = "Token Name";
-        string memory symbol = "Token Symbol";
-
         _vault = address(
             new UnipilotVault{
                 salt: keccak256(abi.encodePacked(_tokenA, _tokenB, _fee))
-            }(pool, address(this), WETH, name, symbol)
+            }(pool, address(this), WETH, _name, _symbol)
         );
         vaults[token0][token1][_fee] = _vault;
         vaults[token1][token0][_fee] = _vault; // populate mapping in the reverse direction
@@ -122,6 +100,11 @@ contract UnipilotFactory is IUnipilotFactory {
             whitelistedVaults[toggleAddress] = !whitelistedVaults[
                 toggleAddress
             ];
+
+            emit VaultWhitelistStatus(
+                toggleAddress,
+                whitelistedVaults[toggleAddress]
+            );
         }
     }
 }

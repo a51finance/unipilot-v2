@@ -15,6 +15,8 @@ interface IUnipilotFactory {
         address indexed _vault
     );
 
+    event VaultWhitelistStatus(address indexed _vault, bool status);
+
     /// @notice Emitted when the governance of the factory is changed
     /// @param _oldGovernance The governance before the governance was changed
     /// @param _newGovernance The governance after the governance was changed
@@ -35,7 +37,9 @@ interface IUnipilotFactory {
         address _tokenA,
         address _tokenB,
         uint24 _fee,
-        uint160 _sqrtPriceX96
+        uint160 _sqrtPriceX96,
+        string memory _name,
+        string memory _symbol
     ) external returns (address _vault);
 
     /// @notice Used to check whether the pool is active or passive
