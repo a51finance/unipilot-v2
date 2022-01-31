@@ -126,8 +126,8 @@ contract UnipilotVault is ERC20Permit, ERC20Burnable, IUnipilotVault {
                 _depositor,
                 ticksData.rangeTickLower,
                 ticksData.rangeTickUpper,
-                _balance0(),
-                _balance1()
+                _amount0Desired.sub(amount0Base),
+                _amount1Desired.sub(amount1Base)
             );
 
             amount0 = amount0Base.add(amount0Range);
@@ -306,8 +306,8 @@ contract UnipilotVault is ERC20Permit, ERC20Burnable, IUnipilotVault {
         ticksData.baseTickLower = ticks.baseTickLower;
         ticksData.baseTickUpper = ticks.baseTickUpper;
 
-        uint256 remainingAmount0 = _balance0();
-        uint256 remainingAmount1 = _balance1();
+        uint256 remainingAmount0 = _amount0Desired.sub(amount0);
+        uint256 remainingAmount1 = _amount1Desired.sub(amount1);
 
         uint128 rangeLiquidity;
         if (remainingAmount0 > 0 || remainingAmount1 > 0) {
