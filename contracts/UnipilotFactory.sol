@@ -100,6 +100,11 @@ contract UnipilotFactory is IUnipilotFactory {
             whitelistedVaults[toggleAddress] = !whitelistedVaults[
                 toggleAddress
             ];
+
+            emit VaultWhitelistStatus(
+                toggleAddress,
+                whitelistedVaults[toggleAddress]
+            );
         }
     }
 }
