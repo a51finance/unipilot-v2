@@ -97,8 +97,16 @@ library UniswapPoolActions {
         address payer,
         int24 tickLower,
         int24 tickUpper,
-        uint128 liquidity
+        uint256 amount0Desired,
+        uint256 amount1Desired
     ) internal returns (uint256 amount0, uint256 amount1) {
+        uint128 liquidity = pool.getLiquidityForAmounts(
+            amount0Desired,
+            amount1Desired,
+            tickLower,
+            tickUpper
+        );
+
         if (liquidity > 0) {
             (amount0, amount1) = pool.mint(
                 address(this),
@@ -130,6 +138,23 @@ library UniswapPoolActions {
             amountSpecified,
             sqrtPriceLimitX96,
             abi.encode(zeroForOne)
+        );
+    }
+
+    function collectPendingFees(
+        IUniswapV3Pool pool,
+        address recipient,
+        int24 tickLower,
+        int24 tickUpper
+    ) internal returns (uint256 collect0, uint256 collect1) {
+        updatePosition(pool, tickLower, tickUpper);
+
+        (collect0, collect1) = pool.collect(
+            recipient,
+            tickLower,
+            tickUpper,
+            type(uint128).max,
+            type(uint128).max
         );
     }
 }

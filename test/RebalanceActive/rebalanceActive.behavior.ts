@@ -142,7 +142,14 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
     await PILOT.connect(wallet).approve(swapRouter.address, MaxUint256);
 
     await SHIB.connect(alice).approve(swapRouter.address, MaxUint256);
-    await PILOT.connect(alice).approve(swapRouter.address, MaxUint256);
+    // await PILOT.connect(alice).approve(swapRouter.address, ts an event", async () => {
+    //   const liquidity = await vault.balanceOf(wallet.address);
+    //   const { amount0, amount1 } = await vault.callStatic.getPositionDetails(true);
+
+    //   await expect(await vault.withdraw(liquidity, wallet.address))
+    //     .to.emit(vault, "Withdraw")
+    //     .withArgs(wallet.address, wallet.address, liquidity, amount0, amount1);
+    // });MaxUint256);
 
     await SHIB.connect(bob).approve(swapRouter.address, MaxUint256);
     await PILOT.connect(bob).approve(swapRouter.address, MaxUint256);
@@ -177,15 +184,15 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
       .connect(wallet)
       .deposit(parseUnits("5000", "18"), parseUnits("5000", "18"));
 
-    let positionDetails = await daiUsdtVault.callStatic.getPositionDetails();
+    // let positionDetails = await daiUsdtVault.callStatic.getPositionDetails();
 
-    console.log("positionDetails before swap", positionDetails);
+    // console.log("positionDetails before swap", positionDetails);
 
     await generateFeeThroughSwap(swapRouter, bob, USDT, DAI, "5000");
 
-    positionDetails = await daiUsdtVault.callStatic.getPositionDetails();
+    // positionDetails = await daiUsdtVault.callStatic.getPositionDetails();
 
-    console.log("positionDetails after swap", positionDetails);
+    // console.log("positionDetails after swap", positionDetails);
 
     // await daiUsdtVault.readjustLiquidity();
 
@@ -211,7 +218,9 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
 
     await generateFeeThroughSwap(swapRouter, bob, USDT, DAI, "5000");
 
-    let positionDetails = await daiUsdtVault.callStatic.getPositionDetails();
+    let positionDetails = await daiUsdtVault.callStatic.getPositionDetails(
+      true,
+    );
 
     console.log("positionDetails after swap", positionDetails);
 
@@ -250,10 +259,12 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
     const usdtBalanceAfterDeposit = await USDT.balanceOf(wallet.address);
     const daiBalanceAfterDeposit = await DAI.balanceOf(wallet.address);
 
-    let positionDetails = await daiUsdtVault.callStatic.getPositionDetails();
+    let positionDetails = await daiUsdtVault.callStatic.getPositionDetails(
+      true,
+    );
     await generateFeeThroughSwap(swapRouter, bob, USDT, DAI, "5000");
 
-    positionDetails = await daiUsdtVault.callStatic.getPositionDetails();
+    positionDetails = await daiUsdtVault.callStatic.getPositionDetails(true);
 
     console.log("positionDetails after swap", positionDetails);
 
@@ -262,7 +273,7 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
     await daiUsdtVault.readjustLiquidity();
 
     let positionDetailsAferReadjust =
-      await daiUsdtVault.callStatic.getPositionDetails();
+      await daiUsdtVault.callStatic.getPositionDetails(true);
 
     console.log("position details after readjust", positionDetailsAferReadjust);
     expect(positionDetailsAferReadjust[2]).to.be.eq(parseUnits("0", "18"));

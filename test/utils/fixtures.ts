@@ -22,7 +22,6 @@ const deployWeth9 = async (wallet: Wallet) => {
 
 const deployUniswap = async (wallet: Wallet, WETH9: Contract) => {
   let uniswapv3Contracts = await deployUniswapContracts(wallet, WETH9);
-  console.log("uniswapv3COntracts factory", uniswapv3Contracts.factory.address);
   const nonFungible = await ethers.getContractFactory(
     "NonfungiblePositionManager",
   );
@@ -50,6 +49,7 @@ interface TEST_ERC20 {
   USDT: Contract;
   PILOT: Contract;
   SHIB: Contract;
+  WETH9: Contract;
 }
 
 interface STRATEGIES {
@@ -125,7 +125,6 @@ export const unipilotVaultFixture: Fixture<UNIPILOT_VAULT_FIXTURE> =
     const USDT = await deployToken(wallet, "Tether Stable", "USDT", 18);
     const PILOT = await deployToken(wallet, "Pilot", "PILOT", 18);
     const SHIB = await deployToken(wallet, "Shiba Inu", "SHIB", 18);
-
     const unipilotVaultDep = await ethers.getContractFactory("UnipilotVault");
 
     return {
@@ -137,6 +136,7 @@ export const unipilotVaultFixture: Fixture<UNIPILOT_VAULT_FIXTURE> =
       USDT,
       PILOT,
       SHIB,
+      WETH9,
       uniStrategy,
       createVault: async (
         tokenA,

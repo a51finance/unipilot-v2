@@ -15,6 +15,8 @@ interface IUnipilotFactory {
         address indexed _vault
     );
 
+    event VaultWhitelistStatus(address indexed _vault, bool status);
+
     /// @notice Emitted when the governance of the factory is changed
     /// @param _oldGovernance The governance before the governance was changed
     /// @param _newGovernance The governance after the governance was changed
