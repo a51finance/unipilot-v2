@@ -127,7 +127,7 @@ export async function shouldBehaveLikeWithdraw(): Promise<void> {
     });
 
     it("withdraw", async () => {
-      await vault.withdraw(parseUnits("1000", "18"), wallet.address);
+      await vault.withdraw(parseUnits("1000", "18"), wallet.address, false);
       const userLpBalance = await vault.balanceOf(wallet.address);
       const userDaiBalance = await DAI.balanceOf(wallet.address);
       const userUsdtBalance = await USDT.balanceOf(wallet.address);
@@ -141,30 +141,33 @@ export async function shouldBehaveLikeWithdraw(): Promise<void> {
       const liquidity = await vault.balanceOf(wallet.address);
       const reserves = await vault.callStatic.getPositionDetails(true);
 
-      await expect(await vault.withdraw(liquidity, wallet.address))
+      await expect(await vault.withdraw(liquidity, wallet.address, false))
         .to.emit(vault, "Withdraw")
         .withArgs(wallet.address, liquidity, reserves[0], reserves[1]);
     });
 
     it("fails if liquidity is zero", async () => {
-      await expect(vault.withdraw(0, wallet.address)).to.be.reverted;
+      await expect(vault.withdraw(0, wallet.address, false)).to.be.reverted;
     });
 
     it("fails if zero address", async () => {
       await expect(
-        vault.withdraw(parseUnits("1000", "18"), constants.AddressZero),
+        vault.withdraw(parseUnits("1000", "18"), constants.AddressZero, false),
       ).to.be.reverted;
     });
 
     it("fails if not owner", async () => {
       await expect(
-        vault.connect(other).withdraw(parseUnits("1000", "18"), other.address),
+        vault
+          .connect(other)
+          .withdraw(parseUnits("1000", "18"), other.address, false),
       ).to.be.reverted;
     });
 
     it("fails if amount exceed user liquidity", async () => {
-      await expect(vault.withdraw(parseUnits("1001", "18"), wallet.address)).to
-        .be.reverted;
+      await expect(
+        vault.withdraw(parseUnits("1001", "18"), wallet.address, false),
+      ).to.be.reverted;
     });
 
     it("withdraw with fees earned", async () => {
@@ -173,7 +176,7 @@ export async function shouldBehaveLikeWithdraw(): Promise<void> {
 
       const blnceBefore = await USDT.balanceOf(wallet.address);
       const fees = await vault.callStatic.getPositionDetails(true);
-      await vault.withdraw(parseUnits("1000", "18"), wallet.address);
+      await vault.withdraw(parseUnits("1000", "18"), wallet.address, false);
       const userDaiBalance = await DAI.balanceOf(wallet.address);
       const userUsdtBalance = await USDT.balanceOf(wallet.address);
 
@@ -207,7 +210,7 @@ export async function shouldBehaveLikeWithdraw(): Promise<void> {
       const amount0IndexFund = reservesBefore[2].div(10);
       const amount1IndexFund = reservesBefore[3].div(10);
 
-      await vault.connect(other).withdraw(user1LP, other.address);
+      await vault.connect(other).withdraw(user1LP, other.address, false);
       const reservesAfter = await vault.callStatic.getPositionDetails(true);
 
       expect(reservesAfter[0]).to.be.gte(
@@ -217,7 +220,7 @@ export async function shouldBehaveLikeWithdraw(): Promise<void> {
         amount1ToCompound.sub(amount1IndexFund),
       );
 
-      await vault.withdraw(user0LP, wallet.address);
+      await vault.withdraw(user0LP, wallet.address, false);
       const userDaiBalance = await DAI.balanceOf(wallet.address);
       const userUsdtBalance = await USDT.balanceOf(wallet.address);
 
@@ -241,7 +244,7 @@ export async function shouldBehaveLikeWithdraw(): Promise<void> {
       const userUsdtBalanceBfore = await USDT.balanceOf(other.address);
       const otherLP = await vault.balanceOf(other.address);
 
-      await vault.connect(other).withdraw(otherLP, other.address);
+      await vault.connect(other).withdraw(otherLP, other.address, false);
 
       const userDaiBalanceAfter = await DAI.balanceOf(other.address);
       const userUsdtBalanceAfter = await USDT.balanceOf(other.address);
@@ -262,7 +265,7 @@ export async function shouldBehaveLikeWithdraw(): Promise<void> {
     });
 
     it("withdraw", async () => {
-      await vault.withdraw(parseUnits("1000", "18"), wallet.address);
+      await vault.withdraw(parseUnits("1000", "18"), wallet.address, false);
       const userLpBalance = await vault.balanceOf(wallet.address);
       const userDaiBalance = await DAI.balanceOf(wallet.address);
       const userUsdtBalance = await USDT.balanceOf(wallet.address);
