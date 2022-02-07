@@ -96,6 +96,19 @@ library UniswapLiquidityManagement {
         (liquidity, , , tokensOwed0, tokensOwed1) = pool.positions(positionKey);
     }
 
+    function checkDeviation(
+        IUniswapV3Pool pool,
+        int24 maxTwapDeviation,
+        uint32 twapDuration
+    ) internal view {
+        (, int24 currentTick) = getSqrtRatioX96AndTick(pool);
+        int24 twap = getTwap(pool, twapDuration);
+        int24 deviation = currentTick > twap
+            ? currentTick - twap
+            : twap - currentTick;
+        require(deviation <= maxTwapDeviation, "PSC");
+    }
+
     /// @dev Rounds tick down towards negative infinity so that it's a multiple
     /// of `tickSpacing`.
     function floor(int24 tick, int24 tickSpacing)
@@ -106,6 +119,20 @@ library UniswapLiquidityManagement {
         int24 compressed = tick / tickSpacing;
         if (tick < 0 && tick % tickSpacing != 0) compressed--;
         return compressed * tickSpacing;
+    }
+
+    function getTwap(IUniswapV3Pool pool, uint32 twapDuration)
+        internal
+        view
+        returns (int24)
+    {
+        uint32 _twapDuration = twapDuration;
+        uint32[] memory secondsAgo = new uint32[](2);
+        secondsAgo[0] = _twapDuration;
+        secondsAgo[1] = 0;
+
+        (int56[] memory tickCumulatives, ) = pool.observe(secondsAgo);
+        return int24((tickCumulatives[1] - tickCumulatives[0]) / _twapDuration);
     }
 
     function getSqrtRatioX96AndTick(IUniswapV3Pool pool)
