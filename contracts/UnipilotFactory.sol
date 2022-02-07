@@ -9,11 +9,11 @@ import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 /// @title Unipilot factory
 /// @notice Deploys Unipilot vaults and manages ownership and control over active and passive vaults
 contract UnipilotFactory is IUnipilotFactory {
-    IUniswapV3Factory private uniswapFactory;
     address private governance;
     address private strategy;
     address private indexFund;
     address private WETH;
+    IUniswapV3Factory private uniswapFactory;
 
     constructor(
         address _uniswapFactory,
@@ -36,6 +36,11 @@ contract UnipilotFactory is IUnipilotFactory {
 
     /// @inheritdoc IUnipilotFactory
     mapping(address => bool) public override whitelistedVaults;
+
+    modifier onlyGovernance() {
+        require(msg.sender == governance);
+        _;
+    }
 
     /// @inheritdoc IUnipilotFactory
     function createVault(
@@ -84,8 +89,7 @@ contract UnipilotFactory is IUnipilotFactory {
     /// @notice Updates the governance of the Unipilot factory
     /// @dev Must be called by the current governance
     /// @param _newGovernance The new governance of the Unipilot factory
-    function setGovernance(address _newGovernance) external {
-        require(msg.sender == governance, "NG");
+    function setGovernance(address _newGovernance) external onlyGovernance {
         emit GovernanceChanged(governance, _newGovernance);
         governance = _newGovernance;
     }
@@ -93,8 +97,10 @@ contract UnipilotFactory is IUnipilotFactory {
     /// @notice toggles to the acitve or passive strategy of the vaults
     /// @dev Must be called by the current governance
     /// @param _vaultAddresses Array of address of vaults for bulk update
-    function whitelistVaults(address[] memory _vaultAddresses) external {
-        require(msg.sender == governance, "NG");
+    function whitelistVaults(address[] memory _vaultAddresses)
+        external
+        onlyGovernance
+    {
         for (uint256 i = 0; i < _vaultAddresses.length; i++) {
             address toggleAddress = _vaultAddresses[i];
             whitelistedVaults[toggleAddress] = !whitelistedVaults[
