@@ -23,15 +23,15 @@ contract UnipilotVault is ERC20Permit, ERC20Burnable, IUnipilotVault {
     IUniswapV3Pool private pool;
     IUnipilotFactory private unipilotFactory;
 
+    address private WETH;
     TicksData public ticksData;
     int24 private tickSpacing;
-    address private WETH;
     uint8 private _unlocked = 1;
     uint24 private fee;
 
     modifier onlyGovernance() {
         (address governance, , ) = getProtocolDetails();
-        require(_msgSender() == governance);
+        require(msg.sender == governance);
         _;
     }
 
@@ -162,7 +162,7 @@ contract UnipilotVault is ERC20Permit, ERC20Burnable, IUnipilotVault {
         }
     }
 
-    function readjustLiquidityForActive() private {
+    function readjustLiquidityForActive() private onlyGovernance {
         ReadjustVars memory a;
 
         (a.fees0, a.fees1) = pool.burnLiquidity(
@@ -171,7 +171,7 @@ contract UnipilotVault is ERC20Permit, ERC20Burnable, IUnipilotVault {
             address(this)
         );
 
-        transferFees(a.fees0, a.fees1);
+        transferFeesToIF(a.fees0, a.fees1);
 
         int24 baseThreshold = getBaseThreshold();
 
@@ -259,7 +259,7 @@ contract UnipilotVault is ERC20Permit, ERC20Burnable, IUnipilotVault {
             baseFees1.add(rangeFees1)
         );
 
-        transferFees(fees0, fees1);
+        transferFeesToIF(fees0, fees1);
 
         uint256 amount0 = _balance0();
         uint256 amount1 = _balance1();
@@ -284,7 +284,7 @@ contract UnipilotVault is ERC20Permit, ERC20Burnable, IUnipilotVault {
         address _depositor,
         uint256 _amount0Desired,
         uint256 _amount1Desired
-    ) private returns (uint256 amount0, uint256 amount1) {
+    ) internal returns (uint256 amount0, uint256 amount1) {
         Tick memory ticks;
         (
             ticks.baseTickLower,
@@ -354,10 +354,12 @@ contract UnipilotVault is ERC20Permit, ERC20Burnable, IUnipilotVault {
     function withdraw(uint256 liquidity, address recipient)
         external
         override
+        nonReentrant
         returns (uint256 amount0, uint256 amount1)
     {
         require(liquidity > 0);
 
+        bool refundAsETH;
         uint256 totalSupply = totalSupply();
         bool isPoolWhitelisted = _isPoolWhitelisted();
         uint256 liquidityShare = FullMath.mulDiv(liquidity, 1e18, totalSupply);
@@ -365,16 +367,14 @@ contract UnipilotVault is ERC20Permit, ERC20Burnable, IUnipilotVault {
         (amount0, amount1) = burnAndCollect(
             ticksData.baseTickLower,
             ticksData.baseTickUpper,
-            liquidityShare,
-            recipient
+            liquidityShare
         );
 
         if (!isPoolWhitelisted) {
             (uint256 range0, uint256 range1) = burnAndCollect(
                 ticksData.rangeTickLower,
                 ticksData.rangeTickUpper,
-                liquidityShare,
-                recipient
+                liquidityShare
             );
 
             amount0 = amount0.add(range0);
@@ -382,24 +382,45 @@ contract UnipilotVault is ERC20Permit, ERC20Burnable, IUnipilotVault {
         }
 
         uint256 unusedAmount0 = FullMath.mulDiv(
-            _balance0(),
+            _balance0().sub(amount0),
             liquidity,
             totalSupply
         );
 
         uint256 unusedAmount1 = FullMath.mulDiv(
-            _balance1(),
+            _balance1().sub(amount1),
             liquidity,
             totalSupply
         );
 
-        if (unusedAmount0 > 0) token0.transfer(recipient, unusedAmount0);
-        if (unusedAmount1 > 0) token1.transfer(recipient, unusedAmount1);
-
         amount0 = amount0.add(unusedAmount0);
         amount1 = amount1.add(unusedAmount1);
 
-        pool.mintLiquidity(
+        if (amount0 > 0) {
+            if (refundAsETH && address(token0) == WETH) {
+                unwrapWETH9(amount0, recipient);
+            } else {
+                TransferHelper.safeTransfer(
+                    address(token0),
+                    recipient,
+                    amount0
+                );
+            }
+        }
+
+        if (amount1 > 0) {
+            if (refundAsETH && address(token1) == WETH) {
+                unwrapWETH9(amount1, recipient);
+            } else {
+                TransferHelper.safeTransfer(
+                    address(token1),
+                    recipient,
+                    amount1
+                );
+            }
+        }
+
+        (uint256 c0, uint256 c1) = pool.mintLiquidity(
             address(this),
             ticksData.baseTickLower,
             ticksData.baseTickUpper,
@@ -408,33 +429,41 @@ contract UnipilotVault is ERC20Permit, ERC20Burnable, IUnipilotVault {
         );
 
         if (!isPoolWhitelisted) {
-            pool.mintLiquidity(
+            (uint256 r0, uint256 r1) = pool.mintLiquidity(
                 address(this),
                 ticksData.rangeTickLower,
                 ticksData.rangeTickUpper,
                 _balance0(),
                 _balance1()
             );
+            c0 = c0.add(r0);
+            c1 = c1.add(r1);
         }
 
         _burn(msg.sender, liquidity);
         emit Withdraw(recipient, liquidity, amount0, amount1);
+        emit CompoundFees(c0, c1);
     }
 
     function burnAndCollect(
         int24 tickLower,
         int24 tickUpper,
-        uint256 liquidityShare,
-        address recipient
+        uint256 liquidityShare
     ) private returns (uint256 burnt0, uint256 burnt1) {
         (burnt0, burnt1) = pool.burnUserLiquidity(
             tickLower,
             tickUpper,
             liquidityShare,
-            recipient
+            address(this)
         );
 
-        pool.collectPendingFees(address(this), tickLower, tickUpper);
+        (uint256 fees0, uint256 fees1) = pool.collectPendingFees(
+            address(this),
+            tickLower,
+            tickUpper
+        );
+
+        transferFeesToIF(fees0, fees1);
     }
 
     function getVaultInfo()
@@ -527,8 +556,9 @@ contract UnipilotVault is ERC20Permit, ERC20Burnable, IUnipilotVault {
         return unipilotFactory.getUnipilotDetails();
     }
 
-    function transferFees(uint256 fees0, uint256 fees1) private {
+    function transferFeesToIF(uint256 fees0, uint256 fees1) private {
         (, , address indexFund) = getProtocolDetails();
+
         if (fees0 > 0)
             token0.transfer(indexFund, FullMath.mulDiv(fees0, 10, 100));
         if (fees0 > 0)
@@ -573,6 +603,14 @@ contract UnipilotVault is ERC20Permit, ERC20Burnable, IUnipilotVault {
             // pull payment
             TransferHelper.safeTransferFrom(token, payer, recipient, value);
         }
+    }
+
+    /// @notice Unwraps the contract's WETH9 balance and sends it to recipient as ETH.
+    /// @param balanceWETH9 The amount of WETH9 to unwrap
+    /// @param recipient The address receiving ETH
+    function unwrapWETH9(uint256 balanceWETH9, address recipient) internal {
+        IWETH9(WETH).withdraw(balanceWETH9);
+        TransferHelper.safeTransferETH(recipient, balanceWETH9);
     }
 
     receive() external payable {}

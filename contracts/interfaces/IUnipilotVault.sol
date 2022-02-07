@@ -57,6 +57,8 @@ interface IUnipilotVault {
         uint256 amount1
     );
 
+    event CompoundFees(uint256 amount0, uint256 amount1);
+
     function deposit(uint256 _amount0Desired, uint256 _amount1Desired)
         external
         payable
