@@ -351,7 +351,11 @@ contract UnipilotVault is ERC20Permit, ERC20Burnable, IUnipilotVault {
         }
     }
 
-    function withdraw(uint256 liquidity, address recipient)
+    function withdraw(
+        uint256 liquidity,
+        address recipient,
+        bool refundAsETH
+    )
         external
         override
         nonReentrant
@@ -359,7 +363,6 @@ contract UnipilotVault is ERC20Permit, ERC20Burnable, IUnipilotVault {
     {
         require(liquidity > 0);
 
-        bool refundAsETH;
         uint256 totalSupply = totalSupply();
         bool isPoolWhitelisted = _isPoolWhitelisted();
         uint256 liquidityShare = FullMath.mulDiv(liquidity, 1e18, totalSupply);
