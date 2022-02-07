@@ -177,11 +177,14 @@ export async function shouldBehaveLikeWithdraw(): Promise<void> {
       const userDaiBalance = await DAI.balanceOf(wallet.address);
       const userUsdtBalance = await USDT.balanceOf(wallet.address);
 
-      const total0 = fees[0].add(fees[2]);
-      const total1 = fees[1].add(fees[3]);
+      const amount0IndexFund = fees[2].div(10);
+      const amount1IndexFund = fees[3].div(10);
 
-      expect(userDaiBalance).to.be.equal(total0);
-      expect(userUsdtBalance).to.be.equal(total1.add(blnceBefore));
+      const total0 = fees[0].add(fees[2]);
+      const total1 = fees[1].add(fees[3]).add(blnceBefore);
+
+      expect(userDaiBalance).to.be.equal(total0.sub(amount0IndexFund));
+      expect(userUsdtBalance).to.be.equal(total1.sub(amount1IndexFund));
     });
 
     it("fees compounding on withdraw", async () => {
@@ -196,15 +199,23 @@ export async function shouldBehaveLikeWithdraw(): Promise<void> {
       await generateFeeThroughSwap(swapRouter, other, DAI, USDT, "1000");
 
       const blnceBefore = await USDT.balanceOf(wallet.address);
+
       const reservesBefore = await vault.callStatic.getPositionDetails(true);
       const amount0ToCompound = reservesBefore[0].add(reservesBefore[2]).div(2);
       const amount1ToCompound = reservesBefore[1].add(reservesBefore[3]).div(2);
 
+      const amount0IndexFund = reservesBefore[2].div(10);
+      const amount1IndexFund = reservesBefore[3].div(10);
+
       await vault.connect(other).withdraw(user1LP, other.address);
       const reservesAfter = await vault.callStatic.getPositionDetails(true);
 
-      expect(amount0ToCompound).to.be.eq(reservesAfter[0]);
-      expect(amount1ToCompound).to.be.gte(reservesAfter[1]);
+      expect(reservesAfter[0]).to.be.gte(
+        amount0ToCompound.sub(amount0IndexFund),
+      );
+      expect(reservesAfter[1]).to.be.lte(
+        amount1ToCompound.sub(amount1IndexFund),
+      );
 
       await vault.withdraw(user0LP, wallet.address);
       const userDaiBalance = await DAI.balanceOf(wallet.address);
@@ -214,7 +225,35 @@ export async function shouldBehaveLikeWithdraw(): Promise<void> {
       expect(userUsdtBalance).to.be.gte(reservesAfter[1].add(blnceBefore));
     });
 
-    it("", async () => {});
+    it("receive correct amounts of liquidity for unclaimed pool fees", async () => {
+      await generateFeeThroughSwap(swapRouter, other, USDT, DAI, "1000");
+      await generateFeeThroughSwap(swapRouter, other, DAI, USDT, "1000");
+
+      const { amount0, amount1 } = await vault
+        .connect(other)
+        .callStatic.deposit(parseUnits("1000", "18"), parseUnits("1000", "18"));
+
+      await vault
+        .connect(other)
+        .deposit(parseUnits("1000", "18"), parseUnits("1000", "18"));
+
+      const userDaiBalanceBfore = await DAI.balanceOf(other.address);
+      const userUsdtBalanceBfore = await USDT.balanceOf(other.address);
+      const otherLP = await vault.balanceOf(other.address);
+
+      await vault.connect(other).withdraw(otherLP, other.address);
+
+      const userDaiBalanceAfter = await DAI.balanceOf(other.address);
+      const userUsdtBalanceAfter = await USDT.balanceOf(other.address);
+
+      const t0 = userDaiBalanceAfter.sub(userDaiBalanceBfore);
+      const t1 = userUsdtBalanceAfter
+        .sub(userUsdtBalanceBfore)
+        .sub(parseUnits("0.3", "18"));
+
+      expect(t0).to.be.lte(amount0);
+      expect(t1).to.be.lte(amount1);
+    });
   });
 
   describe("#withdraw for passive pools", () => {
@@ -232,5 +271,50 @@ export async function shouldBehaveLikeWithdraw(): Promise<void> {
       expect(userDaiBalance).to.be.gte(parseUnits("999", "18"));
       expect(userUsdtBalance).to.be.gte(parseUnits("999", "18"));
     });
+
+    // it("withdraw with fees earned", async () => {
+    //   await generateFeeThroughSwap(swapRouter, other, USDT, DAI, "1000");
+    //   await generateFeeThroughSwap(swapRouter, other, DAI, USDT, "1000");
+
+    //   const blnceBefore = await USDT.balanceOf(wallet.address);
+    //   const fees = await vault.callStatic.getPositionDetails(false);
+    //   await vault.withdraw(parseUnits("1000", "18"), wallet.address);
+    //   const userDaiBalance = await DAI.balanceOf(wallet.address);
+    //   const userUsdtBalance = await USDT.balanceOf(wallet.address);
+
+    //   const total0 = fees[0].add(fees[2]);
+    //   const total1 = fees[1].add(fees[3]);
+
+    //   expect(userDaiBalance).to.be.equal(total0);
+    //   expect(userUsdtBalance).to.be.equal(total1);
+    // });
+
+    // it("fees compounding on withdraw", async () => {
+    //   await vault
+    //     .connect(other)
+    //     .deposit(parseUnits("1000", "18"), parseUnits("1000", "18"));
+
+    //   const user0LP = await vault.balanceOf(wallet.address);
+    //   const user1LP = await vault.balanceOf(other.address);
+
+    //   await generateFeeThroughSwap(swapRouter, other, USDT, DAI, "1000");
+    //   await generateFeeThroughSwap(swapRouter, other, DAI, USDT, "1000");
+
+    //   const reservesBefore = await vault.callStatic.getPositionDetails(false);
+    //   const amount0ToCompound = reservesBefore[0].add(reservesBefore[2]).div(2);
+    //   const amount1ToCompound = reservesBefore[1].add(reservesBefore[3]).div(2);
+
+    //   await vault.connect(other).withdraw(user1LP, other.address);
+    //   const reservesAfter = await vault.callStatic.getPositionDetails(false);
+
+    //   expect(amount0ToCompound).to.be.gte(reservesAfter[0]);
+    //   expect(amount1ToCompound).to.be.eq(reservesAfter[1].sub(1));
+    //   await vault.withdraw(user0LP, wallet.address);
+    //   const userDaiBalance = await DAI.balanceOf(wallet.address);
+    //   const userUsdtBalance = await USDT.balanceOf(wallet.address);
+
+    //   expect(userDaiBalance).to.be.eq(amount0ToCompound);
+    //   expect(userUsdtBalance).to.be.gte(amount1ToCompound);
+    // });
   });
 }
