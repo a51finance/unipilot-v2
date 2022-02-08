@@ -13,6 +13,7 @@ contract UnipilotFactory is IUnipilotFactory {
     address private strategy;
     address private indexFund;
     address private WETH;
+    uint8 private indexFundPercentage;
     IUniswapV3Factory private uniswapFactory;
 
     constructor(
@@ -20,13 +21,15 @@ contract UnipilotFactory is IUnipilotFactory {
         address _governance,
         address _uniStrategy,
         address _indexFund,
-        address _WETH
+        address _WETH,
+        uint8 percentage
     ) {
         governance = _governance;
         strategy = _uniStrategy;
         uniswapFactory = IUniswapV3Factory(_uniswapFactory);
         indexFund = _indexFund;
         WETH = _WETH;
+        indexFundPercentage = percentage;
     }
 
     /// @notice Used to give address of vaults
@@ -80,10 +83,11 @@ contract UnipilotFactory is IUnipilotFactory {
         returns (
             address,
             address,
-            address
+            address,
+            uint8
         )
     {
-        return (governance, strategy, indexFund);
+        return (governance, strategy, indexFund, indexFundPercentage);
     }
 
     /// @notice Updates the governance of the Unipilot factory

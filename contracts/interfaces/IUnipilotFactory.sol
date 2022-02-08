@@ -58,6 +58,7 @@ interface IUnipilotFactory {
         returns (
             address,
             address,
-            address
+            address,
+            uint8
         );
 }
