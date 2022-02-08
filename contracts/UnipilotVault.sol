@@ -11,9 +11,8 @@ import "./libraries/UniswapLiquidityManagement.sol";
 import "./libraries/UniswapPoolActions.sol";
 
 import "@openzeppelin/contracts/drafts/ERC20Permit.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20Burnable.sol";
 
-contract UnipilotVault is ERC20Permit, ERC20Burnable, IUnipilotVault {
+contract UnipilotVault is ERC20Permit, IUnipilotVault {
     using LowGasSafeMath for uint256;
     using UniswapPoolActions for IUniswapV3Pool;
     using UniswapLiquidityManagement for IUniswapV3Pool;
@@ -160,7 +159,7 @@ contract UnipilotVault is ERC20Permit, ERC20Burnable, IUnipilotVault {
         );
     }
 
-    function readjustLiquidity() external override {
+    function readjustLiquidity() external override checkDeviation {
         if (_isPoolWhitelisted()) {
             readjustLiquidityForActive();
         } else {
@@ -361,7 +360,12 @@ contract UnipilotVault is ERC20Permit, ERC20Burnable, IUnipilotVault {
         uint256 liquidity,
         address recipient,
         bool refundAsETH
-    ) external override returns (uint256 amount0, uint256 amount1) {
+    )
+        external
+        override
+        nonReentrant
+        returns (uint256 amount0, uint256 amount1)
+    {
         require(liquidity > 0);
 
         uint256 totalSupply = totalSupply();
