@@ -45,4 +45,6 @@ interface IUnipilotStrategy {
     function twapDuration() external view returns (uint32);
 
     function maxTwapDeviation() external view returns (int24);
+
+    function checkDeviation(address pool) external view;
 }

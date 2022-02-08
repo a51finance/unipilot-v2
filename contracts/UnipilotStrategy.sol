@@ -228,6 +228,14 @@ contract UnipilotStrategy is IUnipilotStrategy {
         }
     }
 
+    function checkDeviation(address pool) external view override {
+        int24 twap = calculateTwap(pool);
+        (int24 tick, ) = getCurrentTick(pool);
+        int24 deviation = tick > twap ? tick - twap : twap - tick;
+
+        require(deviation <= maxTwapDeviation, "MTF");
+    }
+
     /**
      *   @notice This function updates the unipilot contract address
      *   @param _unipilot: unipilot contract address
