@@ -66,6 +66,7 @@ async function unipilotFactoryFixture(
   indexFund: Wallet,
   uniStrategy: string,
   WETH9: Contract,
+  indexFundPercentage: BigNumber,
 ): Promise<UNIPILOT_FACTORY_FIXTURE> {
   const unipilotFactoryDep = await ethers.getContractFactory("UnipilotFactory");
   const unipilotFactory = (await unipilotFactoryDep.deploy(
@@ -74,6 +75,7 @@ async function unipilotFactoryFixture(
     uniStrategy,
     indexFund.address,
     WETH9.address,
+    indexFundPercentage,
   )) as UnipilotFactory;
   return { unipilotFactory };
 }
@@ -119,6 +121,7 @@ export const unipilotVaultFixture: Fixture<UNIPILOT_VAULT_FIXTURE> =
       indexFund,
       uniStrategy.address,
       WETH9,
+      BigNumber.from(10),
     );
 
     const DAI = await deployToken(wallet, "Dai Stablecoin", "DAI", 18);

@@ -275,49 +275,64 @@ export async function shouldBehaveLikeWithdraw(): Promise<void> {
       expect(userUsdtBalance).to.be.gte(parseUnits("999", "18"));
     });
 
-    // it("withdraw with fees earned", async () => {
-    //   await generateFeeThroughSwap(swapRouter, other, USDT, DAI, "1000");
-    //   await generateFeeThroughSwap(swapRouter, other, DAI, USDT, "1000");
+    it("withdraw with fees earned", async () => {
+      await generateFeeThroughSwap(swapRouter, other, USDT, DAI, "1000");
+      await generateFeeThroughSwap(swapRouter, other, DAI, USDT, "1000");
 
-    //   const blnceBefore = await USDT.balanceOf(wallet.address);
-    //   const fees = await vault.callStatic.getPositionDetails(false);
-    //   await vault.withdraw(parseUnits("1000", "18"), wallet.address);
-    //   const userDaiBalance = await DAI.balanceOf(wallet.address);
-    //   const userUsdtBalance = await USDT.balanceOf(wallet.address);
+      const details = await unipilotFactory.getUnipilotDetails();
 
-    //   const total0 = fees[0].add(fees[2]);
-    //   const total1 = fees[1].add(fees[3]);
+      const fees = await vault.callStatic.getPositionDetails(false);
+      await vault.withdraw(parseUnits("1000", "18"), wallet.address, false);
+      const userDaiBalance = await DAI.balanceOf(wallet.address);
+      const userUsdtBalance = await USDT.balanceOf(wallet.address);
 
-    //   expect(userDaiBalance).to.be.equal(total0);
-    //   expect(userUsdtBalance).to.be.equal(total1);
-    // });
+      const total0 = fees[0].add(fees[2]);
+      const total1 = fees[1].add(fees[3]);
 
-    // it("fees compounding on withdraw", async () => {
-    //   await vault
-    //     .connect(other)
-    //     .deposit(parseUnits("1000", "18"), parseUnits("1000", "18"));
+      const indexFundAmount0 = fees[2].div(details[3]);
+      const indexFundAmount1 = fees[3].div(details[3]);
 
-    //   const user0LP = await vault.balanceOf(wallet.address);
-    //   const user1LP = await vault.balanceOf(other.address);
+      expect(userDaiBalance).to.be.eq(total0.sub(indexFundAmount0));
+      expect(userUsdtBalance).to.be.eq(total1.sub(indexFundAmount1));
+    });
 
-    //   await generateFeeThroughSwap(swapRouter, other, USDT, DAI, "1000");
-    //   await generateFeeThroughSwap(swapRouter, other, DAI, USDT, "1000");
+    it("fees compounding on withdraw", async () => {
+      await vault
+        .connect(other)
+        .deposit(parseUnits("1000", "18"), parseUnits("1000", "18"));
 
-    //   const reservesBefore = await vault.callStatic.getPositionDetails(false);
-    //   const amount0ToCompound = reservesBefore[0].add(reservesBefore[2]).div(2);
-    //   const amount1ToCompound = reservesBefore[1].add(reservesBefore[3]).div(2);
+      const user0LP = await vault.balanceOf(wallet.address);
+      const user1LP = await vault.balanceOf(other.address);
 
-    //   await vault.connect(other).withdraw(user1LP, other.address);
-    //   const reservesAfter = await vault.callStatic.getPositionDetails(false);
+      await generateFeeThroughSwap(swapRouter, other, USDT, DAI, "1000");
+      await generateFeeThroughSwap(swapRouter, other, DAI, USDT, "1000");
 
-    //   expect(amount0ToCompound).to.be.gte(reservesAfter[0]);
-    //   expect(amount1ToCompound).to.be.eq(reservesAfter[1].sub(1));
-    //   await vault.withdraw(user0LP, wallet.address);
-    //   const userDaiBalance = await DAI.balanceOf(wallet.address);
-    //   const userUsdtBalance = await USDT.balanceOf(wallet.address);
+      const reservesBefore = await vault.callStatic.getPositionDetails(false);
+      const amount0ToCompound = reservesBefore[0].add(reservesBefore[2]).div(2);
+      const amount1ToCompound = reservesBefore[1].add(reservesBefore[3]).div(2);
 
-    //   expect(userDaiBalance).to.be.eq(amount0ToCompound);
-    //   expect(userUsdtBalance).to.be.gte(amount1ToCompound);
-    // });
+      const details = await unipilotFactory.getUnipilotDetails();
+      const amount0IndexFund = reservesBefore[2].div(details[3]);
+      const amount1IndexFund = reservesBefore[3].div(details[3]);
+
+      await vault.connect(other).withdraw(user1LP, other.address, false);
+      const reservesAfter = await vault.callStatic.getPositionDetails(false);
+
+      expect(reservesAfter[0]).to.be.gt(
+        amount0ToCompound.sub(amount0IndexFund).sub(parseUnits("0.1", "18")),
+      );
+      expect(reservesAfter[1]).to.be.gt(
+        amount1ToCompound.sub(amount1IndexFund).sub(parseUnits("0.15", "18")),
+      );
+
+      const unusedAmount0 = await DAI.balanceOf(vault.address);
+
+      await vault.withdraw(user0LP, wallet.address, false);
+      const userDaiBalance = await DAI.balanceOf(wallet.address);
+      const userUsdtBalance = await USDT.balanceOf(wallet.address);
+
+      expect(userDaiBalance).to.be.eq(reservesAfter[0].add(unusedAmount0));
+      expect(userUsdtBalance).to.be.eq(reservesAfter[1]);
+    });
   });
 }
