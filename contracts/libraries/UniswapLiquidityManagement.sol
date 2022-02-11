@@ -7,6 +7,8 @@ import "@uniswap/v3-periphery/contracts/libraries/PositionKey.sol";
 import "@uniswap/v3-periphery/contracts/libraries/LiquidityAmounts.sol";
 import "../interfaces/IUnipilotVault.sol";
 
+import "hardhat/console.sol";
+
 /// @title Liquidity and ticks functions
 /// @notice Provides functions for computing liquidity and ticks for token amounts and prices
 library UniswapLiquidityManagement {
@@ -157,6 +159,8 @@ library UniswapLiquidityManagement {
         bool isWhitelisted,
         uint256 amount0Max,
         uint256 amount1Max,
+        uint256 balance0,
+        uint256 balance1,
         uint256 totalSupply,
         IUnipilotVault.TicksData memory ticks
     )
@@ -174,8 +178,8 @@ library UniswapLiquidityManagement {
             uint256 fees1
         ) = getTotalAmounts(pool, isWhitelisted, ticks);
 
-        uint256 reserve0 = res0.add(fees0);
-        uint256 reserve1 = res1.add(fees1);
+        uint256 reserve0 = res0.add(fees0).add(balance0);
+        uint256 reserve1 = res1.add(fees1).add(balance1);
 
         // If total supply > 0, pool can't be empty
         assert(totalSupply == 0 || reserve0 != 0 || reserve1 != 0);
