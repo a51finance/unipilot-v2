@@ -80,7 +80,7 @@ task("deploy-unipilotFactory", "Deploy unipilot factory contract")
     const args = {
       uniswapFactory: "0x1f98431c8ad98523631ae4a59f267346ea31f984",
       governance: cliArgs.governance,
-      uniStrategy: "0x8a023FcC1D727Ea74711a0d70109F9fcB2586eAA",
+      uniStrategy: "0x19Eb6910BA6aBbc9C9517E1d4bD6C93a37eE81d9",
       indexFund: cliArgs.governance,
       WETH: "0xc778417e063141139fce010982780140aa0cd5ab",
       indexFundPercentage: 10,
