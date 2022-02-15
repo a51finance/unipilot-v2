@@ -37,9 +37,6 @@ contract UnipilotFactory is IUnipilotFactory {
     mapping(address => mapping(address => mapping(uint24 => address)))
         public vaults;
 
-    /// @inheritdoc IUnipilotFactory
-    mapping(address => bool) public override whitelistedVaults;
-
     modifier onlyGovernance() {
         require(msg.sender == governance);
         _;
@@ -107,24 +104,4 @@ contract UnipilotFactory is IUnipilotFactory {
     //     indexFund = _indexFund;
     //     indexFundPercentage = _indexFundPercentage;
     // }
-
-    /// @notice toggles to the acitve or passive strategy of the vaults
-    /// @dev Must be called by the current governance
-    /// @param _vaultAddresses Array of address of vaults for bulk update
-    function whitelistVaults(address[] memory _vaultAddresses)
-        external
-        onlyGovernance
-    {
-        for (uint256 i = 0; i < _vaultAddresses.length; i++) {
-            address toggleAddress = _vaultAddresses[i];
-            whitelistedVaults[toggleAddress] = !whitelistedVaults[
-                toggleAddress
-            ];
-
-            emit VaultWhitelistStatus(
-                toggleAddress,
-                whitelistedVaults[toggleAddress]
-            );
-        }
-    }
 }

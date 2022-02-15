@@ -75,10 +75,10 @@ contract UnipilotVault is ERC20Permit, IUnipilotVault {
     {
         address sender = _msgSender();
         uint256 totalSupply = totalSupply();
-        bool isPoolWhitelisted = _isPoolWhitelisted();
+        bool isActive = false;
 
         (lpShares, amount0, amount1) = pool.computeLpShares(
-            isPoolWhitelisted,
+            isActive,
             amount0Desired,
             amount1Desired,
             _balance0(),
@@ -90,16 +90,7 @@ contract UnipilotVault is ERC20Permit, IUnipilotVault {
         pay(address(token0), sender, address(this), amount0);
         pay(address(token1), sender, address(this), amount1);
 
-        if (isPoolWhitelisted) {
-            pool.mintLiquidity(
-                ticksData.baseTickLower,
-                ticksData.baseTickUpper,
-                amount0,
-                amount1
-            );
-        } else {
-            depositForPassive(amount0, amount1, totalSupply);
-        }
+        depositForPassive(amount0, amount1, totalSupply);
 
         _mint(sender, lpShares);
         emit Deposit(sender, amount0, amount1, lpShares);
@@ -155,80 +146,11 @@ contract UnipilotVault is ERC20Permit, IUnipilotVault {
     }
 
     function readjustLiquidity() external override checkDeviation {
-        if (_isPoolWhitelisted()) {
-            // readjustLiquidityForActive();
-        } else {
-            readjustLiquidityForPassive();
-        }
+        readjustLiquidityForPassive();
     }
 
-    // function readjustLiquidityForActive() private onlyGovernance {
-    //     ReadjustVars memory a;
-
-    //     (a.fees0, a.fees1) = pool.burnLiquidity(
-    //         ticksData.baseTickLower,
-    //         ticksData.baseTickUpper,
-    //         address(this)
-    //     );
-
-    //     transferFeesToIF(a.fees0, a.fees1);
-
-    //     int24 baseThreshold = getBaseThreshold();
-
-    //     (a.tickLower, a.tickUpper) = UniswapLiquidityManagement.getBaseTicks(
-    //         a.currentTick,
-    //         baseThreshold,
-    //         tickSpacing
-    //     );
-
-    //     a.amount0Desired = _balance0();
-    //     a.amount1Desired = _balance1();
-
-    //     a.liquidity = pool.getLiquidityForAmounts(
-    //         a.amount0Desired,
-    //         a.amount1Desired,
-    //         a.tickLower,
-    //         a.tickUpper
-    //     );
-
-    //     (a.amount0, a.amount1) = pool.getAmountsForLiquidity(
-    //         a.liquidity,
-    //         a.tickLower,
-    //         a.tickUpper
-    //     );
-    //     a.zeroForOne = UniswapLiquidityManagement.amountsDirection(
-    //         a.amount0Desired,
-    //         a.amount1Desired,
-    //         a.amount0,
-    //         a.amount1
-    //     );
-
-    //     a.amountSpecified = a.zeroForOne
-    //         ? int256(FullMath.mulDiv(a.amount0Desired.sub(a.amount0), 50, 100))
-    //         : int256(FullMath.mulDiv(a.amount1Desired.sub(a.amount1), 50, 100));
-    //     pool.swapToken(address(this), a.zeroForOne, a.amountSpecified);
-
-    //     a.amount0Desired = _balance0();
-    //     a.amount1Desired = _balance1();
-
-    //     (ticksData.baseTickLower, ticksData.baseTickUpper) = pool
-    //         .getPositionTicks(
-    //             a.amount0Desired,
-    //             a.amount1Desired,
-    //             baseThreshold,
-    //             tickSpacing
-    //         );
-
-    //     pool.mintLiquidity(
-    //         ticksData.baseTickLower,
-    //         ticksData.baseTickUpper,
-    //         a.amount0Desired,
-    //         a.amount1Desired
-    //     );
-    // }
-
     // temperory function to check position fees and reserves
-    function getPositionDetails(bool isWhitelisted)
+    function getPositionDetails()
         external
         returns (
             uint256,
@@ -237,7 +159,7 @@ contract UnipilotVault is ERC20Permit, IUnipilotVault {
             uint256
         )
     {
-        return pool.getTotalAmounts(isWhitelisted, ticksData);
+        return pool.getTotalAmounts(false, ticksData);
     }
 
     function readjustLiquidityForPassive() private {
@@ -354,37 +276,36 @@ contract UnipilotVault is ERC20Permit, IUnipilotVault {
     {
         require(liquidity > 0);
 
-        uint256 totalSupply = totalSupply();
-        bool isPoolWhitelisted = _isPoolWhitelisted();
-        uint256 liquidityShare = FullMath.mulDiv(liquidity, 1e18, totalSupply);
+        Cache memory state = Cache({
+            totalSupply: totalSupply(),
+            liquidityShare: FullMath.mulDiv(liquidity, 1e18, totalSupply())
+        });
 
         (amount0, amount1) = burnAndCollect(
             ticksData.baseTickLower,
             ticksData.baseTickUpper,
-            liquidityShare
+            state.liquidityShare
         );
 
-        if (!isPoolWhitelisted) {
-            (uint256 range0, uint256 range1) = burnAndCollect(
-                ticksData.rangeTickLower,
-                ticksData.rangeTickUpper,
-                liquidityShare
-            );
+        (uint256 range0, uint256 range1) = burnAndCollect(
+            ticksData.rangeTickLower,
+            ticksData.rangeTickUpper,
+            state.liquidityShare
+        );
 
-            amount0 = amount0.add(range0);
-            amount1 = amount1.add(range1);
-        }
+        amount0 = amount0.add(range0);
+        amount1 = amount1.add(range1);
 
         uint256 unusedAmount0 = FullMath.mulDiv(
             _balance0().sub(amount0),
             liquidity,
-            totalSupply
+            state.totalSupply
         );
 
         uint256 unusedAmount1 = FullMath.mulDiv(
             _balance1().sub(amount1),
             liquidity,
-            totalSupply
+            state.totalSupply
         );
 
         amount0 = amount0.add(unusedAmount0);
@@ -421,16 +342,14 @@ contract UnipilotVault is ERC20Permit, IUnipilotVault {
             _balance1()
         );
 
-        if (!isPoolWhitelisted) {
-            (uint256 r0, uint256 r1) = pool.mintLiquidity(
-                ticksData.rangeTickLower,
-                ticksData.rangeTickUpper,
-                _balance0(),
-                _balance1()
-            );
-            c0 = c0.add(r0);
-            c1 = c1.add(r1);
-        }
+        (uint256 r0, uint256 r1) = pool.mintLiquidity(
+            ticksData.rangeTickLower,
+            ticksData.rangeTickUpper,
+            _balance0(),
+            _balance1()
+        );
+        c0 = c0.add(r0);
+        c1 = c1.add(r1);
 
         _burn(msg.sender, liquidity);
         emit Withdraw(recipient, liquidity, amount0, amount1);
@@ -484,10 +403,6 @@ contract UnipilotVault is ERC20Permit, IUnipilotVault {
     {
         (, address strategy, , ) = getProtocolDetails();
         return IUnipilotStrategy(strategy).getTicks(_pool);
-    }
-
-    function _isPoolWhitelisted() internal view returns (bool) {
-        return unipilotFactory.whitelistedVaults(address(this));
     }
 
     /// @dev Amount of token0 held as unused balance.
