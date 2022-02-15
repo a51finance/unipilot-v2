@@ -14,17 +14,17 @@ use(solidity);
 //   await shouldBehaveLikeDepositActive();
 // });
 
-describe("Invokes Deposit Passive Tests", async () => {
-  await shouldBehaveLikeDepositPassive();
-});
+// describe("Invokes Deposit Passive Tests", async () => {
+//   await shouldBehaveLikeDepositPassive();
+// });
 
 // describe("Invokes Rebalance Active Tests", async () => {
 //   await shouldBehaveLikeRebalanceActive();
 // });
 
-// describe("Invokes Rebalance Passive Tests", async () => {
-//   await shouldBehaveLikeRebalancePassive();
-// });
+describe("Invokes Rebalance Passive Tests", async () => {
+  await shouldBehaveLikeRebalancePassive();
+});
 
 // describe("Invokes Unipilot Factory Tests", async () => {
 //   await shouldBehaveLikeUnipilotFactory();

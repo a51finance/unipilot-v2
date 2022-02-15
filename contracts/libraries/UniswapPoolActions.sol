@@ -94,7 +94,6 @@ library UniswapPoolActions {
 
     function mintLiquidity(
         IUniswapV3Pool pool,
-        address payer,
         int24 tickLower,
         int24 tickUpper,
         uint256 amount0Desired,
@@ -113,7 +112,7 @@ library UniswapPoolActions {
                 tickLower,
                 tickUpper,
                 liquidity,
-                abi.encode(payer)
+                abi.encode(address(this))
             );
         }
     }

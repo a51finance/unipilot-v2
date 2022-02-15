@@ -83,6 +83,7 @@ task("deploy-unipilotFactory", "Deploy unipilot factory contract")
       uniStrategy: "0x8a023FcC1D727Ea74711a0d70109F9fcB2586eAA",
       indexFund: cliArgs.governance,
       WETH: "0xc778417e063141139fce010982780140aa0cd5ab",
+      indexFundPercentage: 10,
     };
 
     console.log("Network");
@@ -100,6 +101,7 @@ task("deploy-unipilotFactory", "Deploy unipilot factory contract")
         args.uniStrategy,
         args.indexFund,
         args.WETH,
+        args.indexFundPercentage,
       ],
     );
 
@@ -109,13 +111,7 @@ task("deploy-unipilotFactory", "Deploy unipilot factory contract")
 
     await run("verify:verify", {
       address: unipilotFactory.address,
-      constructorArguments: [
-        args.uniswapFactory,
-        args.governance,
-        args.uniStrategy,
-        args.indexFund,
-        args.WETH,
-      ],
+      constructorArguments: Object.values(args),
     });
   });
 

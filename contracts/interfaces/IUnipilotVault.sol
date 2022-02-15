@@ -57,6 +57,8 @@ interface IUnipilotVault {
         uint256 amount1
     );
 
+    event CompoundFees(uint256 amount0, uint256 amount1);
+
     function deposit(uint256 _amount0Desired, uint256 _amount1Desired)
         external
         payable
@@ -66,9 +68,11 @@ interface IUnipilotVault {
             uint256 amount1
         );
 
-    function withdraw(uint256 liquidity, address recipient)
-        external
-        returns (uint256 amount0, uint256 amount1);
+    function withdraw(
+        uint256 liquidity,
+        address recipient,
+        bool refundAsETH
+    ) external returns (uint256 amount0, uint256 amount1);
 
     /// @notice Pull in tokens from sender. Called to `msg.sender` after minting liquidity to a position from IUniswapV3Pool#mint.
     /// @dev In the implementation you must pay to the pool for the minted liquidity.

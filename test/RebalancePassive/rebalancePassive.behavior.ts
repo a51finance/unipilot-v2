@@ -186,6 +186,9 @@ export async function shouldBehaveLikeRebalancePassive(): Promise<void> {
         gasLimit: "3000000",
       },
     );
+
+    await daiUsdtUniswapPool.increaseObservationCardinalityNext("8");
+    await shibPilotUniswapPool.increaseObservationCardinalityNext("8");
   });
 
   it("No tokens left unused", async () => {
@@ -200,10 +203,10 @@ export async function shouldBehaveLikeRebalancePassive(): Promise<void> {
     // await network.provider.send("evm_increaseTime", [3600]);
     // await network.provider.send("evm_mine");
 
-    for (let i = 0; i < 10; i++) {
-      await generateFeeThroughSwap(swapRouter, bob, USDT, DAI, "2000");
-      await generateFeeThroughSwap(swapRouter, bob, DAI, USDT, "2000");
-    }
+    // for (let i = 0; i < 10; i++) {
+    //   await generateFeeThroughSwap(swapRouter, bob, USDT, DAI, "2000");
+    //   await generateFeeThroughSwap(swapRouter, bob, DAI, USDT, "2000");
+    // }
 
     // latestBlock = await hre.ethers.provider.getBlock("latest");
     // await network.provider.send("evm_increaseTime", [3600]);

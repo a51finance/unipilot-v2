@@ -34,12 +34,12 @@ contract UnipilotStrategy is IUnipilotStrategy {
     int24 public baseTicks;
     /// @dev rangeOrder is the range calculate the spread behind and ahead of the base range
     int24 private rangeOrder;
-    /// @dev maxTwapDeviation is the max time weighted average deviation of price from the normal range in both directions
-    int24 private maxTwapDeviation;
     /// @dev readjustMultiplier is the percentage multiplier of raedjust threshold
     int24 private readjustMultiplier;
+    /// @dev maxTwapDeviation is the max time weighted average deviation of price from the normal range in both directions
+    int24 public override maxTwapDeviation;
     /// @dev twapDuration is the minimum duration in which the diviated price moves
-    uint32 private twapDuration;
+    uint32 public override twapDuration;
 
     constructor(address _governance) {
         governance = _governance;
@@ -229,6 +229,14 @@ contract UnipilotStrategy is IUnipilotStrategy {
         }
     }
 
+    function checkDeviation(address pool) external view override {
+        int24 twap = calculateTwap(pool);
+        (int24 tick, ) = getCurrentTick(pool);
+        int24 deviation = tick > twap ? tick - twap : twap - tick;
+
+        require(deviation <= maxTwapDeviation, "MTF");
+    }
+
     /**
      *   @notice This function updates the unipilot contract address
      *   @param _unipilot: unipilot contract address
@@ -252,9 +260,8 @@ contract UnipilotStrategy is IUnipilotStrategy {
      *   @param _pool: pool address
      **/
     function getReadjustThreshold(address _pool)
-        external
+        public
         view
-        override
         returns (int24 readjustThreshold)
     {
         readjustThreshold = poolStrategy[_pool].readjustThreshold;

@@ -30,11 +30,6 @@ interface IUnipilotStrategy {
             int24 askUpper
         );
 
-    function getReadjustThreshold(address _pool)
-        external
-        view
-        returns (int24 readjustThreshold);
-
     function getTwap(address _pool) external view returns (int24);
 
     function getStrategy(address _pool)
@@ -46,4 +41,10 @@ interface IUnipilotStrategy {
         external
         view
         returns (int24 baseThreshold);
+
+    function twapDuration() external view returns (uint32);
+
+    function maxTwapDeviation() external view returns (int24);
+
+    function checkDeviation(address pool) external view;
 }
