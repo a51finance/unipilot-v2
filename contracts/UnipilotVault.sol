@@ -12,6 +12,7 @@ import "./libraries/UniswapPoolActions.sol";
 
 import "@openzeppelin/contracts/drafts/ERC20Permit.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20Burnable.sol";
+import "hardhat/console.sol";
 
 contract UnipilotVault is ERC20Permit, ERC20Burnable, IUnipilotVault {
     using LowGasSafeMath for uint256;
@@ -263,6 +264,9 @@ contract UnipilotVault is ERC20Permit, ERC20Burnable, IUnipilotVault {
 
         uint256 amount0 = _balance0();
         uint256 amount1 = _balance1();
+
+        console.log("amount 0", amount0);
+        console.log("amount 1", amount1);
 
         if (amount0 == 0 || amount1 == 0) {
             bool zeroForOne = amount0 > 0 ? true : false;
