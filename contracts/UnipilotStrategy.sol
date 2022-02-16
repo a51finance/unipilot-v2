@@ -191,7 +191,8 @@ contract UnipilotStrategy is IUnipilotStrategy {
     function setAllStrategies(
         PoolStrategy[] memory params,
         address[] memory pools
-    ) external {
+    ) external onlyGovernance {
+        require(params.length == pools.length, "IVI");
         for (uint256 i = 0; i < params.length; i++) {
             changeStrategy(params[i], pools[i]);
         }
@@ -206,6 +207,7 @@ contract UnipilotStrategy is IUnipilotStrategy {
         address[] memory _pools,
         int24[] memory _twapDeviations
     ) external onlyGovernance {
+        require(_pools.length == _twapDeviations.length, "IVI");
         for (uint256 i; i < _pools.length; i++) {
             poolStrategy[_pools[i]].maxTwapDeviation = _twapDeviations[i];
         }
