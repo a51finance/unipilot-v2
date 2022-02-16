@@ -163,7 +163,7 @@ contract UnipilotVault is ERC20Permit, ERC20Burnable, IUnipilotVault {
         }
     }
 
-    function readjustLiquidityForActive() private {
+    function readjustLiquidityForActive() private onlyGovernance {
         ReadjustVars memory a;
 
         (a.fees0, a.fees1) = pool.burnLiquidity(

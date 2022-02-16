@@ -14,13 +14,13 @@ use(solidity);
 //   await shouldBehaveLikeDepositActive();
 // });
 
-describe("Invokes Deposit Passive Tests", async () => {
-  await shouldBehaveLikeDepositPassive();
-});
-
-// describe("Invokes Rebalance Active Tests", async () => {
-//   await shouldBehaveLikeRebalanceActive();
+// describe("Invokes Deposit Passive Tests", async () => {
+//   await shouldBehaveLikeDepositPassive();
 // });
+
+describe("Invokes Rebalance Active Tests", async () => {
+  await shouldBehaveLikeRebalanceActive();
+});
 
 // describe("Invokes Rebalance Passive Tests", async () => {
 //   await shouldBehaveLikeRebalancePassive();
