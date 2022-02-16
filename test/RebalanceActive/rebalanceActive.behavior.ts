@@ -273,7 +273,7 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
 
     let lpBalance = await daiUsdtVault.balanceOf(wallet.address);
 
-    await daiUsdtVault.withdraw(lpBalance, wallet.address);
+    await daiUsdtVault.withdraw(lpBalance, wallet.address, false);
 
     lpBalance = await daiUsdtVault.balanceOf(wallet.address);
 

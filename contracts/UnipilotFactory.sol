@@ -9,24 +9,27 @@ import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 /// @title Unipilot factory
 /// @notice Deploys Unipilot vaults and manages ownership and control over active and passive vaults
 contract UnipilotFactory is IUnipilotFactory {
-    IUniswapV3Factory private uniswapFactory;
     address private governance;
     address private strategy;
     address private indexFund;
     address private WETH;
+    uint8 private indexFundPercentage;
+    IUniswapV3Factory private uniswapFactory;
 
     constructor(
         address _uniswapFactory,
         address _governance,
         address _uniStrategy,
         address _indexFund,
-        address _WETH
+        address _WETH,
+        uint8 percentage
     ) {
         governance = _governance;
         strategy = _uniStrategy;
         uniswapFactory = IUniswapV3Factory(_uniswapFactory);
         indexFund = _indexFund;
         WETH = _WETH;
+        indexFundPercentage = percentage;
     }
 
     /// @notice Used to give address of vaults
@@ -37,6 +40,11 @@ contract UnipilotFactory is IUnipilotFactory {
     /// @inheritdoc IUnipilotFactory
     mapping(address => bool) public override whitelistedVaults;
 
+    modifier onlyGovernance() {
+        require(msg.sender == governance);
+        _;
+    }
+
     /// @inheritdoc IUnipilotFactory
     function createVault(
         address _tokenA,
@@ -46,11 +54,11 @@ contract UnipilotFactory is IUnipilotFactory {
         string memory _name,
         string memory _symbol
     ) external override returns (address _vault) {
-        require(_tokenA != _tokenB, "TE");
+        require(_tokenA != _tokenB);
         (address token0, address token1) = _tokenA < _tokenB
             ? (_tokenA, _tokenB)
             : (_tokenB, _tokenA);
-        require(vaults[token0][token1][_fee] == address(0), "VE");
+        require(vaults[token0][token1][_fee] == address(0));
         address pool = uniswapFactory.getPool(token0, token1, _fee);
 
         if (pool == address(0)) {
@@ -75,26 +83,38 @@ contract UnipilotFactory is IUnipilotFactory {
         returns (
             address,
             address,
-            address
+            address,
+            uint8
         )
     {
-        return (governance, strategy, indexFund);
+        return (governance, strategy, indexFund, indexFundPercentage);
     }
 
     /// @notice Updates the governance of the Unipilot factory
     /// @dev Must be called by the current governance
     /// @param _newGovernance The new governance of the Unipilot factory
-    function setGovernance(address _newGovernance) external {
-        require(msg.sender == governance, "NG");
+    function setGovernance(address _newGovernance) external onlyGovernance {
         emit GovernanceChanged(governance, _newGovernance);
         governance = _newGovernance;
     }
 
+    // function setUnipilotDetails(
+    //     address _strategy,
+    //     address _indexFund,
+    //     uint8 _indexFundPercentage
+    // ) external onlyGovernance {
+    //     strategy = _strategy;
+    //     indexFund = _indexFund;
+    //     indexFundPercentage = _indexFundPercentage;
+    // }
+
     /// @notice toggles to the acitve or passive strategy of the vaults
     /// @dev Must be called by the current governance
     /// @param _vaultAddresses Array of address of vaults for bulk update
-    function whitelistVaults(address[] memory _vaultAddresses) external {
-        require(msg.sender == governance, "NG");
+    function whitelistVaults(address[] memory _vaultAddresses)
+        external
+        onlyGovernance
+    {
         for (uint256 i = 0; i < _vaultAddresses.length; i++) {
             address toggleAddress = _vaultAddresses[i];
             whitelistedVaults[toggleAddress] = !whitelistedVaults[

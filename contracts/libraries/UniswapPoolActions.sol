@@ -32,17 +32,21 @@ library UniswapPoolActions {
         int24 tickLower,
         int24 tickUpper,
         address recipient
-    ) internal returns (uint256 fees0, uint256 fees1) {
+    )
+        internal
+        returns (
+            uint256 amount0,
+            uint256 amount1,
+            uint256 fees0,
+            uint256 fees1
+        )
+    {
         (uint128 liquidity, , ) = pool.getPositionLiquidity(
             tickLower,
             tickUpper
         );
         if (liquidity > 0) {
-            (uint256 amount0, uint256 amount1) = pool.burn(
-                tickLower,
-                tickUpper,
-                liquidity
-            );
+            (amount0, amount1) = pool.burn(tickLower, tickUpper, liquidity);
             if (amount0 > 0 || amount1 > 0) {
                 (uint256 collect0, uint256 collect1) = pool.collect(
                     recipient,
@@ -94,7 +98,6 @@ library UniswapPoolActions {
 
     function mintLiquidity(
         IUniswapV3Pool pool,
-        address payer,
         int24 tickLower,
         int24 tickUpper,
         uint256 amount0Desired,
@@ -113,7 +116,7 @@ library UniswapPoolActions {
                 tickLower,
                 tickUpper,
                 liquidity,
-                abi.encode(payer)
+                abi.encode(address(this))
             );
         }
     }
