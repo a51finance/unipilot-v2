@@ -165,7 +165,7 @@ contract UnipilotVault is ERC20Permit, IUnipilotVault {
     function readjustLiquidityForActive() private onlyGovernance {
         ReadjustVars memory a;
 
-        (a.fees0, a.fees1) = pool.burnLiquidity(
+        (, , a.fees0, a.fees1) = pool.burnLiquidity(
             ticksData.baseTickLower,
             ticksData.baseTickUpper,
             address(this)
@@ -174,6 +174,7 @@ contract UnipilotVault is ERC20Permit, IUnipilotVault {
         transferFeesToIF(a.fees0, a.fees1);
 
         int24 baseThreshold = getBaseThreshold();
+        (, a.currentTick) = pool.getSqrtRatioX96AndTick();
 
         (a.tickLower, a.tickUpper) = UniswapLiquidityManagement.getBaseTicks(
             a.currentTick,
@@ -241,17 +242,27 @@ contract UnipilotVault is ERC20Permit, IUnipilotVault {
     }
 
     function readjustLiquidityForPassive() private {
-        (uint256 baseFees0, uint256 baseFees1) = pool.burnLiquidity(
-            ticksData.baseTickLower,
-            ticksData.baseTickUpper,
-            address(this)
-        );
+        (
+            uint256 baseAmount0,
+            uint256 baseAmount1,
+            uint256 baseFees0,
+            uint256 baseFees1
+        ) = pool.burnLiquidity(
+                ticksData.baseTickLower,
+                ticksData.baseTickUpper,
+                address(this)
+            );
 
-        (uint256 rangeFees0, uint256 rangeFees1) = pool.burnLiquidity(
-            ticksData.rangeTickLower,
-            ticksData.rangeTickUpper,
-            address(this)
-        );
+        (
+            uint256 rangeAmount0,
+            uint256 rangeAmount1,
+            uint256 rangeFees0,
+            uint256 rangeFees1
+        ) = pool.burnLiquidity(
+                ticksData.rangeTickLower,
+                ticksData.rangeTickUpper,
+                address(this)
+            );
 
         (uint256 fees0, uint256 fees1) = (
             baseFees0.add(rangeFees0),
@@ -260,14 +271,14 @@ contract UnipilotVault is ERC20Permit, IUnipilotVault {
 
         transferFeesToIF(fees0, fees1);
 
-        uint256 amount0 = _balance0();
-        uint256 amount1 = _balance1();
+        uint256 amount0 = baseAmount0.add(rangeAmount0);
+        uint256 amount1 = baseAmount1.add(rangeAmount1);
 
         if (amount0 == 0 || amount1 == 0) {
             bool zeroForOne = amount0 > 0 ? true : false;
 
             int256 amountSpecified = zeroForOne
-                ? int256(FullMath.mulDiv(amount0, 10, 100))
+                ? int256(FullMath.mulDiv(amount0, 10, 100)) // swap percentage should be dynamic
                 : int256(FullMath.mulDiv(amount1, 10, 100));
 
             pool.swapToken(address(this), zeroForOne, amountSpecified);
@@ -292,16 +303,20 @@ contract UnipilotVault is ERC20Permit, IUnipilotVault {
             ticks.rangeTickLower,
             ticks.rangeTickUpper
         ) = _getTicksFromUniStrategy(address(pool));
+
         (amount0, amount1) = pool.mintLiquidity(
             ticks.baseTickLower,
             ticks.baseTickUpper,
             _amount0Desired,
             _amount1Desired
         );
+
         ticksData.baseTickLower = ticks.baseTickLower;
         ticksData.baseTickUpper = ticks.baseTickUpper;
+
         uint256 remainingAmount0 = _amount0Desired.sub(amount0);
         uint256 remainingAmount1 = _amount1Desired.sub(amount1);
+
         uint128 rangeLiquidity;
         if (remainingAmount0 > 0 || remainingAmount1 > 0) {
             uint128 range0 = pool.getLiquidityForAmounts(
@@ -327,6 +342,7 @@ contract UnipilotVault is ERC20Permit, IUnipilotVault {
                 rangeLiquidity = range1;
             }
         }
+
         if (rangeLiquidity > 0) {
             (uint256 _rangeAmount0, uint256 _rangeAmount1) = pool.mintLiquidity(
                 ticksData.rangeTickLower,
@@ -388,27 +404,11 @@ contract UnipilotVault is ERC20Permit, IUnipilotVault {
         amount1 = amount1.add(unusedAmount1);
 
         if (amount0 > 0) {
-            if (refundAsETH && address(token0) == WETH) {
-                unwrapWETH9(amount0, recipient);
-            } else {
-                TransferHelper.safeTransfer(
-                    address(token0),
-                    recipient,
-                    amount0
-                );
-            }
+            transferFunds(refundAsETH, recipient, address(token0), amount0);
         }
 
         if (amount1 > 0) {
-            if (refundAsETH && address(token1) == WETH) {
-                unwrapWETH9(amount1, recipient);
-            } else {
-                TransferHelper.safeTransfer(
-                    address(token1),
-                    recipient,
-                    amount1
-                );
-            }
+            transferFunds(refundAsETH, recipient, address(token1), amount1);
         }
 
         (uint256 c0, uint256 c1) = pool.mintLiquidity(
@@ -520,7 +520,7 @@ contract UnipilotVault is ERC20Permit, IUnipilotVault {
     ) external override {
         _verifyCallback();
 
-        require(amount0 > 0 || amount1 > 0, "SBL");
+        require(amount0 > 0 || amount1 > 0);
         bool zeroForOne = abi.decode(data, (bool));
 
         if (zeroForOne)
@@ -561,6 +561,19 @@ contract UnipilotVault is ERC20Permit, IUnipilotVault {
             _balance1(),
             totalSupply()
         );
+    }
+
+    function transferFunds(
+        bool refundAsETH,
+        address recipient,
+        address token,
+        uint256 amount
+    ) private {
+        if (refundAsETH && token == WETH) {
+            unwrapWETH9(amount, recipient);
+        } else {
+            TransferHelper.safeTransfer(token, recipient, amount);
+        }
     }
 
     function getBaseThreshold() private view returns (int24 baseThreshold) {
