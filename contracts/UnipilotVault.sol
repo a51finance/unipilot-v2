@@ -171,7 +171,7 @@ contract UnipilotVault is ERC20Permit, IUnipilotVault {
             address(this)
         );
 
-        (a.fees0, a.fees1) = transferFeesToIF(a.fees0, a.fees1);
+        transferFeesToIF(true, a.fees0, a.fees1);
 
         int24 baseThreshold = getBaseThreshold();
         (, a.currentTick) = pool.getSqrtRatioX96AndTick();
@@ -226,8 +226,6 @@ contract UnipilotVault is ERC20Permit, IUnipilotVault {
             a.amount0Desired,
             a.amount1Desired
         );
-
-        emit CompoundFees(a.fees0, a.fees1);
     }
 
     // temperory function to check position fees and reserves
@@ -271,7 +269,7 @@ contract UnipilotVault is ERC20Permit, IUnipilotVault {
             baseFees1.add(rangeFees1)
         );
 
-        (fees0, fees1) = transferFeesToIF(fees0, fees1);
+        transferFeesToIF(true, fees0, fees1);
 
         uint256 amount0 = baseAmount0.add(rangeAmount0);
         uint256 amount1 = baseAmount1.add(rangeAmount1);
@@ -290,7 +288,6 @@ contract UnipilotVault is ERC20Permit, IUnipilotVault {
         }
 
         setPassivePositions(amount0, amount1);
-        emit CompoundFees(fees0, fees1);
     }
 
     function setPassivePositions(
@@ -455,7 +452,7 @@ contract UnipilotVault is ERC20Permit, IUnipilotVault {
             tickUpper
         );
 
-        transferFeesToIF(fees0, fees1);
+        transferFeesToIF(false, fees0, fees1);
     }
 
     function getVaultInfo()
@@ -549,19 +546,20 @@ contract UnipilotVault is ERC20Permit, IUnipilotVault {
         return unipilotFactory.getUnipilotDetails();
     }
 
-    function transferFeesToIF(uint256 fees0, uint256 fees1)
-        private
-        returns (uint256 poolFees0, uint256 poolFees1)
-    {
+    function transferFeesToIF(
+        bool isReadjustLiquidity,
+        uint256 fees0,
+        uint256 fees1
+    ) private {
         (, , address indexFund, uint8 percentage) = getProtocolDetails();
 
-        poolFees0 = FullMath.mulDiv(fees0, percentage, 100);
-        poolFees1 = FullMath.mulDiv(fees1, percentage, 100);
-
-        if (fees0 > 0) token0.transfer(indexFund, poolFees0);
-        if (fees1 > 0) token1.transfer(indexFund, poolFees1);
+        if (fees0 > 0)
+            token0.transfer(indexFund, FullMath.mulDiv(fees0, percentage, 100));
+        if (fees1 > 0)
+            token1.transfer(indexFund, FullMath.mulDiv(fees1, percentage, 100));
 
         emit FeesSnapshot(
+            isReadjustLiquidity,
             fees0,
             fees1,
             _balance0(),
