@@ -1,14 +1,14 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.7.6;
 
-import "./UnipilotVault.sol";
+import "./UnipilotActiveVault.sol";
 import "./interfaces/IUnipilotFactory.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 
 /// @title Unipilot factory
 /// @notice Deploys Unipilot vaults and manages ownership and control over active and passive vaults
-contract UnipilotFactory is IUnipilotFactory {
+contract UnipilotActiveFactory is IUnipilotFactory {
     address private governance;
     address private strategy;
     address private indexFund;
@@ -37,9 +37,6 @@ contract UnipilotFactory is IUnipilotFactory {
     mapping(address => mapping(address => mapping(uint24 => address)))
         public vaults;
 
-    /// @inheritdoc IUnipilotFactory
-    mapping(address => bool) public override whitelistedVaults;
-
     modifier onlyGovernance() {
         require(msg.sender == governance);
         _;
@@ -66,7 +63,7 @@ contract UnipilotFactory is IUnipilotFactory {
             IUniswapV3Pool(pool).initialize(_sqrtPriceX96);
         }
         _vault = address(
-            new UnipilotVault{
+            new UnipilotActiveVault{
                 salt: keccak256(abi.encodePacked(_tokenA, _tokenB, _fee))
             }(pool, address(this), WETH, _name, _symbol)
         );
@@ -98,33 +95,13 @@ contract UnipilotFactory is IUnipilotFactory {
         governance = _newGovernance;
     }
 
-    // function setUnipilotDetails(
-    //     address _strategy,
-    //     address _indexFund,
-    //     uint8 _indexFundPercentage
-    // ) external onlyGovernance {
-    //     strategy = _strategy;
-    //     indexFund = _indexFund;
-    //     indexFundPercentage = _indexFundPercentage;
-    // }
-
-    /// @notice toggles to the acitve or passive strategy of the vaults
-    /// @dev Must be called by the current governance
-    /// @param _vaultAddresses Array of address of vaults for bulk update
-    function whitelistVaults(address[] memory _vaultAddresses)
-        external
-        onlyGovernance
-    {
-        for (uint256 i = 0; i < _vaultAddresses.length; i++) {
-            address toggleAddress = _vaultAddresses[i];
-            whitelistedVaults[toggleAddress] = !whitelistedVaults[
-                toggleAddress
-            ];
-
-            emit VaultWhitelistStatus(
-                toggleAddress,
-                whitelistedVaults[toggleAddress]
-            );
-        }
+    function setUnipilotDetails(
+        address _strategy,
+        address _indexFund,
+        uint8 _indexFundPercentage
+    ) external onlyGovernance {
+        strategy = _strategy;
+        indexFund = _indexFund;
+        indexFundPercentage = _indexFundPercentage;
     }
 }

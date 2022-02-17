@@ -1,12 +1,12 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.7.6;
 
-import "./interfaces/IUnipilotFactory.sol";
-import "./interfaces/IUnipilotVault.sol";
+// import "./interfaces/IUnipilotFactory.sol";
+// import "./interfaces/IUnipilotVault.sol";
 import "./base/PeripheryPayments.sol";
 
 contract UnipilotRouter is PeripheryPayments {
-    address private unipilotFactory;
+    // address private unipilotFactory;
     address private governance;
     modifier onlyGovernance() {
         require(msg.sender == governance, "NG");
