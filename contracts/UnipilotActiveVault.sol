@@ -234,15 +234,35 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         returns (uint256 amount0, uint256 amount1)
     {
         require(liquidity > 0);
-
         uint256 totalSupply = totalSupply();
-        uint256 liquidityShare = FullMath.mulDiv(liquidity, 1e18, totalSupply);
 
-        (amount0, amount1) = burnAndCollect(
+        (uint128 liquidity, , ) = pool.getPositionLiquidity(
             ticksData.baseTickLower,
-            ticksData.baseTickUpper,
-            liquidityShare
+            ticksData.baseTickUpper
         );
+
+        if (liquidity > 0) {
+            uint256 liquidityShare = FullMath.mulDiv(
+                liquidity,
+                1e18,
+                totalSupply
+            );
+
+            (amount0, amount1) = pool.burnUserLiquidity(
+                ticksData.baseTickLower,
+                ticksData.baseTickUpper,
+                liquidityShare,
+                address(this)
+            );
+
+            (uint256 fees0, uint256 fees1) = pool.collectPendingFees(
+                address(this),
+                ticksData.baseTickLower,
+                ticksData.baseTickUpper
+            );
+
+            transferFeesToIF(fees0, fees1);
+        }
 
         uint256 unusedAmount0 = FullMath.mulDiv(
             _balance0().sub(amount0),
@@ -277,28 +297,6 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         _burn(msg.sender, liquidity);
         emit Withdraw(recipient, liquidity, amount0, amount1);
         emit CompoundFees(c0, c1);
-    }
-
-    // change
-    function burnAndCollect(
-        int24 tickLower,
-        int24 tickUpper,
-        uint256 liquidityShare
-    ) private returns (uint256 burnt0, uint256 burnt1) {
-        (burnt0, burnt1) = pool.burnUserLiquidity(
-            tickLower,
-            tickUpper,
-            liquidityShare,
-            address(this)
-        );
-
-        (uint256 fees0, uint256 fees1) = pool.collectPendingFees(
-            address(this),
-            tickLower,
-            tickUpper
-        );
-
-        transferFeesToIF(fees0, fees1);
     }
 
     function getVaultInfo()
