@@ -50,7 +50,7 @@ contract UnipilotActiveFactory is IUnipilotFactory {
         uint160 _sqrtPriceX96,
         string memory _name,
         string memory _symbol
-    ) external override returns (address _vault) {
+    ) external override onlyGovernance returns (address _vault) {
         require(_tokenA != _tokenB);
         (address token0, address token1) = _tokenA < _tokenB
             ? (_tokenA, _tokenB)
