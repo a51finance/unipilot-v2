@@ -209,14 +209,11 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
       .connect(wallet)
       .deposit(parseUnits("5000", "18"), parseUnits("5000", "18"));
 
-    await generateFeeThroughSwap(swapRouter, bob, USDT, DAI, "5000");
+    await generateFeeThroughSwap(swapRouter, bob, USDT, DAI, "1000");
 
     let positionDetails = await daiUsdtVault.callStatic.getPositionDetails(
       true,
     );
-
-    console.log("positionDetails after swap", positionDetails);
-
     await daiUsdtVault.readjustLiquidity();
 
     const fees0 = positionDetails[2];
@@ -235,9 +232,6 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
     const usdtBalanceOfIndexFund = await USDT.balanceOf(indexFund);
     const daiBalanceOfIndexFund = await DAI.balanceOf(indexFund);
 
-    console.log("percentageOfFees0Collected", percentageOfFees0Collected);
-    console.log("percentageOfFees1Collected", percentageOfFees1Collected);
-
     expect(percentageOfFees0Collected).to.be.equal(usdtBalanceOfIndexFund);
     expect(percentageOfFees1Collected).to.be.equal(daiBalanceOfIndexFund);
   });
@@ -245,17 +239,17 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
   it("check fees compounding", async () => {
     await daiUsdtVault.init();
 
+    const usdtBalanceBeforeDeposit = await USDT.balanceOf(wallet.address);
+    const daiBalanceBeforeDeposit = await DAI.balanceOf(wallet.address);
+
     await daiUsdtVault
       .connect(wallet)
       .deposit(parseUnits("5000", "18"), parseUnits("5000", "18"));
 
-    const usdtBalanceAfterDeposit = await USDT.balanceOf(wallet.address);
-    const daiBalanceAfterDeposit = await DAI.balanceOf(wallet.address);
-
     let positionDetails = await daiUsdtVault.callStatic.getPositionDetails(
       true,
     );
-    await generateFeeThroughSwap(swapRouter, bob, USDT, DAI, "5000");
+    await generateFeeThroughSwap(swapRouter, bob, USDT, DAI, "1000");
 
     positionDetails = await daiUsdtVault.callStatic.getPositionDetails(true);
 
@@ -263,7 +257,7 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
 
     expect(positionDetails[2]).to.be.gt(parseUnits("0", "18"));
 
-    await daiUsdtVault.readjustLiquidity();
+    await daiUsdtVault.connect(wallet).readjustLiquidity();
 
     let positionDetailsAferReadjust =
       await daiUsdtVault.callStatic.getPositionDetails(true);
@@ -272,8 +266,11 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
     expect(positionDetailsAferReadjust[2]).to.be.eq(parseUnits("0", "18"));
 
     let lpBalance = await daiUsdtVault.balanceOf(wallet.address);
+    console.log("lpBalamce", lpBalance);
 
-    await daiUsdtVault.withdraw(lpBalance, wallet.address, false);
+    await daiUsdtVault
+      .connect(wallet)
+      .withdraw(lpBalance, wallet.address, false);
 
     lpBalance = await daiUsdtVault.balanceOf(wallet.address);
 
@@ -282,8 +279,8 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
     const usdtBalanceAfterWithdraw = await USDT.balanceOf(wallet.address);
     const daiBalanceAfterWithdraw = await DAI.balanceOf(wallet.address);
 
-    expect(usdtBalanceAfterWithdraw).to.be.gt(usdtBalanceAfterDeposit);
-    expect(daiBalanceAfterWithdraw).to.be.gt(daiBalanceAfterDeposit);
+    expect(usdtBalanceAfterWithdraw).to.be.gt(usdtBalanceBeforeDeposit);
+    expect(daiBalanceAfterWithdraw).to.be.lt(daiBalanceBeforeDeposit);
   });
 
   it("make pool out of range and then readjust", async () => {
@@ -293,7 +290,7 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
       .connect(wallet)
       .deposit(parseUnits("1000", "18"), parseUnits("1000", "18"));
 
-    await generateFeeThroughSwap(swapRouter, bob, DAI, USDT, "100000");
+    await generateFeeThroughSwap(swapRouter, bob, DAI, USDT, "1000");
 
     let positionDetailsBeforeReadjust =
       await daiUsdtVault.callStatic.getPositionDetails(true);

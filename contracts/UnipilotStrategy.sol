@@ -8,7 +8,6 @@ import "./base/oracle/libraries/OracleLibrary.sol";
 
 import "@uniswap/v3-core/contracts/libraries/TickMath.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
-import "hardhat/console.sol";
 
 /**
  *
@@ -270,8 +269,6 @@ contract UnipilotStrategy is IUnipilotStrategy {
         (uint32 lastTimeStamp, , , ) = uniswapV3Pool.observations(
             (observationIndex + 1) % observationCardinality
         );
-        console.log("lastTimeStamp", lastTimeStamp);
-        console.log("uint32(block.timestamp)", uint32(block.timestamp));
 
         uint32 timeDiff = uint32(block.timestamp) - lastTimeStamp;
         uint32 duration = poolStrategy[_pool].twapDuration;
