@@ -148,8 +148,8 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
 
     await uniswapV3PositionManager.connect(alice).mint(
       {
-        token0: USDT.address,
-        token1: DAI.address,
+        token0: DAI.address,
+        token1: USDT.address,
         tickLower: getMinTick(60),
         tickUpper: getMaxTick(60),
         fee: 3000,
@@ -164,33 +164,6 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
         gasLimit: "3000000",
       },
     );
-  });
-
-  it("rebalance with 50/50", async () => {
-    // const usdtMindtedOnWallet = parseUnits("2000000", "18");
-    // const daiMintedOnWallet = parseUnits("2000000", "18");
-
-    await daiUsdtVault.init();
-
-    await daiUsdtVault
-      .connect(wallet)
-      .deposit(parseUnits("5000", "18"), parseUnits("5000", "18"));
-
-    // let positionDetails = await daiUsdtVault.callStatic.getPositionDetails();
-
-    // console.log("positionDetails before swap", positionDetails);
-
-    await generateFeeThroughSwap(swapRouter, bob, USDT, DAI, "5000");
-
-    // positionDetails = await daiUsdtVault.callStatic.getPositionDetails();
-
-    // console.log("positionDetails after swap", positionDetails);
-
-    // await daiUsdtVault.readjustLiquidity();
-
-    // positionDetails = await daiUsdtVault.callStatic.getPositionDetails();
-
-    // console.log("positionDetails", positionDetails);
   });
 
   it("Only called by owner and whitelisted vaults are eligible for rebalance", async () => {

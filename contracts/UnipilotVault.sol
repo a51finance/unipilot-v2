@@ -170,7 +170,7 @@ contract UnipilotVault is ERC20Permit, IUnipilotVault {
             address(this)
         );
 
-        transferFeesToIF(a.fees0, a.fees1);
+        transferFeesToIF(true, a.fees0, a.fees1);
 
         int24 baseThreshold = getBaseThreshold();
         (, a.currentTick) = pool.getSqrtRatioX96AndTick();
@@ -273,7 +273,9 @@ contract UnipilotVault is ERC20Permit, IUnipilotVault {
             baseFees0.add(rangeFees0),
             baseFees1.add(rangeFees1)
         );
-        transferFeesToIF(fees0, fees1);
+
+        transferFeesToIF(true, fees0, fees1);
+
         uint256 amount0 = baseAmount0.add(rangeAmount0);
         uint256 amount1 = baseAmount1.add(rangeAmount1);
         if (amount0 == 0 || amount1 == 0) {
@@ -450,7 +452,7 @@ contract UnipilotVault is ERC20Permit, IUnipilotVault {
             tickUpper
         );
 
-        transferFeesToIF(fees0, fees1);
+        transferFeesToIF(false, fees0, fees1);
     }
 
     function getVaultInfo()
@@ -544,7 +546,11 @@ contract UnipilotVault is ERC20Permit, IUnipilotVault {
         return unipilotFactory.getUnipilotDetails();
     }
 
-    function transferFeesToIF(uint256 fees0, uint256 fees1) private {
+    function transferFeesToIF(
+        bool isReadjustLiquidity,
+        uint256 fees0,
+        uint256 fees1
+    ) private {
         (, , address indexFund, uint8 percentage) = getProtocolDetails();
 
         if (fees0 > 0)
@@ -553,6 +559,7 @@ contract UnipilotVault is ERC20Permit, IUnipilotVault {
             token1.transfer(indexFund, FullMath.mulDiv(fees1, percentage, 100));
 
         emit FeesSnapshot(
+            isReadjustLiquidity,
             fees0,
             fees1,
             _balance0(),
