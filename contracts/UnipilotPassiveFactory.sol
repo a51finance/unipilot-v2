@@ -1,14 +1,14 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.7.6;
 
-import "./UnipilotVault.sol";
+import "./UnipilotPassiveVault.sol";
 import "./interfaces/IUnipilotFactory.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 
 /// @title Unipilot factory
 /// @notice Deploys Unipilot vaults and manages ownership and control over active and passive vaults
-contract UnipilotFactory is IUnipilotFactory {
+contract UnipilotPassiveFactory is IUnipilotFactory {
     address private governance;
     address private strategy;
     address private indexFund;
@@ -63,7 +63,7 @@ contract UnipilotFactory is IUnipilotFactory {
             IUniswapV3Pool(pool).initialize(_sqrtPriceX96);
         }
         _vault = address(
-            new UnipilotVault{
+            new UnipilotPassiveVault{
                 salt: keccak256(abi.encodePacked(_tokenA, _tokenB, _fee))
             }(pool, address(this), WETH, _name, _symbol)
         );

@@ -1,10 +1,10 @@
 import { expect } from "chai";
 import { Contract } from "ethers";
 import { parseUnits } from "ethers/lib/utils";
-import { unipilotVaultFixture } from "../utils/fixtures";
+import { unipilotPassiveVaultFixture } from "../utils/fixturesPassive";
 import { ethers, waffle } from "hardhat";
 import { encodePriceSqrt } from "../utils/encodePriceSqrt";
-import { UniswapV3Pool, UnipilotVault } from "../../typechain";
+import { UniswapV3Pool, UnipilotPassiveVault } from "../../typechain";
 import snapshotGasCost from "../utils/snapshotGasCost";
 
 export async function shouldBehaveLikeUnipilotFactory(): Promise<void> {
@@ -12,7 +12,7 @@ export async function shouldBehaveLikeUnipilotFactory(): Promise<void> {
   let uniswapV3Factory: Contract;
   let uniStrategy: Contract;
   let unipilotFactory: Contract;
-  let unipilotVault: UnipilotVault;
+  let unipilotVault: UnipilotPassiveVault;
   let DAI: Contract;
   let USDT: Contract;
   let daiUsdtUniswapPool: UniswapV3Pool;
@@ -30,7 +30,7 @@ export async function shouldBehaveLikeUnipilotFactory(): Promise<void> {
 
   let loadFixture: ReturnType<typeof createFixtureLoader>;
   let createVault: ThenArg<
-    ReturnType<typeof unipilotVaultFixture>
+    ReturnType<typeof unipilotPassiveVaultFixture>
   >["createVault"];
 
   before("fixtures deployer", async () => {
@@ -45,7 +45,7 @@ export async function shouldBehaveLikeUnipilotFactory(): Promise<void> {
       USDT,
       uniStrategy,
       createVault,
-    } = await loadFixture(unipilotVaultFixture)),
+    } = await loadFixture(unipilotPassiveVaultFixture)),
       await uniswapV3Factory.createPool(DAI.address, USDT.address, 3000);
 
     let daiUsdtPoolAddress = await uniswapV3Factory.getPool(

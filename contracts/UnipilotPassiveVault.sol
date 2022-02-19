@@ -12,7 +12,7 @@ import "./libraries/UniswapPoolActions.sol";
 
 import "@openzeppelin/contracts/drafts/ERC20Permit.sol";
 
-contract UnipilotVault is ERC20Permit, IUnipilotVault {
+contract UnipilotPassiveVault is ERC20Permit, IUnipilotVault {
     using LowGasSafeMath for uint256;
     using UniswapPoolActions for IUniswapV3Pool;
     using UniswapLiquidityManagement for IUniswapV3Pool;
@@ -75,10 +75,9 @@ contract UnipilotVault is ERC20Permit, IUnipilotVault {
     {
         address sender = _msgSender();
         uint256 totalSupply = totalSupply();
-        bool isActive = false;
 
         (lpShares, amount0, amount1) = pool.computeLpShares(
-            isActive,
+            false,
             amount0Desired,
             amount1Desired,
             _balance0(),

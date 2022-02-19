@@ -4,15 +4,15 @@ import { parseUnits } from "ethers/lib/utils";
 import {
   getMaxTick,
   getMinTick,
-  unipilotVaultFixture,
-} from "../utils/fixtures";
+  unipilotPassiveVaultFixture,
+} from "../utils/fixturesPassive";
 import { MaxUint256 } from "@ethersproject/constants";
 import { ethers, waffle } from "hardhat";
 import { encodePriceSqrt } from "../utils/encodePriceSqrt";
 import {
   UniswapV3Pool,
   NonfungiblePositionManager,
-  UnipilotVault,
+  UnipilotPassiveVault,
 } from "../../typechain";
 import { generateFeeThroughSwap } from "../utils/SwapFunction/swap";
 
@@ -23,7 +23,7 @@ export async function shouldBehaveLikeDepositPassive(): Promise<void> {
   let uniStrategy: Contract;
   let unipilotFactory: Contract;
   let swapRouter: Contract;
-  let unipilotVault: UnipilotVault;
+  let unipilotVault: UnipilotPassiveVault;
   let DAI: Contract;
   let USDT: Contract;
   let WETH9: Contract;
@@ -43,7 +43,7 @@ export async function shouldBehaveLikeDepositPassive(): Promise<void> {
 
   let loadFixture: ReturnType<typeof createFixtureLoader>;
   let createVault: ThenArg<
-    ReturnType<typeof unipilotVaultFixture>
+    ReturnType<typeof unipilotPassiveVaultFixture>
   >["createVault"];
 
   before("fixtures deployer", async () => {
@@ -61,7 +61,7 @@ export async function shouldBehaveLikeDepositPassive(): Promise<void> {
       WETH9,
       uniStrategy,
       createVault,
-    } = await loadFixture(unipilotVaultFixture));
+    } = await loadFixture(unipilotPassiveVaultFixture));
 
     await uniswapV3Factory.createPool(WETH9.address, USDT.address, 3000);
 
@@ -146,9 +146,7 @@ export async function shouldBehaveLikeDepositPassive(): Promise<void> {
         value: parseUnits("1000", "18"),
       });
 
-    let positionDetails = await unipilotVault.callStatic.getPositionDetails(
-      false,
-    );
+    let positionDetails = await unipilotVault.callStatic.getPositionDetails();
     console.log("potiondetails", positionDetails);
 
     const ethBalanceAfterDeposit = await wallet.getBalance();

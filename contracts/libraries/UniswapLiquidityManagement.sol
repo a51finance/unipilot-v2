@@ -156,7 +156,7 @@ library UniswapLiquidityManagement {
 
     function computeLpShares(
         IUniswapV3Pool pool,
-        bool isActive,
+        bool isWhitelisted,
         uint256 amount0Max,
         uint256 amount1Max,
         uint256 balance0,
@@ -176,7 +176,7 @@ library UniswapLiquidityManagement {
             uint256 res1,
             uint256 fees0,
             uint256 fees1
-        ) = getTotalAmounts(pool, isActive, ticks);
+        ) = getTotalAmounts(pool, isWhitelisted, ticks);
 
         uint256 reserve0 = res0.add(fees0).add(balance0);
         uint256 reserve1 = res1.add(fees1).add(balance1);
@@ -194,7 +194,7 @@ library UniswapLiquidityManagement {
 
     function getTotalAmounts(
         IUniswapV3Pool pool,
-        bool isActive,
+        bool isWhitelisted,
         IUnipilotVault.TicksData memory ticks
     )
         internal
@@ -211,7 +211,7 @@ library UniswapLiquidityManagement {
             ticks.baseTickUpper
         );
 
-        if (!isActive) {
+        if (!isWhitelisted) {
             (
                 uint256 range0,
                 uint256 range1,
