@@ -185,29 +185,39 @@ contract UnipilotVault is ERC20Permit, IUnipilotVault {
         a.amount0Desired = _balance0();
         a.amount1Desired = _balance1();
 
-        a.liquidity = pool.getLiquidityForAmounts(
-            a.amount0Desired,
-            a.amount1Desired,
-            a.tickLower,
-            a.tickUpper
-        );
+        if (a.amount0Desired == 0 || a.amount1Desired == 0) {
+            swapExactBalance(a.amount0Desired, a.amount1Desired, 50);
+        } else {
+            a.liquidity = pool.getLiquidityForAmounts(
+                a.amount0Desired,
+                a.amount1Desired,
+                a.tickLower,
+                a.tickUpper
+            );
 
-        (a.amount0, a.amount1) = pool.getAmountsForLiquidity(
-            a.liquidity,
-            a.tickLower,
-            a.tickUpper
-        );
-        a.zeroForOne = UniswapLiquidityManagement.amountsDirection(
-            a.amount0Desired,
-            a.amount1Desired,
-            a.amount0,
-            a.amount1
-        );
+            (a.amount0, a.amount1) = pool.getAmountsForLiquidity(
+                a.liquidity,
+                a.tickLower,
+                a.tickUpper
+            );
 
-        a.amountSpecified = a.zeroForOne
-            ? int256(FullMath.mulDiv(a.amount0Desired.sub(a.amount0), 50, 100))
-            : int256(FullMath.mulDiv(a.amount1Desired.sub(a.amount1), 50, 100));
-        pool.swapToken(address(this), a.zeroForOne, a.amountSpecified);
+            a.zeroForOne = UniswapLiquidityManagement.amountsDirection(
+                a.amount0Desired,
+                a.amount1Desired,
+                a.amount0,
+                a.amount1
+            );
+
+            a.amountSpecified = a.zeroForOne
+                ? int256(
+                    FullMath.mulDiv(a.amount0Desired.sub(a.amount0), 50, 100)
+                )
+                : int256(
+                    FullMath.mulDiv(a.amount1Desired.sub(a.amount1), 50, 100)
+                );
+
+            pool.swapToken(address(this), a.zeroForOne, a.amountSpecified);
+        }
 
         a.amount0Desired = _balance0();
         a.amount1Desired = _balance1();
@@ -275,13 +285,7 @@ contract UnipilotVault is ERC20Permit, IUnipilotVault {
         uint256 amount1 = baseAmount1.add(rangeAmount1);
 
         if (amount0 == 0 || amount1 == 0) {
-            bool zeroForOne = amount0 > 0 ? true : false;
-
-            int256 amountSpecified = zeroForOne
-                ? int256(FullMath.mulDiv(amount0, 10, 100)) // swap percentage should be dynamic
-                : int256(FullMath.mulDiv(amount1, 10, 100));
-
-            pool.swapToken(address(this), zeroForOne, amountSpecified);
+            swapExactBalance(amount0, amount1, 10); // swap percentage should be dynamic
 
             amount0 = _balance0();
             amount1 = _balance1();
@@ -453,6 +457,20 @@ contract UnipilotVault is ERC20Permit, IUnipilotVault {
         );
 
         transferFeesToIF(false, fees0, fees1);
+    }
+
+    function swapExactBalance(
+        uint256 amount0,
+        uint256 amount1,
+        uint256 percentage
+    ) private {
+        bool zeroForOne = amount0 > 0 ? true : false;
+
+        int256 amountSpecified = zeroForOne
+            ? int256(FullMath.mulDiv(amount0, percentage, 100))
+            : int256(FullMath.mulDiv(amount1, percentage, 100));
+
+        pool.swapToken(address(this), zeroForOne, amountSpecified);
     }
 
     function getVaultInfo()
