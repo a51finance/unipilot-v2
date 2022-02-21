@@ -11,6 +11,7 @@ import "./libraries/UniswapLiquidityManagement.sol";
 import "./libraries/UniswapPoolActions.sol";
 
 import "@openzeppelin/contracts/drafts/ERC20Permit.sol";
+import "hardhat/console.sol";
 
 contract UnipilotVault is ERC20Permit, IUnipilotVault {
     using LowGasSafeMath for uint256;
@@ -98,7 +99,7 @@ contract UnipilotVault is ERC20Permit, IUnipilotVault {
                 amount1
             );
         } else {
-            depositForPassive(amount0, amount1, totalSupply);
+            // depositForPassive(amount0, amount1, totalSupply);
         }
 
         _mint(sender, lpShares);
@@ -122,14 +123,12 @@ contract UnipilotVault is ERC20Permit, IUnipilotVault {
                 _amount0Desired,
                 _amount1Desired
             );
-
             (uint256 amount0Range, uint256 amount1Range) = pool.mintLiquidity(
                 ticksData.rangeTickLower,
                 ticksData.rangeTickUpper,
                 _amount0Desired.sub(amount0Base),
                 _amount1Desired.sub(amount1Base)
             );
-
             amount0 = amount0Base.add(amount0Range);
             amount1 = amount1Base.add(amount1Range);
         }
@@ -222,6 +221,11 @@ contract UnipilotVault is ERC20Permit, IUnipilotVault {
         a.amount0Desired = _balance0();
         a.amount1Desired = _balance1();
 
+        console.log("a.amount0Desired", a.amount0Desired);
+        console.log("a.amount1Desired", a.amount1Desired);
+        console.log("baseThreshold", uint256(baseThreshold));
+        console.log("tickSpacing", uint256(tickSpacing));
+
         (ticksData.baseTickLower, ticksData.baseTickUpper) = pool
             .getPositionTicks(
                 a.amount0Desired,
@@ -229,6 +233,8 @@ contract UnipilotVault is ERC20Permit, IUnipilotVault {
                 baseThreshold,
                 tickSpacing
             );
+
+        console.log("hello");
 
         pool.mintLiquidity(
             ticksData.baseTickLower,
@@ -262,7 +268,6 @@ contract UnipilotVault is ERC20Permit, IUnipilotVault {
                 ticksData.baseTickUpper,
                 address(this)
             );
-
         (
             uint256 rangeAmount0,
             uint256 rangeAmount1,
@@ -273,7 +278,6 @@ contract UnipilotVault is ERC20Permit, IUnipilotVault {
                 ticksData.rangeTickUpper,
                 address(this)
             );
-
         (uint256 fees0, uint256 fees1) = (
             baseFees0.add(rangeFees0),
             baseFees1.add(rangeFees1)
@@ -283,14 +287,12 @@ contract UnipilotVault is ERC20Permit, IUnipilotVault {
 
         uint256 amount0 = baseAmount0.add(rangeAmount0);
         uint256 amount1 = baseAmount1.add(rangeAmount1);
-
         if (amount0 == 0 || amount1 == 0) {
             swapExactBalance(amount0, amount1, 10); // swap percentage should be dynamic
 
             amount0 = _balance0();
             amount1 = _balance1();
         }
-
         setPassivePositions(amount0, amount1);
     }
 

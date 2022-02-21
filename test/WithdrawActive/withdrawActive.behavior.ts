@@ -101,8 +101,8 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
 
     await uniswapV3PositionManager.connect(other).mint(
       {
-        token0: DAI.address,
-        token1: USDT.address,
+        token0: USDT.address,
+        token1: DAI.address,
         tickLower: getMinTick(60),
         tickUpper: getMaxTick(60),
         fee: 3000,

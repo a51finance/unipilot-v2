@@ -271,6 +271,7 @@ contract UnipilotStrategy is IUnipilotStrategy {
         (uint32 lastTimeStamp, , , ) = uniswapV3Pool.observations(
             (observationIndex + 1) % observationCardinality
         );
+
         uint32 timeDiff = uint32(block.timestamp) - lastTimeStamp;
         uint32 duration = poolStrategy[_pool].twapDuration;
         if (duration == 0) {

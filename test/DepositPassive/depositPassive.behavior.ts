@@ -140,6 +140,12 @@ export async function shouldBehaveLikeDepositPassive(): Promise<void> {
         value: parseUnits("1000", "18"),
       });
 
+    await unipilotVault
+      .connect(wallet)
+      .deposit(parseUnits("1000", "18"), parseUnits("10000", "18"), {
+        value: parseUnits("1000", "18"),
+      });
+
     let positionDetails = await unipilotVault.callStatic.getPositionDetails(
       false,
     );
