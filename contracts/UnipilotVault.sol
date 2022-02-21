@@ -184,6 +184,9 @@ contract UnipilotVault is ERC20Permit, IUnipilotVault {
         a.amount0Desired = _balance0();
         a.amount1Desired = _balance1();
 
+        console.log("a.amount0Desired", a.amount0Desired);
+        console.log("a.amount1Desired", a.amount1Desired);
+
         a.liquidity = pool.getLiquidityForAmounts(
             a.amount0Desired,
             a.amount1Desired,
@@ -211,12 +214,6 @@ contract UnipilotVault is ERC20Permit, IUnipilotVault {
 
         a.amount0Desired = _balance0();
         a.amount1Desired = _balance1();
-
-        console.log("a.amount0Desired", a.amount0Desired);
-        console.log("a.amount1Desired", a.amount1Desired);
-        console.log("baseThreshold", uint256(baseThreshold));
-        console.log("tickSpacing", uint256(tickSpacing));
-
         (ticksData.baseTickLower, ticksData.baseTickUpper) = pool
             .getPositionTicks(
                 a.amount0Desired,
@@ -365,73 +362,61 @@ contract UnipilotVault is ERC20Permit, IUnipilotVault {
         nonReentrant
         returns (uint256 amount0, uint256 amount1)
     {
-        require(liquidity > 0);
-
-        uint256 totalSupply = totalSupply();
-        bool isPoolWhitelisted = _isPoolWhitelisted();
-        uint256 liquidityShare = FullMath.mulDiv(liquidity, 1e18, totalSupply);
-
-        (amount0, amount1) = burnAndCollect(
-            ticksData.baseTickLower,
-            ticksData.baseTickUpper,
-            liquidityShare
-        );
-
-        if (!isPoolWhitelisted) {
-            (uint256 range0, uint256 range1) = burnAndCollect(
-                ticksData.rangeTickLower,
-                ticksData.rangeTickUpper,
-                liquidityShare
-            );
-
-            amount0 = amount0.add(range0);
-            amount1 = amount1.add(range1);
-        }
-
-        uint256 unusedAmount0 = FullMath.mulDiv(
-            _balance0().sub(amount0),
-            liquidity,
-            totalSupply
-        );
-
-        uint256 unusedAmount1 = FullMath.mulDiv(
-            _balance1().sub(amount1),
-            liquidity,
-            totalSupply
-        );
-
-        amount0 = amount0.add(unusedAmount0);
-        amount1 = amount1.add(unusedAmount1);
-
-        if (amount0 > 0) {
-            transferFunds(refundAsETH, recipient, address(token0), amount0);
-        }
-
-        if (amount1 > 0) {
-            transferFunds(refundAsETH, recipient, address(token1), amount1);
-        }
-
-        (uint256 c0, uint256 c1) = pool.mintLiquidity(
-            ticksData.baseTickLower,
-            ticksData.baseTickUpper,
-            _balance0(),
-            _balance1()
-        );
-
-        if (!isPoolWhitelisted) {
-            (uint256 r0, uint256 r1) = pool.mintLiquidity(
-                ticksData.rangeTickLower,
-                ticksData.rangeTickUpper,
-                _balance0(),
-                _balance1()
-            );
-            c0 = c0.add(r0);
-            c1 = c1.add(r1);
-        }
-
-        _burn(msg.sender, liquidity);
-        emit Withdraw(recipient, liquidity, amount0, amount1);
-        emit CompoundFees(c0, c1);
+        // require(liquidity > 0);
+        // uint256 totalSupply = totalSupply();
+        // bool isPoolWhitelisted = _isPoolWhitelisted();
+        // uint256 liquidityShare = FullMath.mulDiv(liquidity, 1e18, totalSupply);
+        // (amount0, amount1) = burnAndCollect(
+        //     ticksData.baseTickLower,
+        //     ticksData.baseTickUpper,
+        //     liquidityShare
+        // );
+        // if (!isPoolWhitelisted) {
+        //     (uint256 range0, uint256 range1) = burnAndCollect(
+        //         ticksData.rangeTickLower,
+        //         ticksData.rangeTickUpper,
+        //         liquidityShare
+        //     );
+        //     amount0 = amount0.add(range0);
+        //     amount1 = amount1.add(range1);
+        // }
+        // uint256 unusedAmount0 = FullMath.mulDiv(
+        //     _balance0().sub(amount0),
+        //     liquidity,
+        //     totalSupply
+        // );
+        // uint256 unusedAmount1 = FullMath.mulDiv(
+        //     _balance1().sub(amount1),
+        //     liquidity,
+        //     totalSupply
+        // );
+        // amount0 = amount0.add(unusedAmount0);
+        // amount1 = amount1.add(unusedAmount1);
+        // if (amount0 > 0) {
+        //     transferFunds(refundAsETH, recipient, address(token0), amount0);
+        // }
+        // if (amount1 > 0) {
+        //     transferFunds(refundAsETH, recipient, address(token1), amount1);
+        // }
+        // (uint256 c0, uint256 c1) = pool.mintLiquidity(
+        //     ticksData.baseTickLower,
+        //     ticksData.baseTickUpper,
+        //     _balance0(),
+        //     _balance1()
+        // );
+        // if (!isPoolWhitelisted) {
+        //     (uint256 r0, uint256 r1) = pool.mintLiquidity(
+        //         ticksData.rangeTickLower,
+        //         ticksData.rangeTickUpper,
+        //         _balance0(),
+        //         _balance1()
+        //     );
+        //     c0 = c0.add(r0);
+        //     c1 = c1.add(r1);
+        // }
+        // _burn(msg.sender, liquidity);
+        // emit Withdraw(recipient, liquidity, amount0, amount1);
+        // emit CompoundFees(c0, c1);
     }
 
     function burnAndCollect(
