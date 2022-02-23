@@ -142,9 +142,9 @@ const main = async () => {
   //await deployUnipilotStrategy();
   await getERC20Approval(
     TKN2_TOKEN_ADDRESS,
-    "0xf0A26DEAd8e0D31Fdb5CF046693Ab06895F400b3",
+    "0x4191F471c8c4040E02af59bE476aa5EFD870783F",
   );
-  await getERC20Approval(TTC99, "0xf0A26DEAd8e0D31Fdb5CF046693Ab06895F400b3");
+  await getERC20Approval(TTC99, "0x4191F471c8c4040E02af59bE476aa5EFD870783F");
   // await checkGovernance("0xcE8f9628aD97D45ee6B7088ccd316D11B37cce71");
 };
 

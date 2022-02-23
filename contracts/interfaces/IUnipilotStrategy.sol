@@ -29,6 +29,8 @@ interface IUnipilotStrategy {
             int24 askUpper
         );
 
+    function getTimeDiff(address _pool) external view returns (uint32);
+
     function getTwap(address _pool) external view returns (int24);
 
     function getStrategy(address _pool)

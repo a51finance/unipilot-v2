@@ -257,6 +257,30 @@ contract UnipilotStrategy is IUnipilotStrategy {
      *   @notice This function fetches the twap of pool from the observation
      *   @param _pool: pool address
      **/
+
+    function getTimeDiff(address _pool)
+        public
+        view
+        override
+        returns (uint32 timeDiff)
+    {
+        IUniswapV3Pool uniswapV3Pool = IUniswapV3Pool(_pool);
+        (
+            ,
+            ,
+            uint16 observationIndex,
+            uint16 observationCardinality,
+            ,
+            ,
+
+        ) = uniswapV3Pool.slot0();
+        (uint32 lastTimeStamp, , , ) = uniswapV3Pool.observations(
+            (observationIndex + 1) % observationCardinality
+        );
+
+        timeDiff = uint32(block.timestamp) - lastTimeStamp;
+    }
+
     function getTwap(address _pool) public view override returns (int24 twap) {
         IUniswapV3Pool uniswapV3Pool = IUniswapV3Pool(_pool);
         (

@@ -96,11 +96,6 @@ export async function shouldBehaveLikeRebalancePassive(): Promise<void> {
     await daiUsdtUniswapPool.initialize(encodedPrice);
     await shibPilotUniswapPool.initialize(encodedPrice);
 
-    await uniStrategy.setBaseTicks(
-      [daiUsdtPoolAddress, shibPilotPoolAddress],
-      [1800, 1800],
-    );
-
     daiUsdtVault = await createVault(
       USDT.address,
       DAI.address,
@@ -189,8 +184,6 @@ export async function shouldBehaveLikeRebalancePassive(): Promise<void> {
   });
 
   it("No tokens left unused", async () => {
-    await daiUsdtVault.init();
-
     await daiUsdtVault
       .connect(wallet)
       .deposit(parseUnits("5000", "18"), parseUnits("5000", "18"));

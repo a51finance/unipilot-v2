@@ -6,7 +6,7 @@ import { shouldBehaveLikeDepositPassive } from "./DepositPassive/depositPassive.
 import { shouldBehaveLikeRebalanceActive } from "./RebalanceActive/rebalanceActive.behavior";
 import { shouldBehaveLikeRebalancePassive } from "./RebalancePassive/rebalancePassive.behavior";
 import { shouldBehaveLikeUnipilotFactory } from "./UnipilotFactoryFunctions/UnipilotFactory.behavior";
-import { shouldBehaveLikeWithdraw } from "./Withdraw/withdraw.behavior";
+import { shouldBehaveLikeWithdrawActive } from "./WithdrawActive/withdrawActive.behavior";
 
 use(solidity);
 
@@ -30,6 +30,6 @@ describe("Invokes Rebalance Active Tests", async () => {
 //   await shouldBehaveLikeUnipilotFactory();
 // })
 
-// describe("Withdraw Liquidity", async () => {
-//   await shouldBehaveLikeWithdraw();
+// describe("Withdraw Liquidity for Active Vault", async () => {
+//   await shouldBehaveLikeWithdrawActive();
 // });

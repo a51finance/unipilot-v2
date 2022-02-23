@@ -314,6 +314,7 @@ library UniswapLiquidityManagement {
             baseThreshold,
             tickSpacing
         );
+
         //Calc amounts of token0 and token1 that can be stored in base range
         (cache.amount0, cache.amount1) = getAmountsForTicks(
             pool,
@@ -322,6 +323,7 @@ library UniswapLiquidityManagement {
             cache.tickLower,
             cache.tickUpper
         );
+
         // //Liquidity that can be stored in base range
         cache.liquidity = getLiquidityForAmounts(
             pool,
@@ -337,6 +339,7 @@ library UniswapLiquidityManagement {
             cache.amount0,
             cache.amount1
         );
+
         //Calc new tick(upper or lower) for imbalanced token
         if (zeroGreaterOne) {
             uint160 nextSqrtPrice0 = SqrtPriceMath
@@ -358,7 +361,6 @@ library UniswapLiquidityManagement {
                     cache.amount1Desired,
                     false
                 );
-
             cache.tickLower = floor(
                 TickMath.getTickAtSqrtRatio(nextSqrtPrice1),
                 tickSpacing
