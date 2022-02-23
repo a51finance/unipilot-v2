@@ -43,6 +43,7 @@ interface IUnipilotVault {
     );
 
     event FeesSnapshot(
+        bool isReadjustLiquidity,
         uint256 fees0,
         uint256 fees1,
         uint256 balance0,

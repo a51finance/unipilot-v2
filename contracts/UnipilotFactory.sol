@@ -35,7 +35,8 @@ contract UnipilotFactory is IUnipilotFactory {
     /// @notice Used to give address of vaults
     /// @return vault address
     mapping(address => mapping(address => mapping(uint24 => address)))
-        public override vaults;
+        public
+        override vaults;
 
     /// @inheritdoc IUnipilotFactory
     mapping(address => bool) public override whitelistedVaults;
@@ -54,11 +55,11 @@ contract UnipilotFactory is IUnipilotFactory {
         string memory _name,
         string memory _symbol
     ) external override returns (address _vault) {
-        require(_tokenA != _tokenB, "TE");
+        require(_tokenA != _tokenB);
         (address token0, address token1) = _tokenA < _tokenB
             ? (_tokenA, _tokenB)
             : (_tokenB, _tokenA);
-        require(vaults[token0][token1][_fee] == address(0), "VE");
+        require(vaults[token0][token1][_fee] == address(0));
         address pool = uniswapFactory.getPool(token0, token1, _fee);
 
         if (pool == address(0)) {

@@ -7,7 +7,6 @@ interface IUnipilotStrategy {
         int24 baseThreshold;
         int24 rangeThreshold;
         int24 maxTwapDeviation;
-        int24 readjustThreshold;
         uint32 twapDuration;
     }
 
@@ -29,6 +28,8 @@ interface IUnipilotStrategy {
             int24 askLower,
             int24 askUpper
         );
+
+    function getTimeDiff(address _pool) external view returns (uint32);
 
     function getTwap(address _pool) external view returns (int24);
 
