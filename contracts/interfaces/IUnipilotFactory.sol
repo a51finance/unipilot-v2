@@ -61,4 +61,10 @@ interface IUnipilotFactory {
             address,
             uint8
         );
+
+    function vaults(
+        address,
+        address,
+        uint24
+    ) external view returns (address);
 }

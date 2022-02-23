@@ -239,6 +239,67 @@ task("deploy-strategy", "Deploy unipilot strategy contract")
     });
   });
 
+task("deploy-migrator", "Deploy Unipilot Migrator contract")
+  // .addParam("position-manager", "address of position manager")
+  // .addParam("uniswapfactory", "address of uniswap factory")
+  // .addParam("unipilot", "address of unipilot")
+  // .addParam("v2Factory", "address of v2Factory")
+  // .addParam("ulm", "address of ulm")
+  .setAction(async (cliArgs, { ethers, run, network }) => {
+    await run("compile");
+    const signer = (await ethers.getSigners())[1];
+    console.log("Signer");
+    console.log("  at", signer.address);
+    console.log("  ETH", formatEther(await signer.getBalance()));
+
+    // const args = {
+    //   positionManager: cliArgs.positionmanager,
+    //   uniswapFactory: cliArgs.uniswapfactory,
+    //   unipilot: cliArgs.unipilot,
+    //   v2Factory: cliArgs.v2Factory,
+    //   ulm: cliArgs.ulm,
+    // };
+
+    const args = {
+      positionManager: "0xC36442b4a4522E871399CD717aBDD847Ab11FE88",
+      uniswapFactory: "0x1F98431c8aD98523631AE4a59f267346ea31F984",
+      unipilot: "0x7c0C2de74929Fb8cAc9E42dF3594B727b39549Fb",
+      v2Factory: "0x0177C2D02df438C9802dB032fE5272594e1B6b47",
+      ulm: "0x1d85374b386CaBf80cabA0AD58e01B5319149840",
+    };
+
+    console.log("Network");
+    console.log("   ", network.name);
+    console.log("Task Args");
+    console.log(args);
+
+    const unipilotMigrator = await deployContract(
+      "UnipilotMigrator",
+      await await ethers.getContractFactory("UnipilotMigrator"),
+      signer,
+      [
+        args.positionManager,
+        args.uniswapFactory,
+        args.unipilot,
+        args.v2Factory,
+        args.ulm,
+      ],
+    );
+
+    delay(60000);
+
+    await run("verify:verify", {
+      address: unipilotMigrator.address,
+      constructorArguments: [
+        args.positionManager,
+        args.uniswapFactory,
+        args.unipilot,
+        args.v2Factory,
+        args.ulm,
+      ],
+    });
+  });
+
 function delay(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }

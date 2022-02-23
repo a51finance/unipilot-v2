@@ -35,7 +35,7 @@ contract UnipilotFactory is IUnipilotFactory {
     /// @notice Used to give address of vaults
     /// @return vault address
     mapping(address => mapping(address => mapping(uint24 => address)))
-        public vaults;
+        public override vaults;
 
     /// @inheritdoc IUnipilotFactory
     mapping(address => bool) public override whitelistedVaults;

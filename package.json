@@ -76,6 +76,7 @@
     "deploy-vaultOnly": "hardhat deploy-unipilot --network",
     "deploy-vault": "hardhat deploy-vault --network",
     "deploy-strategy": "hardhat deploy-strategy --network",
+    "deploy-migrator": "hardhat deploy-migrator --network",
     "deploy-factory": "hardhat deploy-unipilotFactory --network",
     "verify-vault": "hardhat verify-vault --network",
     "lint": "yarn lint:sol && yarn lint:ts && yarn prettier:check",
