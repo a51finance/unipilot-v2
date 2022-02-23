@@ -256,22 +256,22 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
     expect(daiBalanceAfterWithdraw).to.be.lt(daiBalanceBeforeDeposit);
   });
 
-  // it("make pool out of range and then readjust", async () => {
-  //   await daiUsdtVault.init();
+  it("make pool out of range and then readjust", async () => {
+    await daiUsdtVault.init();
 
-  //   await daiUsdtVault
-  //     .connect(wallet)
-  //     .deposit(parseUnits("1000", "18"), parseUnits("1000", "18"));
+    await daiUsdtVault
+      .connect(wallet)
+      .deposit(parseUnits("1000", "18"), parseUnits("1000", "18"));
 
-  //   // await daiUsdtVault.readjustLiquidity();
+    // await daiUsdtVault.readjustLiquidity();
 
-  //   await generateFeeThroughSwap(swapRouter, bob, DAI, USDT, "100000");
+    await generateFeeThroughSwap(swapRouter, bob, DAI, USDT, "100000");
 
-  //   let positionDetailsBeforeReadjust =
-  //     await daiUsdtVault.callStatic.getPositionDetails(true);
+    let positionDetailsBeforeReadjust =
+      await daiUsdtVault.callStatic.getPositionDetails(true);
 
-  //   console.log("positionDetailsBeforeReadjust", positionDetailsBeforeReadjust);
+    console.log("positionDetailsBeforeReadjust", positionDetailsBeforeReadjust);
 
-  //   await daiUsdtVault.readjustLiquidity();
-  // });
+    await daiUsdtVault.readjustLiquidity();
+  });
 }
