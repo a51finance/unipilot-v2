@@ -1,23 +1,19 @@
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { expect } from "chai";
-import { BigNumber, Contract, Wallet } from "ethers";
+import { Contract } from "ethers";
 import { parseUnits } from "ethers/lib/utils";
 import {
   getMaxTick,
   getMinTick,
-  unipilotVaultFixture,
-} from "../utils/fixtures";
+  unipilotPassiveVaultFixture,
+} from "../utils/fixturesPassive";
 import { MaxUint256 } from "@ethersproject/constants";
-import { ethers, network, waffle } from "hardhat";
-import { createFixtureLoader } from "ethereum-waffle";
+import { ethers, waffle } from "hardhat";
 import { encodePriceSqrt } from "../utils/encodePriceSqrt";
 import {
   UniswapV3Pool,
   NonfungiblePositionManager,
-  UnipilotVault,
+  UnipilotPassiveVault,
 } from "../../typechain";
 
-import hre from "hardhat";
 import { generateFeeThroughSwap } from "../utils/SwapFunction/swap";
 export async function shouldBehaveLikeRebalancePassive(): Promise<void> {
   const createFixtureLoader = waffle.createFixtureLoader;
@@ -26,8 +22,8 @@ export async function shouldBehaveLikeRebalancePassive(): Promise<void> {
   let uniStrategy: Contract;
   let unipilotFactory: Contract;
   let swapRouter: Contract;
-  let daiUsdtVault: UnipilotVault;
-  let shibPilotVault: UnipilotVault;
+  let daiUsdtVault: UnipilotPassiveVault;
+  let shibPilotVault: UnipilotPassiveVault;
   let SHIB: Contract;
   let PILOT: Contract;
   let DAI: Contract;
@@ -38,7 +34,7 @@ export async function shouldBehaveLikeRebalancePassive(): Promise<void> {
   let token1: string;
   const encodedPrice = encodePriceSqrt(
     parseUnits("1", "18"),
-    parseUnits("8", "18"),
+    parseUnits("2", "18"),
   );
 
   type ThenArg<T> = T extends PromiseLike<infer U> ? U : T;
@@ -47,7 +43,7 @@ export async function shouldBehaveLikeRebalancePassive(): Promise<void> {
 
   let loadFixture: ReturnType<typeof createFixtureLoader>;
   let createVault: ThenArg<
-    ReturnType<typeof unipilotVaultFixture>
+    ReturnType<typeof unipilotPassiveVaultFixture>
   >["createVault"];
 
   before("fixtures deployer", async () => {
@@ -66,7 +62,7 @@ export async function shouldBehaveLikeRebalancePassive(): Promise<void> {
       SHIB,
       uniStrategy,
       createVault,
-    } = await loadFixture(unipilotVaultFixture));
+    } = await loadFixture(unipilotPassiveVaultFixture));
 
     await uniswapV3Factory.createPool(DAI.address, USDT.address, 3000);
     await uniswapV3Factory.createPool(SHIB.address, PILOT.address, 3000);
@@ -119,14 +115,14 @@ export async function shouldBehaveLikeRebalancePassive(): Promise<void> {
       "PILOT-USDT",
     );
 
-    await USDT._mint(wallet.address, parseUnits("5000", "18"));
-    await DAI._mint(wallet.address, parseUnits("5000", "18"));
+    await USDT._mint(wallet.address, parseUnits("1000000", "18"));
+    await DAI._mint(wallet.address, parseUnits("1000000", "18"));
 
     await USDT._mint(alice.address, parseUnits("5000", "18"));
     await DAI._mint(alice.address, parseUnits("5000", "18"));
 
-    await USDT._mint(bob.address, parseUnits("100000", "18"));
-    await DAI._mint(bob.address, parseUnits("100000", "18"));
+    await USDT._mint(bob.address, parseUnits("100000000", "18"));
+    await DAI._mint(bob.address, parseUnits("100000000", "18"));
 
     await SHIB._mint(wallet.address, parseUnits("2000000", "18"));
     await PILOT._mint(wallet.address, parseUnits("2000000", "18"));
@@ -186,6 +182,9 @@ export async function shouldBehaveLikeRebalancePassive(): Promise<void> {
         gasLimit: "3000000",
       },
     );
+
+    await daiUsdtUniswapPool.increaseObservationCardinalityNext("8");
+    await shibPilotUniswapPool.increaseObservationCardinalityNext("8");
   });
 
   it("No tokens left unused", async () => {
@@ -195,43 +194,30 @@ export async function shouldBehaveLikeRebalancePassive(): Promise<void> {
       .connect(wallet)
       .deposit(parseUnits("5000", "18"), parseUnits("5000", "18"));
 
-    let latestBlock = await hre.ethers.provider.getBlock("latest");
-    await generateFeeThroughSwap(swapRouter, bob, USDT, DAI, "5000");
-    await generateFeeThroughSwap(swapRouter, bob, DAI, USDT, "5000");
-    await generateFeeThroughSwap(swapRouter, bob, USDT, DAI, "5000");
-    await generateFeeThroughSwap(swapRouter, bob, DAI, USDT, "5000");
+    // let latestBlock = await hre.ethers.provider.getBlock("latest");
 
-    console.log("latest block", latestBlock);
-    await network.provider.send("evm_increaseTime", [3600]);
-    await network.provider.send("evm_mine");
-    latestBlock = await hre.ethers.provider.getBlock("latest");
+    // await network.provider.send("evm_increaseTime", [3600]);
+    // await network.provider.send("evm_mine");
 
-    console.log("latest block", latestBlock);
+    // for (let i = 0; i < 10; i++) {
+    //   await generateFeeThroughSwap(swapRouter, bob, USDT, DAI, "2000");
+    //   await generateFeeThroughSwap(swapRouter, bob, DAI, USDT, "2000");
+    // }
+
+    // latestBlock = await hre.ethers.provider.getBlock("latest");
+    // await network.provider.send("evm_increaseTime", [3600]);
+    // await network.provider.send("evm_mine");
 
     await daiUsdtVault.readjustLiquidity();
-    const positionDetails = await daiUsdtVault.callStatic.getPositionDetails(
-      false,
-    );
 
-    let reserve0: BigNumber = positionDetails[0];
-    let reserve1: BigNumber = positionDetails[1];
+    // await daiUsdtVault
+    //   .connect(wallet)
+    //   .deposit(parseUnits("5000", "18"), parseUnits("5000", "18"));
 
-    let ticksData = await daiUsdtVault.ticksData();
-    console.log("ticks data", ticksData);
-
-    await generateFeeThroughSwap(swapRouter, bob, USDT, DAI, "5000");
-    await generateFeeThroughSwap(swapRouter, bob, DAI, USDT, "5000");
-    await generateFeeThroughSwap(swapRouter, bob, USDT, DAI, "5000");
-    await generateFeeThroughSwap(swapRouter, bob, DAI, USDT, "5000");
-
-    await network.provider.send("evm_increaseTime", [3600]);
-    await network.provider.send("evm_mine");
-    latestBlock = await hre.ethers.provider.getBlock("latest");
-
-    console.log("latest block", latestBlock);
+    for (let i = 0; i < 10; i++) {
+      await generateFeeThroughSwap(swapRouter, bob, USDT, DAI, "4000");
+      await generateFeeThroughSwap(swapRouter, bob, DAI, USDT, "2000");
+    }
     await daiUsdtVault.readjustLiquidity();
-
-    ticksData = await daiUsdtVault.ticksData();
-    console.log("ticks data", ticksData);
   });
 }

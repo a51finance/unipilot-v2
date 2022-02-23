@@ -13,7 +13,7 @@ import { encodePriceSqrt } from "../utils/encodePriceSqrt";
 import {
   UniswapV3Pool,
   NonfungiblePositionManager,
-  UnipilotVault,
+  UnipilotActiveVault,
 } from "../../typechain";
 import { generateFeeThroughSwap } from "../utils/SwapFunction/swap";
 
@@ -24,7 +24,7 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
   let uniStrategy: Contract;
   let unipilotFactory: Contract;
   let swapRouter: Contract;
-  let daiUsdtVault: UnipilotVault;
+  let daiUsdtVault: UnipilotActiveVault;
   let SHIB: Contract;
   let PILOT: Contract;
   let DAI: Contract;

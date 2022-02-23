@@ -4,15 +4,10 @@ import { BigNumber, Contract, Wallet } from "ethers";
 import { ethers, waffle } from "hardhat";
 import {
   NonfungiblePositionManager,
-  UnipilotFactory,
-  UnipilotVault,
+  UnipilotPassiveFactory,
+  UnipilotPassiveVault,
 } from "../../typechain";
-import {
-  deployStrategy,
-  deployUnipilotRouter,
-  deployUniswapContracts,
-  deployWETH9,
-} from "../stubs";
+import { deployStrategy, deployUniswapContracts, deployWETH9 } from "../stubs";
 import { deployToken } from "../TokenDeployer/TokenStubs";
 
 const deployWeth9 = async (wallet: Wallet) => {
@@ -57,7 +52,7 @@ interface STRATEGIES {
 }
 
 interface UNIPILOT_FACTORY_FIXTURE {
-  unipilotFactory: UnipilotFactory;
+  unipilotFactory: UnipilotPassiveFactory;
 }
 
 async function unipilotFactoryFixture(
@@ -68,7 +63,9 @@ async function unipilotFactoryFixture(
   WETH9: Contract,
   indexFundPercentage: BigNumber,
 ): Promise<UNIPILOT_FACTORY_FIXTURE> {
-  const unipilotFactoryDep = await ethers.getContractFactory("UnipilotFactory");
+  const unipilotFactoryDep = await ethers.getContractFactory(
+    "UnipilotPassiveFactory",
+  );
   const unipilotFactory = (await unipilotFactoryDep.deploy(
     uniswapV3Factory,
     deployer.address,
@@ -76,7 +73,7 @@ async function unipilotFactoryFixture(
     indexFund.address,
     WETH9.address,
     indexFundPercentage,
-  )) as UnipilotFactory;
+  )) as UnipilotPassiveFactory;
   return { unipilotFactory };
 }
 
@@ -92,10 +89,10 @@ interface UNIPILOT_VAULT_FIXTURE extends FACTORIES {
     sqrtPrice: BigNumber,
     tokenName: string,
     tokenSymbol: string,
-  ): Promise<UnipilotVault>;
+  ): Promise<UnipilotPassiveVault>;
 }
 
-export const unipilotVaultFixture: Fixture<UNIPILOT_VAULT_FIXTURE> =
+export const unipilotPassiveVaultFixture: Fixture<UNIPILOT_VAULT_FIXTURE> =
   async function (): Promise<UNIPILOT_VAULT_FIXTURE> {
     const [
       wallet,
@@ -113,7 +110,6 @@ export const unipilotVaultFixture: Fixture<UNIPILOT_VAULT_FIXTURE> =
     const { uniswapV3Factory, uniswapV3PositionManager, swapRouter } =
       await deployUniswap(wallet, WETH9);
     const uniStrategy = await deployStrategy(wallet);
-    const router = await deployUnipilotRouter(wallet);
     const indexFund = carol;
     const { unipilotFactory } = await unipilotFactoryFixture(
       uniswapV3Factory.address,
@@ -128,7 +124,9 @@ export const unipilotVaultFixture: Fixture<UNIPILOT_VAULT_FIXTURE> =
     const USDT = await deployToken(wallet, "Tether Stable", "USDT", 18);
     const PILOT = await deployToken(wallet, "Pilot", "PILOT", 18);
     const SHIB = await deployToken(wallet, "Shiba Inu", "SHIB", 18);
-    const unipilotVaultDep = await ethers.getContractFactory("UnipilotVault");
+    const unipilotVaultDep = await ethers.getContractFactory(
+      "UnipilotPassiveVault",
+    );
 
     return {
       uniswapV3Factory,
@@ -159,7 +157,7 @@ export const unipilotVaultFixture: Fixture<UNIPILOT_VAULT_FIXTURE> =
         );
 
         const vaultAddress = await unipilotFactory.vaults(tokenA, tokenB, fee);
-        return unipilotVaultDep.attach(vaultAddress) as UnipilotVault;
+        return unipilotVaultDep.attach(vaultAddress) as UnipilotPassiveVault;
       },
     };
   };

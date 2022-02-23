@@ -35,6 +35,11 @@ interface IUnipilotVault {
         int24 rangeTickUpper;
     }
 
+    struct Cache {
+        uint256 totalSupply;
+        uint256 liquidityShare;
+    }
+
     event Deposit(
         address depositor,
         uint256 amount0,

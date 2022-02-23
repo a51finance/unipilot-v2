@@ -2,13 +2,13 @@ import { parseUnits } from "@ethersproject/units";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { expect } from "chai";
 import { BigNumber, BigNumberish, Contract, ethers } from "ethers";
-import { Pilot, UnipilotVault } from "../../typechain";
+import { Pilot, UnipilotPassiveVault } from "../../typechain";
 import { shouldBehaveLikeTokenApproval } from "../TokenApproval/tokenApprove.behavior";
 import { generateFeeThroughSwap } from "../utils/SwapFunction/swap";
 
 export async function shouldBehaveLikeVaultFunctions(
   wallets: SignerWithAddress[],
-  vault: UnipilotVault,
+  vault: UnipilotPassiveVault,
   uniswapFactory: Contract,
   baseThreshold: number,
   indexFundAddress: string,
