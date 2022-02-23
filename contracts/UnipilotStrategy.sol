@@ -26,16 +26,12 @@ import "hardhat/console.sol";
 contract UnipilotStrategy is IUnipilotStrategy {
     /// @dev governance address is set on deployment for the governance based functions
     address public governance;
-    /// @dev unipilot address;
-    address public unipilot;
     /// @dev rangeTicks is multiplied with tick spacing to calculate range order spread
     int24 public rangeTicks;
     /// @dev baseTicks is multiplied with tick spacing to calculate base order spread
     int24 public baseTicks;
     /// @dev rangeOrder is the range calculate the spread behind and ahead of the base range
     int24 private rangeOrder;
-    /// @dev readjustMultiplier is the percentage multiplier of raedjust threshold
-    int24 private readjustMultiplier;
     /// @dev maxTwapDeviation is the max time weighted average deviation of price from the normal range in both directions
     int24 public override maxTwapDeviation;
     /// @dev twapDuration is the minimum duration in which the diviated price moves
@@ -47,7 +43,6 @@ contract UnipilotStrategy is IUnipilotStrategy {
         twapDuration = 3600;
         rangeTicks = 1800;
         baseTicks = 1800;
-        readjustMultiplier = 10;
     }
 
     /// @dev poolStrategy maintains the base,range multipliers and
@@ -97,7 +92,6 @@ contract UnipilotStrategy is IUnipilotStrategy {
                 baseThreshold: baseFloor,
                 rangeThreshold: _floor(rangeTicks, tickSpacing),
                 maxTwapDeviation: maxTwapDeviation,
-                readjustThreshold: (baseFloor * readjustMultiplier) / 100,
                 twapDuration: twapDuration
             });
         }
@@ -134,7 +128,8 @@ contract UnipilotStrategy is IUnipilotStrategy {
      **/
     function setRangeTicks(int24 _rangeTicks) external onlyGovernance {
         require(_rangeTicks > 0, "IRM");
-        emit RangeTicksUpdated(rangeTicks, rangeTicks = _rangeTicks);
+        emit RangeTicksUpdated(rangeTicks, _rangeTicks);
+        rangeTicks = _rangeTicks;
     }
 
     /**
@@ -169,17 +164,6 @@ contract UnipilotStrategy is IUnipilotStrategy {
         emit TwapDurationUpdated(twapDuration, twapDuration = _twapDuration);
     }
 
-    function setReadjustMultiplier(int24 _readjustMultipier)
-        external
-        onlyGovernance
-    {
-        require(_readjustMultipier > 0, "IREM");
-        emit ReadjustMultiplierUpdated(
-            readjustMultiplier,
-            readjustMultiplier = _readjustMultipier
-        );
-    }
-
     /**
      *   @notice This function updates the range,base threshold and twap values specific to a pool
      *   @param params: struct values of PoolStrategy struct, the values can be inspected from interface
@@ -200,7 +184,6 @@ contract UnipilotStrategy is IUnipilotStrategy {
                 baseThreshold: params.baseThreshold,
                 rangeThreshold: params.rangeThreshold,
                 maxTwapDeviation: params.maxTwapDeviation,
-                readjustThreshold: params.readjustThreshold,
                 twapDuration: params.twapDuration
             })
         );
@@ -209,7 +192,8 @@ contract UnipilotStrategy is IUnipilotStrategy {
     function setAllStrategies(
         PoolStrategy[] memory params,
         address[] memory pools
-    ) external {
+    ) external onlyGovernance {
+        require(params.length == pools.length, "IVI");
         for (uint256 i = 0; i < params.length; i++) {
             changeStrategy(params[i], pools[i]);
         }
@@ -224,6 +208,7 @@ contract UnipilotStrategy is IUnipilotStrategy {
         address[] memory _pools,
         int24[] memory _twapDeviations
     ) external onlyGovernance {
+        require(_pools.length == _twapDeviations.length, "IVI");
         for (uint256 i; i < _pools.length; i++) {
             poolStrategy[_pools[i]].maxTwapDeviation = _twapDeviations[i];
         }
@@ -237,15 +222,6 @@ contract UnipilotStrategy is IUnipilotStrategy {
         require(deviation <= maxTwapDeviation, "MTF");
     }
 
-    /**
-     *   @notice This function updates the unipilot contract address
-     *   @param _unipilot: unipilot contract address
-     **/
-    function updateUnipilotAddress(address _unipilot) external onlyGovernance {
-        require(_unipilot != address(0), "ZA");
-        unipilot = _unipilot;
-    }
-
     function getStrategy(address _pool)
         external
         view
@@ -253,19 +229,6 @@ contract UnipilotStrategy is IUnipilotStrategy {
         returns (PoolStrategy memory strategy)
     {
         strategy = poolStrategy[_pool];
-    }
-
-    /**
-     *   @notice This function returns the readjust threshold of a pool
-     *   @param _pool: pool address
-     **/
-    function getReadjustThreshold(address _pool)
-        public
-        view
-        returns (int24 readjustThreshold)
-    {
-        readjustThreshold = poolStrategy[_pool].readjustThreshold;
-        return readjustThreshold;
     }
 
     function getBaseThreshold(address _pool, int24 _tickSpacing)

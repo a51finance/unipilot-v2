@@ -1,14 +1,14 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.7.6;
 
-import "./UnipilotPassiveVault.sol";
+import "./UnipilotActiveVault.sol";
 import "./interfaces/IUnipilotFactory.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 
 /// @title Unipilot factory
 /// @notice Deploys Unipilot vaults and manages ownership and control over active and passive vaults
-contract UnipilotPassiveFactory is IUnipilotFactory {
+contract UnipilotActiveFactory is IUnipilotFactory {
     address private governance;
     address private strategy;
     address private indexFund;
@@ -63,7 +63,7 @@ contract UnipilotPassiveFactory is IUnipilotFactory {
             IUniswapV3Pool(pool).initialize(_sqrtPriceX96);
         }
         _vault = address(
-            new UnipilotPassiveVault{
+            new UnipilotActiveVault{
                 salt: keccak256(abi.encodePacked(_tokenA, _tokenB, _fee))
             }(pool, address(this), WETH, _name, _symbol)
         );
@@ -95,13 +95,13 @@ contract UnipilotPassiveFactory is IUnipilotFactory {
         governance = _newGovernance;
     }
 
-    // function setUnipilotDetails(
-    //     address _strategy,
-    //     address _indexFund,
-    //     uint8 _indexFundPercentage
-    // ) external onlyGovernance {
-    //     strategy = _strategy;
-    //     indexFund = _indexFund;
-    //     indexFundPercentage = _indexFundPercentage;
-    // }
+    function setUnipilotDetails(
+        address _strategy,
+        address _indexFund,
+        uint8 _indexFundPercentage
+    ) external onlyGovernance {
+        strategy = _strategy;
+        indexFund = _indexFund;
+        indexFundPercentage = _indexFundPercentage;
+    }
 }

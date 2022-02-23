@@ -20,6 +20,6 @@ describe("Invokes Rebalance Passive Tests", async () => {
 //   await shouldBehaveLikeUnipilotFactory();
 // })
 
-// describe("Withdraw Liquidity", async () => {
-//   await shouldBehaveLikeWithdraw();
-// });
+describe("Withdraw Liquidity", async () => {
+  await shouldBehaveLikeWithdrawPasssive();
+});
