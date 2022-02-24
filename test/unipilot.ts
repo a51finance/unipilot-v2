@@ -1,25 +1,30 @@
 import { use } from "chai";
 import { solidity } from "ethereum-waffle";
 
+import { shouldBehaveLikeDepositActive } from "./DepositActive/depositActive.behavior";
 import { shouldBehaveLikeDepositPassive } from "./DepositPassive/depositPassive.behavior";
 import { shouldBehaveLikeRebalancePassive } from "./RebalancePassive/rebalancePassive.behavior";
-import { shouldBehaveLikeUnipilotFactory } from "./UnipilotFactoryFunctions/UnipilotFactory.behavior";
-import { shouldBehaveLikeWithdrawPasssive } from "./WithdrawPassive/withdrawPassive.behavior";
+import { shouldBehaveLikeRebalanceActive } from "./RebalanceActive/rebalanceActive.behavior";
+import { shouldBehaveLikeWithdrawPassive } from "./WithdrawPassive/withdrawPassive.behavior";
 
 use(solidity);
+
+// describe("Invokes Deposit Active Tests", async () => {
+//   await shouldBehaveLikeDepositActive();
+// });
 
 // describe("Invokes Deposit Passive Tests", async () => {
 //   await shouldBehaveLikeDepositPassive();
 // });
 
-describe("Invokes Rebalance Passive Tests", async () => {
-  await shouldBehaveLikeRebalancePassive();
+describe("Invokes Rebalance Active Tests", async () => {
+  await shouldBehaveLikeRebalanceActive();
 });
 
-// describe("Invokes Unipilot Factory Tests", async () => {
-//   await shouldBehaveLikeUnipilotFactory();
-// })
+// describe("Invokes Rebalance Passive Tests", async () => {
+//   await shouldBehaveLikeRebalancePassive();
+// });
 
-describe("Withdraw Liquidity", async () => {
-  await shouldBehaveLikeWithdrawPasssive();
-});
+// describe("Withdraw Liquidity", async () => {
+//   await shouldBehaveLikeWithdrawPassive();
+// });
