@@ -127,7 +127,7 @@ library UniswapPoolActions {
         bool zeroForOne,
         int256 amountSpecified
     ) internal {
-        (uint160 sqrtPriceX96, ) = pool.getSqrtRatioX96AndTick();
+        (uint160 sqrtPriceX96, , ) = pool.getSqrtRatioX96AndTick();
 
         uint160 exactSqrtPriceImpact = (sqrtPriceX96 * (1e5 / 2)) / 1e6;
 

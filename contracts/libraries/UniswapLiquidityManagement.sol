@@ -110,12 +110,24 @@ library UniswapLiquidityManagement {
         return compressed * tickSpacing;
     }
 
+    /// remove uint16 observationCardinality for mainnet
     function getSqrtRatioX96AndTick(IUniswapV3Pool pool)
         internal
         view
-        returns (uint160 _sqrtRatioX96, int24 _tick)
+        returns (
+            uint160 _sqrtRatioX96,
+            int24 _tick,
+            uint16 observationCardinality
+        )
     {
-        (_sqrtRatioX96, _tick, , , , , ) = pool.slot0();
+        (_sqrtRatioX96, _tick, , observationCardinality, , , ) = pool.slot0();
+    }
+
+    /// this method should be removed for mainnet
+    function increasePoolCardinality(IUniswapV3Pool pool) internal {
+        (, , uint16 observationCardinality) = getSqrtRatioX96AndTick(pool);
+        if (observationCardinality == 1)
+            pool.increaseObservationCardinalityNext(80);
     }
 
     /// @dev Calc base ticks depending on base threshold and tickspacing
