@@ -348,6 +348,20 @@ contract UnipilotPassiveVault is ERC20Permit, IUnipilotVault {
         transferFeesToIF(false, fees0, fees1);
     }
 
+    function pullLiquidity() external onlyGovernance {
+        pool.burnLiquidity(
+            ticksData.baseTickLower,
+            ticksData.baseTickUpper,
+            address(this)
+        );
+
+        pool.burnLiquidity(
+            ticksData.rangeTickLower,
+            ticksData.rangeTickUpper,
+            address(this)
+        );
+    }
+
     function getVaultInfo()
         external
         view
