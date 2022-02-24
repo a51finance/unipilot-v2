@@ -129,8 +129,8 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
     it("withdraw", async () => {
       const reserves = await vault.callStatic.getPositionDetails();
 
-      const unusedAmount0 = await DAI.balanceOf(vault.address);
-      const unusedAmount1 = await USDT.balanceOf(vault.address);
+      const unusedAmount0 = await USDT.balanceOf(vault.address);
+      const unusedAmount1 = await DAI.balanceOf(vault.address);
 
       await vault.withdraw(parseUnits("1000", "18"), wallet.address, false);
       const userLpBalance = await vault.balanceOf(wallet.address);
@@ -138,15 +138,15 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
       const userUsdtBalance = await USDT.balanceOf(wallet.address);
 
       expect(userLpBalance).to.be.eq(0);
-      expect(userDaiBalance).to.be.eq(reserves[0].add(unusedAmount0));
-      expect(userUsdtBalance).to.be.eq(reserves[1]);
+      expect(userUsdtBalance).to.be.eq(reserves[0].add(unusedAmount0));
+      expect(userDaiBalance).to.be.eq(reserves[1]);
     });
 
     it("emits an event", async () => {
       const liquidity = await vault.balanceOf(wallet.address);
       const reserves = await vault.callStatic.getPositionDetails();
 
-      const unusedAmount0 = await DAI.balanceOf(vault.address);
+      const unusedAmount0 = await USDT.balanceOf(vault.address);
 
       await expect(await vault.withdraw(liquidity, wallet.address, false))
         .to.emit(vault, "Withdraw")
@@ -187,7 +187,7 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
       await generateFeeThroughSwap(swapRouter, other, DAI, USDT, "1000");
 
       const fees = await vault.callStatic.getPositionDetails();
-      const unusedAmount0 = await DAI.balanceOf(vault.address);
+      const unusedAmount0 = await USDT.balanceOf(vault.address);
 
       await vault.withdraw(parseUnits("1000", "18"), wallet.address, false);
       const userDaiBalance = await DAI.balanceOf(wallet.address);
@@ -201,8 +201,8 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
       const total0 = fees[0].add(fees[2]).add(unusedAmount0);
       const total1 = fees[1].add(fees[3]);
 
-      expect(userDaiBalance).to.be.eq(total0.sub(amount0IndexFund));
-      expect(userUsdtBalance).to.be.eq(total1.sub(amount1IndexFund));
+      expect(userUsdtBalance).to.be.eq(total0.sub(amount0IndexFund));
+      expect(userDaiBalance).to.be.eq(total1.sub(amount1IndexFund));
     });
 
     it("fees compounding on withdraw", async () => {
@@ -235,14 +235,14 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
         amount1ToCompound.sub(amount1IndexFund),
       );
 
-      const unusedAmount0 = await DAI.balanceOf(vault.address);
+      const unusedAmount0 = await USDT.balanceOf(vault.address);
 
       await vault.withdraw(user0LP, wallet.address, false);
       const userDaiBalance = await DAI.balanceOf(wallet.address);
       const userUsdtBalance = await USDT.balanceOf(wallet.address);
 
-      expect(userDaiBalance).to.be.eq(reservesAfter[0].add(unusedAmount0));
-      expect(userUsdtBalance).to.be.eq(reservesAfter[1]);
+      expect(userUsdtBalance).to.be.eq(reservesAfter[0].add(unusedAmount0));
+      expect(userDaiBalance).to.be.eq(reservesAfter[1]);
     });
 
     it("receive correct amounts of liquidity for unclaimed pool fees", async () => {
@@ -253,7 +253,7 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
         .connect(other)
         .callStatic.deposit(parseUnits("1000", "18"), parseUnits("1000", "18"));
 
-      const a = await vault
+      await vault
         .connect(other)
         .deposit(parseUnits("1000", "18"), parseUnits("1000", "18"));
 
@@ -266,8 +266,8 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
       const userDaiBalanceAfter = await DAI.balanceOf(other.address);
       const userUsdtBalanceAfter = await USDT.balanceOf(other.address);
 
-      const t0 = userDaiBalanceAfter.sub(userDaiBalanceBfore);
-      const t1 = userUsdtBalanceAfter.sub(userUsdtBalanceBfore);
+      const t0 = userUsdtBalanceAfter.sub(userUsdtBalanceBfore);
+      const t1 = userDaiBalanceAfter.sub(userDaiBalanceBfore);
 
       expect(t0).to.be.lte(amount0);
       expect(t1).to.be.lte(amount1);

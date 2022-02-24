@@ -251,12 +251,12 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         require(liquidity > 0);
         uint256 totalSupply = totalSupply();
 
-        (uint128 liquidity, , ) = pool.getPositionLiquidity(
+        (uint128 totalLiquidity, , ) = pool.getPositionLiquidity(
             ticksData.baseTickLower,
             ticksData.baseTickUpper
         );
 
-        if (liquidity > 0) {
+        if (totalLiquidity > 0) {
             uint256 liquidityShare = FullMath.mulDiv(
                 liquidity,
                 1e18,
