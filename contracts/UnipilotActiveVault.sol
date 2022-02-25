@@ -145,7 +145,15 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
             tickSpacing
         );
 
-        if (a.amount0Desired == 0 || a.amount1Desired == 0) {
+        (uint128 totalLiquidity, , ) = pool.getPositionLiquidity(
+            ticksData.baseTickLower,
+            ticksData.baseTickUpper
+        );
+
+        if (
+            totalLiquidity > 0 &&
+            (a.amount0Desired == 0 || a.amount1Desired == 0)
+        ) {
             bool zeroForOne = a.amount0Desired > 0 ? true : false;
 
             int256 amountSpecified = zeroForOne
@@ -228,10 +236,11 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
     function getPositionDetails()
         external
         returns (
-            uint256,
-            uint256,
-            uint256,
-            uint256
+            uint256 amount0,
+            uint256 amount1,
+            uint256 fees0,
+            uint256 fees1,
+            uint128 totalLiquidity
         )
     {
         return pool.getTotalAmounts(true, ticksData);
