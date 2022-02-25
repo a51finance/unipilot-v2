@@ -391,4 +391,11 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
       lpBalanceOfUser0.lt(parseUnits("3201", "18"));
     expect(bobLp && walletLp && carolLp && user0Lp).to.be.true;
   });
+
+  it("should pull liquidity successfully", async () => {
+    await unipilotVault.init();
+    await unipilotVault
+      .connect(wallet)
+      .deposit(parseUnits("1000", "18"), parseUnits("1000", "18"));
+  });
 }

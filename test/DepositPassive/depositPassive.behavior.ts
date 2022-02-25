@@ -85,18 +85,18 @@ export async function shouldBehaveLikeDepositPassive(): Promise<void> {
       USDT.address,
       3000,
       encodedPrice,
-      "unipilot PILOT-USDT",
-      "PILOT-USDT",
+      "unipilot WETH-USDT",
+      "WETH-USDT",
     );
 
     await USDT._mint(wallet.address, parseUnits("10000", "18"));
     await USDT.connect(alice)._mint(alice.address, parseUnits("10000", "18"));
 
-    await WETH9.connect(alice).approve(
+    await USDT.connect(alice).approve(
       uniswapV3PositionManager.address,
       MaxUint256,
     );
-    await USDT.connect(alice).approve(
+    await WETH9.connect(alice).approve(
       uniswapV3PositionManager.address,
       MaxUint256,
     );
@@ -110,25 +110,25 @@ export async function shouldBehaveLikeDepositPassive(): Promise<void> {
     await USDT.connect(wallet).approve(wethUsdtPoolAddress, MaxUint256);
     await WETH9.connect(wallet).approve(wethUsdtPoolAddress, MaxUint256);
 
-    // await uniswapV3PositionManager.connect(alice).mint(
-    //   {
-    //     token0: WETH9.address,
-    //     token1: USDT.address,
-    //     tickLower: getMinTick(60),
-    //     tickUpper: getMaxTick(60),
-    //     fee: 3000,
-    //     recipient: wallet.address,
-    //     amount0Desired: parseUnits("1000", "18"),
-    //     amount1Desired: parseUnits("1000", "18"),
-    //     amount0Min: 0,
-    //     amount1Min: 0,
-    //     deadline: 2000000000,
-    //   },
-    //   {
-    //     gasLimit: "3000000",
-    //     value: parseUnits("1000", "18"),
-    //   },
-    // );
+    await uniswapV3PositionManager.connect(alice).mint(
+      {
+        token0: WETH9.address,
+        token1: USDT.address,
+        tickLower: getMinTick(60),
+        tickUpper: getMaxTick(60),
+        fee: 3000,
+        recipient: wallet.address,
+        amount0Desired: parseUnits("1000", "18"),
+        amount1Desired: parseUnits("1000", "18"),
+        amount0Min: 0,
+        amount1Min: 0,
+        deadline: 2000000000,
+      },
+      {
+        gasLimit: "3000000",
+        value: parseUnits("1000", "18"),
+      },
+    );
   });
 
   it("deposit suceed for eth", async () => {
@@ -140,27 +140,13 @@ export async function shouldBehaveLikeDepositPassive(): Promise<void> {
         value: parseUnits("1000", "18"),
       });
 
-    await unipilotVault
-      .connect(wallet)
-      .deposit(parseUnits("1000", "18"), parseUnits("10000", "18"), {
-        value: parseUnits("1000", "18"),
-      });
-
     let positionDetails = await unipilotVault.callStatic.getPositionDetails();
-    console.log("potiondetails", positionDetails);
+    console.log("positionDetails", positionDetails);
 
     const ethBalanceAfterDeposit = await wallet.getBalance();
-    console.log(
-      "ethBalanceAfterDeposit",
-      ethBalanceAfterDeposit,
-      ethBalanceBeforeDeposit,
-    );
-
-    const balance0ETH = await provider.getBalance(unipilotVault.address);
-    console.log("balanceEth", balance0ETH);
 
     const ethDeposited = ethBalanceBeforeDeposit.sub(ethBalanceAfterDeposit);
-    console.log("positionDetails", positionDetails[0], ethDeposited);
+
     expect(
       parseUnits("999", "18").lte(positionDetails[0]) &&
         positionDetails[0].lte(ethDeposited) &&

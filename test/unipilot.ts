@@ -9,17 +9,17 @@ import { shouldBehaveLikeWithdrawPassive } from "./WithdrawPassive/withdrawPassi
 
 use(solidity);
 
-// describe("Invokes Deposit Active Tests", async () => {
-//   await shouldBehaveLikeDepositActive();
-// });
+describe("Invokes Deposit Active Tests", async () => {
+  await shouldBehaveLikeDepositActive();
+});
 
 // describe("Invokes Deposit Passive Tests", async () => {
 //   await shouldBehaveLikeDepositPassive();
 // });
 
-describe("Invokes Rebalance Active Tests", async () => {
-  await shouldBehaveLikeRebalanceActive();
-});
+// describe("Invokes Rebalance Active Tests", async () => {
+//   await shouldBehaveLikeRebalanceActive();
+// });
 
 // describe("Invokes Rebalance Passive Tests", async () => {
 //   await shouldBehaveLikeRebalancePassive();
