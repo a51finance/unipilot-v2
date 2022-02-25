@@ -117,6 +117,9 @@ contract UnipilotPassiveVault is ERC20Permit, IUnipilotVault {
             ticksData
         );
 
+        uint256 amount0;
+        uint256 amount1;
+
         if (totalLiquidity > 0) {
             (
                 uint256 baseAmount0,
@@ -147,8 +150,8 @@ contract UnipilotPassiveVault is ERC20Permit, IUnipilotVault {
 
             transferFeesToIF(true, fees0, fees1);
 
-            uint256 amount0 = baseAmount0.add(rangeAmount0);
-            uint256 amount1 = baseAmount1.add(rangeAmount1);
+            amount0 = baseAmount0.add(rangeAmount0);
+            amount1 = baseAmount1.add(rangeAmount1);
 
             if (amount0 == 0 || amount1 == 0) {
                 bool zeroForOne = amount0 > 0 ? true : false;
