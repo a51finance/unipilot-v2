@@ -187,7 +187,8 @@ library UniswapLiquidityManagement {
             uint256 res0,
             uint256 res1,
             uint256 fees0,
-            uint256 fees1
+            uint256 fees1,
+
         ) = getTotalAmounts(pool, isWhitelisted, ticks);
 
         uint256 reserve0 = res0.add(fees0).add(balance0);
@@ -214,10 +215,11 @@ library UniswapLiquidityManagement {
             uint256 amount0,
             uint256 amount1,
             uint256 fees0,
-            uint256 fees1
+            uint256 fees1,
+            uint128 liquidity
         )
     {
-        (amount0, amount1, fees0, fees1) = getReserves(
+        (amount0, amount1, fees0, fees1, liquidity) = getReserves(
             pool,
             ticks.baseTickLower,
             ticks.baseTickUpper
@@ -228,13 +230,15 @@ library UniswapLiquidityManagement {
                 uint256 range0,
                 uint256 range1,
                 uint256 rangeFees0,
-                uint256 rangeFees1
+                uint256 rangeFees1,
+                uint128 rangeLiquidity
             ) = getReserves(pool, ticks.rangeTickLower, ticks.rangeTickUpper);
 
             amount0 = amount0.add(range0);
             amount1 = amount1.add(range1);
             fees0 = fees0.add(rangeFees0);
             fees1 = fees1.add(rangeFees1);
+            liquidity = liquidity + rangeLiquidity;
         }
     }
 
@@ -248,10 +252,11 @@ library UniswapLiquidityManagement {
             uint256 amount0,
             uint256 amount1,
             uint256 fees0,
-            uint256 fees1
+            uint256 fees1,
+            uint128 liquidity
         )
     {
-        uint128 liquidity = UniswapPoolActions.updatePosition(
+        liquidity = UniswapPoolActions.updatePosition(
             pool,
             tickLower,
             tickUpper

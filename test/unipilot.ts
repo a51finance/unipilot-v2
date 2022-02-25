@@ -6,6 +6,7 @@ import { shouldBehaveLikeDepositPassive } from "./DepositPassive/depositPassive.
 import { shouldBehaveLikeRebalancePassive } from "./RebalancePassive/rebalancePassive.behavior";
 import { shouldBehaveLikeRebalanceActive } from "./RebalanceActive/rebalanceActive.behavior";
 import { shouldBehaveLikeWithdrawPassive } from "./WithdrawPassive/withdrawPassive.behavior";
+import { shouldBehaveLikeWithdrawActive } from "./WithdrawActive/withdrawActive.behaviour";
 
 use(solidity);
 
@@ -28,3 +29,7 @@ describe("Invokes Deposit Active Tests", async () => {
 // describe("Withdraw Liquidity", async () => {
 //   await shouldBehaveLikeWithdrawPassive();
 // });
+
+describe("Withdraw Liquidity for Active", async () => {
+  await shouldBehaveLikeWithdrawActive();
+});
