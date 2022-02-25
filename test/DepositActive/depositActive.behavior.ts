@@ -397,5 +397,32 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
     await unipilotVault
       .connect(wallet)
       .deposit(parseUnits("1000", "18"), parseUnits("1000", "18"));
+
+    const usdtBalanceAfterDeposit: BigNumber = await USDT.balanceOf(
+      unipilotVault.address,
+    );
+    const daiBalanceAfterDeposit: BigNumber = await DAI.balanceOf(
+      unipilotVault.address,
+    );
+
+    let positionDetails = await unipilotVault.callStatic.getPositionDetails();
+
+    const usdtVaultBalance = positionDetails[0];
+    const daiVaultBalance = positionDetails[1];
+    console.log("position Details after deposit", positionDetails);
+
+    await unipilotVault.connect(wallet).pullLiquidity();
+    positionDetails = await unipilotVault.callStatic.getPositionDetails();
+
+    const usdtBalance: BigNumber = await USDT.balanceOf(unipilotVault.address);
+    const daiBalance: BigNumber = await DAI.balanceOf(unipilotVault.address);
+
+    expect(positionDetails[0]).to.be.equal(0);
+    expect(positionDetails[1]).to.be.equal(0);
+
+    expect(usdtBalance.sub(usdtBalanceAfterDeposit)).to.be.equal(
+      usdtVaultBalance,
+    );
+    expect(daiBalance.sub(daiBalanceAfterDeposit)).to.be.equal(daiVaultBalance);
   });
 }
