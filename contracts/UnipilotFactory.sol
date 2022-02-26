@@ -91,13 +91,13 @@ contract UnipilotFactory is IUnipilotFactory {
         return (governance, strategy, indexFund, indexFundPercentage);
     }
 
-    /// @notice Updates the governance of the Unipilot factory
-    /// @dev Must be called by the current governance
-    /// @param _newGovernance The new governance of the Unipilot factory
-    function setGovernance(address _newGovernance) external onlyGovernance {
-        emit GovernanceChanged(governance, _newGovernance);
-        governance = _newGovernance;
-    }
+    // /// @notice Updates the governance of the Unipilot factory
+    // /// @dev Must be called by the current governance
+    // /// @param _newGovernance The new governance of the Unipilot factory
+    // function setGovernance(address _newGovernance) external onlyGovernance {
+    //     emit GovernanceChanged(governance, _newGovernance);
+    //     governance = _newGovernance;
+    // }
 
     // function setUnipilotDetails(
     //     address _strategy,
