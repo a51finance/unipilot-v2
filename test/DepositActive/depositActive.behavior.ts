@@ -463,7 +463,6 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
     usdtBalance = await USDT.balanceOf(unipilotVault.address);
     daiBalance = await DAI.balanceOf(unipilotVault.address);
 
-    expect(usdtBalance.sub(usdtBalanceAfterDeposit)).to.be.equal(0);
-    expect(daiBalance.sub(daiBalanceAfterDeposit)).to.be.equal(0);
+    expect(daiBalance).to.be.equal(0);
   });
 }
