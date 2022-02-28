@@ -95,13 +95,13 @@ contract UnipilotPassiveFactory is IUnipilotFactory {
         governance = _newGovernance;
     }
 
-    // function setUnipilotDetails(
-    //     address _strategy,
-    //     address _indexFund,
-    //     uint8 _indexFundPercentage
-    // ) external onlyGovernance {
-    //     strategy = _strategy;
-    //     indexFund = _indexFund;
-    //     indexFundPercentage = _indexFundPercentage;
-    // }
+    function setUnipilotDetails(
+        address _strategy,
+        address _indexFund,
+        uint8 _indexFundPercentage
+    ) external onlyGovernance {
+        strategy = _strategy;
+        indexFund = _indexFund;
+        indexFundPercentage = _indexFundPercentage;
+    }
 }
