@@ -67,7 +67,7 @@ task("deploy-unipilot", "Deploy all unipilot contracts")
     });
   });
 
-task("deploy-unipilotFactory", "Deploy unipilot factory contract")
+task("deploy-unipilotFactory-active", "Deploy unipilot active factory contract")
   .addParam("governance", "governer address")
   .setAction(async (cliArgs, { ethers, run, network }) => {
     await run("compile");
@@ -92,8 +92,59 @@ task("deploy-unipilotFactory", "Deploy unipilot factory contract")
     console.log(args);
 
     const unipilotFactory = await deployContract(
-      "UnipilotFactory",
-      await ethers.getContractFactory("UnipilotFactory"),
+      "UnipilotActiveFactory",
+      await ethers.getContractFactory("UnipilotActiveFactory"),
+      signer,
+      [
+        args.uniswapFactory,
+        args.governance,
+        args.uniStrategy,
+        args.indexFund,
+        args.WETH,
+        args.indexFundPercentage,
+      ],
+    );
+
+    await unipilotFactory.deployTransaction.wait(5);
+
+    delay(60000);
+
+    await run("verify:verify", {
+      address: unipilotFactory.address,
+      constructorArguments: Object.values(args),
+    });
+  });
+
+task(
+  "deploy-unipilotFactory-passive",
+  "Deploy unipilot passive factory contract",
+)
+  .addParam("governance", "governer address")
+  .setAction(async (cliArgs, { ethers, run, network }) => {
+    await run("compile");
+
+    const signer = (await ethers.getSigners())[0];
+    console.log("Signer");
+    console.log("  at", signer.address);
+    console.log("  ETH", formatEther(await signer.getBalance()));
+
+    const args = {
+      uniswapFactory: "0x1f98431c8ad98523631ae4a59f267346ea31f984",
+      governance: cliArgs.governance,
+      uniStrategy: "0x2737BEa3B2825f8B0fbC021a9804922b32708E40",
+      indexFund: cliArgs.governance,
+      WETH: "0xc778417e063141139fce010982780140aa0cd5ab",
+      indexFundPercentage: 10,
+    };
+
+    console.log("Network");
+    console.log("   ", network.name);
+    console.log("Task Args");
+    console.log(args);
+
+    const unipilotFactory = await deployContract(
+      "UnipilotPassiveFactory",
+      await ethers.getContractFactory("UnipilotPassiveFactory"),
       signer,
       [
         args.uniswapFactory,
@@ -164,7 +215,7 @@ task("deploy-vault", "Deploy unipilot vault via the factory")
     console.log("Unipilot Vault -> ", unipilotVault.address);
   });
 
-task("verify-vault", "Verify unipilot vault contract")
+task("verify-active-vault", "Verify unipilot vault contract")
   .addParam("pool", "the uniswap pool address")
   .addParam("factory", "the unipilot factory address")
   .addParam("vault", "the hypervisor to verify")
@@ -193,10 +244,51 @@ task("verify-vault", "Verify unipilot vault contract")
     console.log(args);
 
     const unipilotVault = await ethers.getContractAt(
-      "UnipilotVault",
+      "UnipilotActiveVault",
       cliArgs.vault,
       signer,
     );
+
+    await run("verify:verify", {
+      address: unipilotVault.address,
+      constructorArguments: Object.values(args),
+    });
+  });
+
+task("verify-passive-vault", "Verify unipilot vault contract")
+  .addParam("pool", "the uniswap pool address")
+  .addParam("factory", "the unipilot factory address")
+  .addParam("vault", "the hypervisor to verify")
+  .addParam("name", "erc20 name")
+  .addParam("symbol", "erc2 symbol")
+  .setAction(async (cliArgs, { ethers, run, network }) => {
+    console.log("Network");
+    console.log("  ", network.name);
+
+    await run("compile");
+
+    const signer = (await ethers.getSigners())[0];
+    console.log("Signer");
+    console.log("  at", signer.address);
+    console.log("  ETH", formatEther(await signer.getBalance()));
+
+    const args = {
+      pool: cliArgs.pool,
+      factory: cliArgs.factory,
+      WETH: "0xc778417e063141139fce010982780140aa0cd5ab",
+      name: cliArgs.name,
+      symbol: cliArgs.symbol,
+    };
+
+    console.log("Task Args");
+    console.log(args);
+
+    const unipilotVault = await ethers.getContractAt(
+      "UnipilotPassiveVault",
+      cliArgs.vault,
+      signer,
+    );
+
     await run("verify:verify", {
       address: unipilotVault.address,
       constructorArguments: Object.values(args),
