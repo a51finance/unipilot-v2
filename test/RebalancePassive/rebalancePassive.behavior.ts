@@ -13,6 +13,7 @@ import {
   NonfungiblePositionManager,
   UnipilotPassiveVault,
 } from "../../typechain";
+import hre from "hardhat";
 
 import { generateFeeThroughSwap } from "../utils/SwapFunction/swap";
 export async function shouldBehaveLikeRebalancePassive(): Promise<void> {
@@ -182,9 +183,7 @@ export async function shouldBehaveLikeRebalancePassive(): Promise<void> {
         gasLimit: "3000000",
       },
     );
-
-    await daiUsdtUniswapPool.increaseObservationCardinalityNext("8");
-    await shibPilotUniswapPool.increaseObservationCardinalityNext("8");
+    await daiUsdtUniswapPool.increaseObservationCardinalityNext("80");
   });
 
   it("No tokens left unused", async () => {
@@ -192,30 +191,15 @@ export async function shouldBehaveLikeRebalancePassive(): Promise<void> {
       .connect(wallet)
       .deposit(parseUnits("5000", "18"), parseUnits("5000", "18"));
 
-    // let latestBlock = await hre.ethers.provider.getBlock("latest");
+    await generateFeeThroughSwap(swapRouter, bob, USDT, DAI, "2000");
 
-    // await network.provider.send("evm_increaseTime", [3600]);
-    // await network.provider.send("evm_mine");
+    await hre.network.provider.send("evm_increaseTime", [3600]);
+    await hre.network.provider.send("evm_mine");
 
-    // for (let i = 0; i < 10; i++) {
-    //   await generateFeeThroughSwap(swapRouter, bob, USDT, DAI, "2000");
-    //   await generateFeeThroughSwap(swapRouter, bob, DAI, USDT, "2000");
-    // }
+    let positionDetails = await daiUsdtVault.callStatic.getPositionDetails();
 
-    // latestBlock = await hre.ethers.provider.getBlock("latest");
-    // await network.provider.send("evm_increaseTime", [3600]);
-    // await network.provider.send("evm_mine");
+    console.log("positionDetails", positionDetails);
 
-    await daiUsdtVault.readjustLiquidity();
-
-    // await daiUsdtVault
-    //   .connect(wallet)
-    //   .deposit(parseUnits("5000", "18"), parseUnits("5000", "18"));
-
-    for (let i = 0; i < 10; i++) {
-      await generateFeeThroughSwap(swapRouter, bob, USDT, DAI, "4000");
-      await generateFeeThroughSwap(swapRouter, bob, DAI, USDT, "2000");
-    }
     await daiUsdtVault.readjustLiquidity();
   });
 }
