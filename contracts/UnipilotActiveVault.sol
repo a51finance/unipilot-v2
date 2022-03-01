@@ -215,17 +215,8 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         );
     }
 
-    function pullLiquidity()
-        external
-        onlyGovernance
-        returns (
-            uint256 amount0,
-            uint256 amount1,
-            uint256 fees0,
-            uint256 fees1
-        )
-    {
-        (amount0, amount1, fees0, fees1) = pool.burnLiquidity(
+    function pullLiquidity() external onlyGovernance {
+        pool.burnLiquidity(
             ticksData.baseTickLower,
             ticksData.baseTickUpper,
             address(this)
@@ -311,16 +302,19 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
             transferFunds(refundAsETH, recipient, address(token1), amount1);
         }
 
-        (uint256 c0, uint256 c1) = pool.mintLiquidity(
-            ticksData.baseTickLower,
-            ticksData.baseTickUpper,
-            _balance0(),
-            _balance1()
-        );
-
         _burn(msg.sender, liquidity);
         emit Withdraw(recipient, liquidity, amount0, amount1);
-        emit CompoundFees(c0, c1);
+
+        if (totalLiquidity > 0) {
+            (uint256 c0, uint256 c1) = pool.mintLiquidity(
+                ticksData.baseTickLower,
+                ticksData.baseTickUpper,
+                _balance0(),
+                _balance1()
+            );
+
+            emit CompoundFees(c0, c1);
+        }
     }
 
     function getVaultInfo()
