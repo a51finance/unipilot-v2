@@ -90,20 +90,20 @@ contract UnipilotPassiveVault is ERC20Permit, IUnipilotVault {
         pay(address(token1), sender, address(this), amount1);
 
         if (totalSupply == 0) {
-            setPassivePositions(amount0Desired, amount1Desired);
+            setPassivePositions(amount0, amount1);
         } else {
             (uint256 amount0Base, uint256 amount1Base) = pool.mintLiquidity(
                 ticksData.baseTickLower,
                 ticksData.baseTickUpper,
-                amount0Desired,
-                amount1Desired
+                amount0,
+                amount1
             );
 
             pool.mintLiquidity(
                 ticksData.rangeTickLower,
                 ticksData.rangeTickUpper,
-                amount0Desired.sub(amount0Base),
-                amount1Desired.sub(amount1Base)
+                amount0.sub(amount0Base),
+                amount1.sub(amount1Base)
             );
         }
 
@@ -174,7 +174,6 @@ contract UnipilotPassiveVault is ERC20Permit, IUnipilotVault {
     // temperory function to check position fees and reserves
     function getPositionDetails()
         external
-        onlyGovernance
         returns (
             uint256 amount0,
             uint256 amount1,
@@ -313,23 +312,26 @@ contract UnipilotPassiveVault is ERC20Permit, IUnipilotVault {
             transferFunds(refundAsETH, recipient, address(token1), amount1);
         }
 
-        (uint256 c0, uint256 c1) = pool.mintLiquidity(
-            ticksData.baseTickLower,
-            ticksData.baseTickUpper,
-            _balance0(),
-            _balance1()
-        );
-
-        (uint256 r0, uint256 r1) = pool.mintLiquidity(
-            ticksData.rangeTickLower,
-            ticksData.rangeTickUpper,
-            _balance0(),
-            _balance1()
-        );
-
         _burn(msg.sender, liquidity);
         emit Withdraw(recipient, liquidity, amount0, amount1);
-        emit CompoundFees(c0.add(r0), c1.add(r1));
+
+        if (totalLiquidity > 0) {
+            (uint256 c0, uint256 c1) = pool.mintLiquidity(
+                ticksData.baseTickLower,
+                ticksData.baseTickUpper,
+                _balance0(),
+                _balance1()
+            );
+
+            (uint256 r0, uint256 r1) = pool.mintLiquidity(
+                ticksData.rangeTickLower,
+                ticksData.rangeTickUpper,
+                _balance0(),
+                _balance1()
+            );
+
+            emit CompoundFees(c0.add(r0), c1.add(r1));
+        }
     }
 
     function burnAndCollect(
