@@ -26,7 +26,7 @@ describe("Invokes Deposit Passive Tests", async () => {
 //   await shouldBehaveLikeRebalancePassive();
 // });
 
-// describe("Withdraw Liquidity", async () => {
+// describe("Withdraw Liquidity for Passive", async () => {
 //   await shouldBehaveLikeWithdrawPassive();
 // });
 
