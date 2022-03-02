@@ -7,6 +7,7 @@ interface IUnipilotStrategy {
         int24 baseThreshold;
         int24 rangeThreshold;
         int24 maxTwapDeviation;
+        int24 readjustThreshold;
         uint32 twapDuration;
     }
 

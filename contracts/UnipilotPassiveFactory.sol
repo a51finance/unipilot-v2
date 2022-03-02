@@ -43,6 +43,21 @@ contract UnipilotPassiveFactory is IUnipilotFactory {
     }
 
     /// @inheritdoc IUnipilotFactory
+    function getUnipilotDetails()
+        external
+        view
+        override
+        returns (
+            address,
+            address,
+            address,
+            uint8
+        )
+    {
+        return (governance, strategy, indexFund, indexFundPercentage);
+    }
+
+    /// @inheritdoc IUnipilotFactory
     function createVault(
         address _tokenA,
         address _tokenB,
@@ -72,25 +87,11 @@ contract UnipilotPassiveFactory is IUnipilotFactory {
         emit VaultCreated(token0, token1, _fee, _vault);
     }
 
-    /// @inheritdoc IUnipilotFactory
-    function getUnipilotDetails()
-        external
-        view
-        override
-        returns (
-            address,
-            address,
-            address,
-            uint8
-        )
-    {
-        return (governance, strategy, indexFund, indexFundPercentage);
-    }
-
     /// @notice Updates the governance of the Unipilot factory
     /// @dev Must be called by the current governance
     /// @param _newGovernance The new governance of the Unipilot factory
     function setGovernance(address _newGovernance) external onlyGovernance {
+        require(_newGovernance != address(0));
         emit GovernanceChanged(governance, _newGovernance);
         governance = _newGovernance;
     }
@@ -100,6 +101,8 @@ contract UnipilotPassiveFactory is IUnipilotFactory {
         address _indexFund,
         uint8 _indexFundPercentage
     ) external onlyGovernance {
+        require(_strategy != address(0) && _indexFund != address(0));
+        require(_indexFundPercentage > 0);
         strategy = _strategy;
         indexFund = _indexFund;
         indexFundPercentage = _indexFundPercentage;
