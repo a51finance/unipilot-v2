@@ -8,7 +8,6 @@ import "./base/oracle/libraries/OracleLibrary.sol";
 
 import "@uniswap/v3-core/contracts/libraries/TickMath.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
-import "hardhat/console.sol";
 
 /**
  *
