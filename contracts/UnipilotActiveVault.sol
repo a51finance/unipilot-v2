@@ -137,6 +137,7 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
             ticksData.baseTickUpper
         );
 
+        /// @dev if liquidity has pulled in contract then calculate share accordingly
         if (totalLiquidity > 0) {
             uint256 liquidityShare = FullMath.mulDiv(
                 liquidity,
@@ -334,7 +335,7 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         );
     }
 
-    // temperory function to check position fees and reserves
+    /// @dev function to check unipilot position fees and reserves
     function getPositionDetails()
         external
         returns (
@@ -398,6 +399,7 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         return unipilotFactory.getUnipilotDetails();
     }
 
+    /// @dev method to transfer unipilot earned fees to Index Fund
     function transferFeesToIF(
         bool isReadjustLiquidity,
         uint256 fees0,

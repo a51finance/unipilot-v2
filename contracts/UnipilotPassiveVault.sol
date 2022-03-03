@@ -129,6 +129,7 @@ contract UnipilotPassiveVault is ERC20Permit, IUnipilotVault {
             ticksData
         );
 
+        /// @dev if liquidity has pulled in contract then calculate share accordingly
         if (totalLiquidity > 0) {
             uint256 liquidityShare = FullMath.mulDiv(
                 liquidity,
@@ -249,7 +250,7 @@ contract UnipilotPassiveVault is ERC20Permit, IUnipilotVault {
             }
         }
 
-        /// @dev to add remaining amounts in contract other than positoin liquidity && when positions are empty
+        /// @dev to add remaining amounts in contract other than position liquidity && also when positions are empty
         amount0 = _balance0();
         amount1 = _balance1();
 
@@ -301,7 +302,7 @@ contract UnipilotPassiveVault is ERC20Permit, IUnipilotVault {
         );
     }
 
-    // temperory function to check position fees and reserves
+    /// @dev function to check unipilot position fees and reserves
     function getPositionDetails()
         external
         returns (
@@ -397,7 +398,7 @@ contract UnipilotPassiveVault is ERC20Permit, IUnipilotVault {
                 ticks.rangeTickLower,
                 ticks.rangeTickUpper
             );
-            /// only one range position will ever have liquidity (if any)
+            /// @dev only one range position will ever have liquidity (if any)
             if (range1 < range0) {
                 rangeLiquidity = range0;
                 ticksData.rangeTickLower = ticks.bidTickLower;
@@ -458,6 +459,7 @@ contract UnipilotPassiveVault is ERC20Permit, IUnipilotVault {
         return IUnipilotStrategy(strategy).getTicks(_pool);
     }
 
+    /// @dev method to transfer unipilot earned fees to Index Fund
     function transferFeesToIF(
         bool isReadjustLiquidity,
         uint256 fees0,
