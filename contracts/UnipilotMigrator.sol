@@ -4,15 +4,17 @@ pragma solidity =0.7.6;
 pragma abicoder v2;
 
 import "@openzeppelin/contracts/utils/Context.sol";
+
+import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
 import "@uniswap/v3-periphery/contracts/interfaces/INonfungiblePositionManager.sol";
+import "@openzeppelin/contracts/math/SafeMath.sol";
 
 import "./interfaces/IUnipilotVault.sol";
 import "./interfaces/external/IWETH9.sol";
 
 import "./interfaces/IUnipilotMigrator.sol";
-import "./interfaces/IUnipilotFactory.sol";
 
 import "./libraries/TransferHelper.sol";
 import "./base/PeripheryPayments.sol";
@@ -20,7 +22,6 @@ import "./base/PeripheryPayments.sol";
 import "./interfaces/external/IUniswapLiquidityManager.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 
-import "@uniswap/v3-core/contracts/libraries/LowGasSafeMath.sol";
 import "@uniswap/v2-core/contracts/interfaces/IUniswapV2Pair.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 
@@ -37,18 +38,14 @@ contract UnipilotMigrator is
     IERC721Receiver,
     Context
 {
-    using LowGasSafeMath for uint256;
+    using SafeMath for uint256;
+    using SafeERC20 for IERC20;
 
     address private immutable ulm;
     address private immutable unipilot;
     address private immutable v2Factory;
     address private immutable uniswapFactory;
     address private immutable positionManager;
-
-    // modifier onlyGovernance() {
-    //     require(msg.sender == IUnipilot(unipilot).governance(), "NG");
-    //     _;
-    // }
 
     constructor(
         address _positionManager,
@@ -77,23 +74,12 @@ contract UnipilotMigrator is
         external
     {
         IUniswapV3Pool uniswapPool = IUniswapV3Pool(params.pool);
-        bytes memory data = abi.encode(params.recipient);
+
         IUniswapLiquidityManager.Position
             memory userPosition = IUniswapLiquidityManager(ulm).userPositions(
                 params.tokenId
             );
-        (
-            uint256 amount0,
-            uint256 amount1,
-            uint256 totalLiquidity
-        ) = IUniswapLiquidityManager(ulm).updatePositionTotalAmounts(
-                params.pool
-            );
-        require(amount0 > 0 && amount1 > 0, "IA");
-        (uint160 sqrtPriceX96, , , , , , ) = uniswapPool.slot0();
-        uint256 shares = (userPosition.liquidity) / totalLiquidity;
-        amount0 = shares * amount0;
-        amount1 = shares * amount1;
+
         IExchangeManager.WithdrawParams memory withdrawParam = IExchangeManager
             .WithdrawParams({
                 pilotToken: false,
@@ -102,43 +88,39 @@ contract UnipilotMigrator is
                 liquidity: userPosition.liquidity,
                 tokenId: params.tokenId
             });
-        IUnipilot(unipilot).withdraw(withdrawParam, data);
-        IERC20(uniswapPool.token0()).transferFrom(
+
+        IUnipilot(unipilot).withdraw(
+            withdrawParam,
+            abi.encode(params.recipient)
+        );
+
+        IERC721(unipilot).safeTransferFrom(
             msg.sender,
             address(this),
-            amount0
+            params.tokenId
         );
-        IERC20(uniswapPool.token1()).transferFrom(
-            msg.sender,
-            address(this),
-            amount1
-        );
+
+        uint256 amount0 = IERC20(params.token0).balanceOf(address(this));
+        uint256 amount1 = IERC20(params.token1).balanceOf(address(this));
+
+        _tokenApproval(params.token0, params.vault, amount0);
+        _tokenApproval(params.token1, params.vault, amount1);
+
         (
             ,
             uint256 amount0Unipilot,
             uint256 amount1Unipilot
-        ) = _addLiquidityUnipilot(
-                UnipilotParams({
-                    sender: params.recipient,
-                    token0: uniswapPool.token0(),
-                    token1: uniswapPool.token1(),
-                    fee: uniswapPool.fee(),
-                    amount0ToMigrate: amount0,
-                    amount1ToMigrate: amount1,
-                    unipilotTokenId: params.tokenId,
-                    sqrtPriceX96: sqrtPriceX96,
-                    unipilotVault: params.vault
-                })
-            );
+        ) = _addLiquidityUnipilot(params.vault, amount0, amount1);
+
         _refundRemainingLiquidiy(
             RefundLiquidityParams({
                 vault: params.vault,
-                token0: uniswapPool.token0(),
-                token1: uniswapPool.token1(),
+                token0: params.token0,
+                token1: params.token1,
                 amount0Unipilot: amount0Unipilot,
                 amount1Unipilot: amount1Unipilot,
-                amount0Recieved: amount0 - amount0Unipilot,
-                amount1Recieved: amount1 - amount1Unipilot,
+                amount0Recieved: amount0.sub(amount0Unipilot),
+                amount1Recieved: amount1.sub(amount1Unipilot),
                 amount0ToMigrate: amount0,
                 amount1ToMigrate: amount1,
                 refundAsETH: false
@@ -146,7 +128,11 @@ contract UnipilotMigrator is
         );
     }
 
-    function _addLiquidityUnipilot(UnipilotParams memory params)
+    function _addLiquidityUnipilot(
+        address vault,
+        uint256 amount0,
+        uint256 amount1
+    )
         private
         returns (
             address,
@@ -154,29 +140,14 @@ contract UnipilotMigrator is
             uint256
         )
     {
-        TransferHelper.safeApprove(
-            params.token0,
-            params.unipilotVault,
-            params.amount0ToMigrate
-        );
-        TransferHelper.safeApprove(
-            params.token1,
-            params.unipilotVault,
-            params.amount1ToMigrate
-        );
-        IUnipilotVault(params.unipilotVault).deposit(
-            params.amount0ToMigrate,
-            params.amount1ToMigrate
-        );
-        uint256 lp = IERC20(params.unipilotVault).balanceOf(address(this));
-        if (lp > 0) {
-            IERC20(params.unipilotVault).transfer(params.sender, lp);
-        }
-        return (
-            params.unipilotVault,
-            params.amount0ToMigrate,
-            params.amount1ToMigrate
-        );
+        (
+            ,
+            uint256 despositedAmount0,
+            uint256 despositedAmount1
+        ) = IUnipilotVault(vault).deposit(amount0, amount1);
+
+        //token 0 and token 1 transfer to user
+        return (vault, despositedAmount0, despositedAmount1);
     }
 
     function migrateV2Liquidity(MigrateV2Params calldata params) external {
@@ -184,44 +155,36 @@ contract UnipilotMigrator is
             params.percentageToMigrate > 0 && params.percentageToMigrate <= 100,
             "IPA"
         );
+
         IUniswapV2Pair(params.pair).transferFrom(
             _msgSender(),
             params.pair,
             params.liquidityToMigrate
         );
+
         (uint256 amount0V2, uint256 amount1V2) = IUniswapV2Pair(params.pair)
             .burn(address(this));
-        uint256 amount0ToMigrate = amount0V2.mul(params.percentageToMigrate) /
-            100;
-        uint256 amount1ToMigrate = amount1V2.mul(params.percentageToMigrate) /
-            100;
-        TransferHelper.safeApprove(
-            params.token0,
-            params.vault,
-            amount0ToMigrate
-        );
-        TransferHelper.safeApprove(
-            params.token1,
-            params.vault,
-            amount1ToMigrate
-        );
+
+        uint256 amount0ToMigrate = (amount0V2.mul(params.percentageToMigrate))
+            .div(100);
+
+        uint256 amount1ToMigrate = (amount1V2.mul(params.percentageToMigrate))
+            .div(100);
+
+        _tokenApproval(params.token0, params.vault, amount0ToMigrate);
+
+        _tokenApproval(params.token1, params.vault, amount1ToMigrate);
+
         (
             address pairV3,
             uint256 amount0V3,
             uint256 amount1V3
         ) = _addLiquidityUnipilot(
-                UnipilotParams({
-                    sender: _msgSender(),
-                    token0: params.token0,
-                    token1: params.token1,
-                    fee: params.fee,
-                    amount0ToMigrate: amount0ToMigrate,
-                    amount1ToMigrate: amount1ToMigrate,
-                    unipilotTokenId: params.unipilotTokenId,
-                    sqrtPriceX96: params.sqrtPriceX96,
-                    unipilotVault: params.unipilotVault
-                })
+                params.vault,
+                amount0ToMigrate,
+                amount1ToMigrate
             );
+
         _refundRemainingLiquidiy(
             RefundLiquidityParams({
                 vault: params.vault,
@@ -236,6 +199,7 @@ contract UnipilotMigrator is
                 refundAsETH: params.refundAsETH
             })
         );
+
         emit LiquidityMigratedFromV2(
             params.pair,
             pairV3,
@@ -250,14 +214,17 @@ contract UnipilotMigrator is
             params.percentageToMigrate > 0 && params.percentageToMigrate <= 100,
             "IPA"
         );
+
         INonfungiblePositionManager periphery = INonfungiblePositionManager(
             positionManager
         );
+
         periphery.safeTransferFrom(
             _msgSender(),
             address(this),
             params.uniswapTokenId
         );
+
         (
             ,
             ,
@@ -274,6 +241,7 @@ contract UnipilotMigrator is
         ) = INonfungiblePositionManager(positionManager).positions(
                 params.uniswapTokenId
             );
+
         periphery.decreaseLiquidity(
             INonfungiblePositionManager.DecreaseLiquidityParams({
                 tokenId: params.uniswapTokenId,
@@ -283,6 +251,7 @@ contract UnipilotMigrator is
                 deadline: block.timestamp + 120
             })
         );
+
         // returns the total amount of Liquidity with collected fees to user
         (uint256 amount0V3, uint256 amount1V3) = periphery.collect(
             INonfungiblePositionManager.CollectParams({
@@ -292,30 +261,26 @@ contract UnipilotMigrator is
                 amount1Max: type(uint128).max
             })
         );
-        uint256 amount0ToMigrate = amount0V3.mul(params.percentageToMigrate) /
-            100;
-        uint256 amount1ToMigrate = amount1V3.mul(params.percentageToMigrate) /
-            100;
+
+        uint256 amount0ToMigrate = (amount0V3.mul(params.percentageToMigrate))
+            .div(100);
+
+        uint256 amount1ToMigrate = (amount1V3.mul(params.percentageToMigrate))
+            .div(100);
         // approve the Unipilot up to the maximum token amounts
         _tokenApproval(params.token0, params.vault, amount0ToMigrate);
         _tokenApproval(params.token1, params.vault, amount1ToMigrate);
+
         (
             address pair,
             uint256 amount0Unipilot,
             uint256 amount1Unipilot
         ) = _addLiquidityUnipilot(
-                UnipilotParams({
-                    sender: _msgSender(),
-                    token0: params.token0,
-                    token1: params.token1,
-                    fee: params.fee,
-                    amount0ToMigrate: amount0ToMigrate,
-                    amount1ToMigrate: amount1ToMigrate,
-                    unipilotTokenId: params.unipilotTokenId,
-                    sqrtPriceX96: params.sqrtPriceX96,
-                    unipilotVault: params.unipilotVault
-                })
+                params.vault,
+                amount0ToMigrate,
+                amount1ToMigrate
             );
+
         _refundRemainingLiquidiy(
             RefundLiquidityParams({
                 vault: params.vault,
@@ -330,7 +295,9 @@ contract UnipilotMigrator is
                 refundAsETH: params.refundAsETH
             })
         );
+
         periphery.burn(params.uniswapTokenId);
+
         emit LiquidityMigratedFromV3(
             pair,
             _msgSender(),
@@ -344,39 +311,38 @@ contract UnipilotMigrator is
             params.percentageToMigrate > 0 && params.percentageToMigrate <= 100,
             "IPA"
         );
-        IERC20(params.pair).transferFrom(
+
+        IERC20(params.pair).safeTransferFrom(
             _msgSender(),
             address(this),
             params.liquidityToMigrate
         );
+
         (uint256 amount0V2, uint256 amount1V2) = IVault(params.pair).withdraw(
             params.liquidityToMigrate,
             address(this),
             address(this)
         );
-        uint256 amount0ToMigrate = amount0V2.mul(params.percentageToMigrate) /
-            100;
-        uint256 amount1ToMigrate = amount1V2.mul(params.percentageToMigrate) /
-            100;
+
+        uint256 amount0ToMigrate = (amount0V2.mul(params.percentageToMigrate))
+            .div(100);
+
+        uint256 amount1ToMigrate = (amount1V2.mul(params.percentageToMigrate))
+            .div(100);
+
         _tokenApproval(params.token0, params.vault, amount0ToMigrate);
         _tokenApproval(params.token1, params.vault, amount1ToMigrate);
+
         (
             address pairV3,
             uint256 amount0V3,
             uint256 amount1V3
         ) = _addLiquidityUnipilot(
-                UnipilotParams({
-                    sender: _msgSender(),
-                    token0: params.token0,
-                    token1: params.token1,
-                    fee: params.fee,
-                    amount0ToMigrate: amount0ToMigrate,
-                    amount1ToMigrate: amount1ToMigrate,
-                    unipilotTokenId: params.unipilotTokenId,
-                    sqrtPriceX96: params.sqrtPriceX96,
-                    unipilotVault: params.unipilotVault
-                })
+                params.vault,
+                amount0ToMigrate,
+                amount1ToMigrate
             );
+
         _refundRemainingLiquidiy(
             RefundLiquidityParams({
                 vault: params.vault,
@@ -391,6 +357,7 @@ contract UnipilotMigrator is
                 refundAsETH: params.refundAsETH
             })
         );
+
         emit LiquidityMigratedFromVisor(
             params.pair,
             pairV3,
@@ -405,6 +372,7 @@ contract UnipilotMigrator is
             params.percentageToMigrate > 0 && params.percentageToMigrate <= 100,
             "IPA"
         );
+
         (uint256 amount0V2, uint256 amount1V2) = ILixirVaultETH(
             payable(address(params.pair))
         ).withdrawETHFrom(
@@ -415,38 +383,37 @@ contract UnipilotMigrator is
                 address(this),
                 block.timestamp + 120
             );
+
         (
             address alt,
             uint256 altAmountReceived,
             address weth,
             uint256 wethAmountReceived
         ) = _sortWethAmount(params.token0, params.token1, amount0V2, amount1V2);
+
         IWETH9(WETH).deposit{ value: wethAmountReceived }();
-        uint256 wethAmountToMigrate = wethAmountReceived.mul(
-            params.percentageToMigrate
-        ) / 100;
-        uint256 altAmountToMigrate = altAmountReceived.mul(
-            params.percentageToMigrate
-        ) / 100;
+
+        uint256 wethAmountToMigrate = (
+            wethAmountReceived.mul(params.percentageToMigrate)
+        ).div(100);
+
+        uint256 altAmountToMigrate = (
+            altAmountReceived.mul(params.percentageToMigrate)
+        ).div(100);
+
         _tokenApproval(weth, params.vault, wethAmountToMigrate);
         _tokenApproval(alt, params.vault, altAmountToMigrate);
+
         (
             address pairV3,
             uint256 amount0V3,
             uint256 amount1V3
         ) = _addLiquidityUnipilot(
-                UnipilotParams({
-                    sender: _msgSender(),
-                    token0: alt,
-                    token1: weth,
-                    fee: params.fee,
-                    amount0ToMigrate: altAmountToMigrate,
-                    amount1ToMigrate: wethAmountToMigrate,
-                    unipilotTokenId: params.unipilotTokenId,
-                    sqrtPriceX96: params.sqrtPriceX96,
-                    unipilotVault: params.unipilotVault
-                })
+                params.vault,
+                wethAmountToMigrate,
+                altAmountToMigrate
             );
+
         _refundRemainingLiquidiy(
             RefundLiquidityParams({
                 vault: params.vault,
@@ -461,6 +428,7 @@ contract UnipilotMigrator is
                 refundAsETH: params.refundAsETH
             })
         );
+
         emit LiquidityMigratedFromLixir(
             params.pair,
             pairV3,
@@ -477,36 +445,35 @@ contract UnipilotMigrator is
             params.percentageToMigrate > 0 && params.percentageToMigrate <= 100,
             "IPA"
         );
+
         IERC20(params.pair).transferFrom(
             _msgSender(),
             address(this),
             params.liquidityToMigrate
         );
+
         (uint256 amount0, uint256 amount1) = IPopsicleV3Optimizer(params.pair)
             .withdraw(params.liquidityToMigrate, address(this));
-        uint256 amount0ToMigrate = amount0.mul(params.percentageToMigrate) /
-            100;
-        uint256 amount1ToMigrate = amount1.mul(params.percentageToMigrate) /
-            100;
+
+        uint256 amount0ToMigrate = (amount0.mul(params.percentageToMigrate))
+            .div(100);
+
+        uint256 amount1ToMigrate = (amount1.mul(params.percentageToMigrate))
+            .div(100);
+
         _tokenApproval(params.token0, params.vault, amount0ToMigrate);
         _tokenApproval(params.token1, params.vault, amount1ToMigrate);
+
         (
             address pairV3,
             uint256 amount0V3,
             uint256 amount1V3
         ) = _addLiquidityUnipilot(
-                UnipilotParams({
-                    sender: _msgSender(),
-                    token0: params.token0,
-                    token1: params.token1,
-                    fee: params.fee,
-                    amount0ToMigrate: amount0ToMigrate,
-                    amount1ToMigrate: amount1ToMigrate,
-                    unipilotTokenId: params.unipilotTokenId,
-                    sqrtPriceX96: params.sqrtPriceX96,
-                    unipilotVault: params.unipilotVault
-                })
+                params.vault,
+                amount0ToMigrate,
+                amount1ToMigrate
             );
+
         _refundRemainingLiquidiy(
             RefundLiquidityParams({
                 vault: params.vault,
@@ -521,6 +488,7 @@ contract UnipilotMigrator is
                 refundAsETH: params.refundAsETH
             })
         );
+
         emit LiquidityMigratedFromPopsicle(
             params.pair,
             pairV3,
@@ -555,14 +523,6 @@ contract UnipilotMigrator is
         }
     }
 
-    function _getV3Pair(
-        address token0,
-        address token1,
-        uint24 fee
-    ) private view returns (address pair) {
-        return IUniswapV3Factory(uniswapFactory).getPool(token0, token1, fee);
-    }
-
     function _sortWethAmount(
         address _token0,
         address _token1,
@@ -586,6 +546,7 @@ contract UnipilotMigrator is
         ) = _token0 == WETH
                 ? (_token0, _token1, _amount0, _amount1)
                 : (_token0, _token1, _amount1, _amount0);
+
         (tokenAlt, altAmount, tokenWeth, wethAmount) = tokenA == WETH
             ? (tokenB, amountB, tokenA, amountA)
             : (tokenA, amountA, tokenB, amountB);
