@@ -7,12 +7,12 @@ import "./external/IExchangeManager.sol";
 interface IUnipilotMigrator {
     struct UnipilotMigrateParams {
         address pool;
+        address vault;
         address token0;
         address token1;
         uint24 fee;
         address recipient;
         uint256 tokenId;
-        address vault;
         bool refundAsETH;
     }
 
@@ -30,10 +30,8 @@ interface IUnipilotMigrator {
         uint24 fee;
         uint8 percentageToMigrate; // represented as a numerator over 100
         uint256 liquidityToMigrate;
-        uint256 sqrtPriceX96;
         uint256 unipilotTokenId;
         bool refundAsETH;
-        address unipilotVault;
     }
 
     struct MigrateV3Params {
@@ -42,7 +40,6 @@ interface IUnipilotMigrator {
         address token1;
         uint24 fee;
         uint8 percentageToMigrate;
-        uint256 sqrtPriceX96;
         uint256 uniswapTokenId;
         uint256 unipilotTokenId;
         bool refundAsETH;

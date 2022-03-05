@@ -73,8 +73,6 @@ contract UnipilotMigrator is
     function migrateUnipilotLiquididty(UnipilotMigrateParams memory params)
         external
     {
-        IUniswapV3Pool uniswapPool = IUniswapV3Pool(params.pool);
-
         IUniswapLiquidityManager.Position
             memory userPosition = IUniswapLiquidityManager(ulm).userPositions(
                 params.tokenId
@@ -103,6 +101,8 @@ contract UnipilotMigrator is
         uint256 amount0 = IERC20(params.token0).balanceOf(address(this));
         uint256 amount1 = IERC20(params.token1).balanceOf(address(this));
 
+        require(amount0 > 0 && amount1 > 0, "IF");
+
         _tokenApproval(params.token0, params.vault, amount0);
         _tokenApproval(params.token1, params.vault, amount1);
 
@@ -110,7 +110,20 @@ contract UnipilotMigrator is
             ,
             uint256 amount0Unipilot,
             uint256 amount1Unipilot
-        ) = _addLiquidityUnipilot(params.vault, amount0, amount1);
+        ) = _addLiquidityUnipilot(params.vault, amount0, amount1, msg.sender);
+
+        if (amount0 > amount0Unipilot) {
+            IERC20(params.token0).transfer(
+                msg.sender,
+                amount0.sub(amount0Unipilot)
+            );
+        }
+        if (amount1 > amount1Unipilot) {
+            IERC20(params.token1).transfer(
+                msg.sender,
+                amount1.sub(amount1Unipilot)
+            );
+        }
 
         _refundRemainingLiquidiy(
             RefundLiquidityParams({
@@ -131,7 +144,8 @@ contract UnipilotMigrator is
     function _addLiquidityUnipilot(
         address vault,
         uint256 amount0,
-        uint256 amount1
+        uint256 amount1,
+        address recipient
     )
         private
         returns (
@@ -141,12 +155,16 @@ contract UnipilotMigrator is
         )
     {
         (
-            ,
+            uint256 LpShare,
             uint256 despositedAmount0,
             uint256 despositedAmount1
         ) = IUnipilotVault(vault).deposit(amount0, amount1);
 
-        //token 0 and token 1 transfer to user
+        // LP transfer to user
+        if (LpShare > 0) {
+            IERC20(vault).safeTransfer(recipient, LpShare);
+        }
+
         return (vault, despositedAmount0, despositedAmount1);
     }
 
@@ -182,7 +200,8 @@ contract UnipilotMigrator is
         ) = _addLiquidityUnipilot(
                 params.vault,
                 amount0ToMigrate,
-                amount1ToMigrate
+                amount1ToMigrate,
+                msg.sender
             );
 
         _refundRemainingLiquidiy(
@@ -278,7 +297,8 @@ contract UnipilotMigrator is
         ) = _addLiquidityUnipilot(
                 params.vault,
                 amount0ToMigrate,
-                amount1ToMigrate
+                amount1ToMigrate,
+                msg.sender
             );
 
         _refundRemainingLiquidiy(
@@ -340,7 +360,8 @@ contract UnipilotMigrator is
         ) = _addLiquidityUnipilot(
                 params.vault,
                 amount0ToMigrate,
-                amount1ToMigrate
+                amount1ToMigrate,
+                msg.sender
             );
 
         _refundRemainingLiquidiy(
@@ -411,7 +432,8 @@ contract UnipilotMigrator is
         ) = _addLiquidityUnipilot(
                 params.vault,
                 wethAmountToMigrate,
-                altAmountToMigrate
+                altAmountToMigrate,
+                msg.sender
             );
 
         _refundRemainingLiquidiy(
@@ -471,7 +493,8 @@ contract UnipilotMigrator is
         ) = _addLiquidityUnipilot(
                 params.vault,
                 amount0ToMigrate,
-                amount1ToMigrate
+                amount1ToMigrate,
+                msg.sender
             );
 
         _refundRemainingLiquidiy(
