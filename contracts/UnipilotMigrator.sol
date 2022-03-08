@@ -165,12 +165,7 @@ contract UnipilotMigrator is
             uint256 LpShare,
             uint256 despositedAmount0,
             uint256 despositedAmount1
-        ) = IUnipilotVault(vault).deposit(amount0, amount1);
-
-        // LP transfer to user
-        if (LpShare > 0) {
-            IERC20(vault).safeTransfer(recipient, LpShare);
-        }
+        ) = IUnipilotVault(vault).deposit(amount0, amount1, msgSender());
 
         return (vault, despositedAmount0, despositedAmount1);
     }

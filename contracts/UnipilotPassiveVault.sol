@@ -63,7 +63,11 @@ contract UnipilotPassiveVault is ERC20Permit, IUnipilotVault {
         tickSpacing = pool.tickSpacing();
     }
 
-    function deposit(uint256 amount0Desired, uint256 amount1Desired)
+    function deposit(
+        uint256 amount0Desired,
+        uint256 amount1Desired,
+        address recipient
+    )
         external
         payable
         override
@@ -107,8 +111,8 @@ contract UnipilotPassiveVault is ERC20Permit, IUnipilotVault {
             );
         }
 
-        _mint(sender, lpShares);
-        emit Deposit(sender, amount0, amount1, lpShares);
+        _mint(recipient, lpShares);
+        emit Deposit(sender, recipient, amount0, amount1, lpShares);
     }
 
     function withdraw(
@@ -124,10 +128,10 @@ contract UnipilotPassiveVault is ERC20Permit, IUnipilotVault {
     {
         require(liquidity > 0);
 
-        (, , , , uint128 totalLiquidity) = pool.getTotalAmounts(
-            false,
-            ticksData
-        );
+        (, , , , uint128 baseLiquidity, uint128 rangeLiquidity) = pool
+            .getTotalAmounts(false, ticksData);
+
+        uint128 totalLiquidity = baseLiquidity + rangeLiquidity;
 
         /// @dev if liquidity has pulled in contract then calculate share accordingly
         if (totalLiquidity > 0) {
@@ -171,6 +175,7 @@ contract UnipilotPassiveVault is ERC20Permit, IUnipilotVault {
         if (amount0 > 0) {
             transferFunds(refundAsETH, recipient, address(token0), amount0);
         }
+
         if (amount1 > 0) {
             transferFunds(refundAsETH, recipient, address(token1), amount1);
         }
@@ -198,10 +203,10 @@ contract UnipilotPassiveVault is ERC20Permit, IUnipilotVault {
     }
 
     function readjustLiquidity() external override nonReentrant checkDeviation {
-        (, , , , uint128 totalLiquidity) = pool.getTotalAmounts(
-            false,
-            ticksData
-        );
+        (, , , , uint128 baseLiquidity, uint128 rangeLiquidity) = pool
+            .getTotalAmounts(false, ticksData);
+
+        uint128 totalLiquidity = baseLiquidity + rangeLiquidity;
 
         uint256 amount0;
         uint256 amount1;
@@ -310,7 +315,8 @@ contract UnipilotPassiveVault is ERC20Permit, IUnipilotVault {
             uint256 amount1,
             uint256 fees0,
             uint256 fees1,
-            uint128 totalLiquidity
+            uint128 baseLiquidity,
+            uint128 rangeLiquidity
         )
     {
         return pool.getTotalAmounts(false, ticksData);

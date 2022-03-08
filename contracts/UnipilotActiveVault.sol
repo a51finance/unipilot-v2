@@ -82,7 +82,11 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         );
     }
 
-    function deposit(uint256 amount0Desired, uint256 amount1Desired)
+    function deposit(
+        uint256 amount0Desired,
+        uint256 amount1Desired,
+        address recipient
+    )
         external
         payable
         override
@@ -114,8 +118,8 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
             amount1
         );
 
-        _mint(sender, lpShares);
-        emit Deposit(sender, amount0, amount1, lpShares);
+        _mint(recipient, lpShares);
+        emit Deposit(sender, recipient, amount0, amount1, lpShares);
     }
 
     function withdraw(
@@ -343,7 +347,8 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
             uint256 amount1,
             uint256 fees0,
             uint256 fees1,
-            uint128 totalLiquidity
+            uint128 baseLiquidity,
+            uint128 rangeLiquidity
         )
     {
         return pool.getTotalAmounts(true, ticksData);

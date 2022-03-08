@@ -189,7 +189,11 @@ export async function shouldBehaveLikeRebalancePassive(): Promise<void> {
   it("No tokens left unused", async () => {
     await daiUsdtVault
       .connect(wallet)
-      .deposit(parseUnits("5000", "18"), parseUnits("5000", "18"));
+      .deposit(
+        parseUnits("5000", "18"),
+        parseUnits("5000", "18"),
+        wallet.address,
+      );
 
     await generateFeeThroughSwap(swapRouter, bob, USDT, DAI, "2000");
 
