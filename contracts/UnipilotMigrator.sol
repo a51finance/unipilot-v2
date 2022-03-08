@@ -9,7 +9,7 @@ import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
 import "@uniswap/v3-periphery/contracts/interfaces/INonfungiblePositionManager.sol";
-import "@openzeppelin/contracts/math/SafeMath.sol";
+// import "@openzeppelin/contracts/math/SafeMath.sol";
 
 import "./interfaces/IUnipilotVault.sol";
 import "./interfaces/external/IWETH9.sol";
@@ -30,6 +30,7 @@ import "./interfaces/visor-interfaces/IVault.sol";
 
 import "./interfaces/lixir-interfaces/ILixirVaultETH.sol";
 import "./interfaces/external/IUnipilot.sol";
+import "@uniswap/v3-core/contracts/libraries/FullMath.sol";
 
 /// @title Uniswap V2, V3, Sushiswap, Visor, Lixir, Popsicle Liquidity Migrator
 contract UnipilotMigrator is
@@ -165,7 +166,7 @@ contract UnipilotMigrator is
             uint256 LpShare,
             uint256 despositedAmount0,
             uint256 despositedAmount1
-        ) = IUnipilotVault(vault).deposit(amount0, amount1, msgSender());
+        ) = IUnipilotVault(vault).deposit(amount0, amount1, _msgSender());
 
         return (vault, despositedAmount0, despositedAmount1);
     }
@@ -185,11 +186,17 @@ contract UnipilotMigrator is
         (uint256 amount0V2, uint256 amount1V2) = IUniswapV2Pair(params.pair)
             .burn(address(this));
 
-        uint256 amount0ToMigrate = (amount0V2.mul(params.percentageToMigrate))
-            .div(100);
+        uint256 amount0ToMigrate = FullMath.mulDiv(
+            amount0V2,
+            params.percentageToMigrate,
+            100
+        );
 
-        uint256 amount1ToMigrate = (amount1V2.mul(params.percentageToMigrate))
-            .div(100);
+        uint256 amount1ToMigrate = FullMath.mulDiv(
+            amount1V2,
+            params.percentageToMigrate,
+            100
+        );
 
         _tokenApproval(params.token0, params.vault, amount0ToMigrate);
 
@@ -283,11 +290,18 @@ contract UnipilotMigrator is
             })
         );
 
-        uint256 amount0ToMigrate = (amount0V3.mul(params.percentageToMigrate))
-            .div(100);
+        uint256 amount0ToMigrate = FullMath.mulDiv(
+            amount0V3,
+            params.percentageToMigrate,
+            100
+        );
 
-        uint256 amount1ToMigrate = (amount1V3.mul(params.percentageToMigrate))
-            .div(100);
+        uint256 amount1ToMigrate = FullMath.mulDiv(
+            amount1V3,
+            params.percentageToMigrate,
+            100
+        );
+
         // approve the Unipilot up to the maximum token amounts
         _tokenApproval(params.token0, params.vault, amount0ToMigrate);
         _tokenApproval(params.token1, params.vault, amount1ToMigrate);
@@ -346,11 +360,17 @@ contract UnipilotMigrator is
             address(this)
         );
 
-        uint256 amount0ToMigrate = (amount0V2.mul(params.percentageToMigrate))
-            .div(100);
+        uint256 amount0ToMigrate = FullMath.mulDiv(
+            amount0V2,
+            params.percentageToMigrate,
+            100
+        );
 
-        uint256 amount1ToMigrate = (amount1V2.mul(params.percentageToMigrate))
-            .div(100);
+        uint256 amount1ToMigrate = FullMath.mulDiv(
+            amount1V2,
+            params.percentageToMigrate,
+            100
+        );
 
         _tokenApproval(params.token0, params.vault, amount0ToMigrate);
         _tokenApproval(params.token1, params.vault, amount1ToMigrate);
@@ -416,13 +436,17 @@ contract UnipilotMigrator is
 
         IWETH9(WETH).deposit{ value: wethAmountReceived }();
 
-        uint256 wethAmountToMigrate = (
-            wethAmountReceived.mul(params.percentageToMigrate)
-        ).div(100);
+        uint256 wethAmountToMigrate = FullMath.mulDiv(
+            wethAmountReceived,
+            params.percentageToMigrate,
+            100
+        );
 
-        uint256 altAmountToMigrate = (
-            altAmountReceived.mul(params.percentageToMigrate)
-        ).div(100);
+        uint256 altAmountToMigrate = FullMath.mulDiv(
+            altAmountReceived,
+            params.percentageToMigrate,
+            100
+        );
 
         _tokenApproval(weth, params.vault, wethAmountToMigrate);
         _tokenApproval(alt, params.vault, altAmountToMigrate);
@@ -479,11 +503,17 @@ contract UnipilotMigrator is
         (uint256 amount0, uint256 amount1) = IPopsicleV3Optimizer(params.pair)
             .withdraw(params.liquidityToMigrate, address(this));
 
-        uint256 amount0ToMigrate = (amount0.mul(params.percentageToMigrate))
-            .div(100);
+        uint256 amount0ToMigrate = FullMath.mulDiv(
+            amount0,
+            params.percentageToMigrate,
+            100
+        );
 
-        uint256 amount1ToMigrate = (amount1.mul(params.percentageToMigrate))
-            .div(100);
+        uint256 amount1ToMigrate = FullMath.mulDiv(
+            amount1,
+            params.percentageToMigrate,
+            100
+        );
 
         _tokenApproval(params.token0, params.vault, amount0ToMigrate);
         _tokenApproval(params.token1, params.vault, amount1ToMigrate);
