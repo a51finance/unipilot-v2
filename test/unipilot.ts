@@ -26,9 +26,9 @@ use(solidity);
 //   await shouldBehaveLikeRebalancePassive();
 // });
 
-describe("Withdraw Liquidity for Passive", async () => {
-  await shouldBehaveLikeWithdrawPassive();
-});
+// describe("Withdraw Liquidity for Passive", async () => {
+//   await shouldBehaveLikeWithdrawPassive();
+// });
 
 describe("Withdraw Liquidity for Active", async () => {
   await shouldBehaveLikeWithdrawActive();

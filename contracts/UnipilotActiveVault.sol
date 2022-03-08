@@ -347,7 +347,8 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
             uint256 amount1,
             uint256 fees0,
             uint256 fees1,
-            uint128 totalLiquidity
+            uint128 baseLiquidity,
+            uint128 rangeLiquidity
         )
     {
         return pool.getTotalAmounts(true, ticksData);

@@ -51,7 +51,7 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
       createVault,
     } = await loadFixture(unipilotActiveVaultFixture));
 
-    await uniswapV3Factory.createPool(DAI.address, USDT.address, 3000);
+    await uniswapV3Factory.createPool(USDT.address, DAI.address, 3000);
 
     let poolAddress = await uniswapV3Factory.getPool(
       DAI.address,
@@ -155,7 +155,6 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
       await expect(await vault.withdraw(liquidity, wallet.address, false))
         .to.emit(vault, "Withdraw")
         .withArgs(
-          wallet.address,
           wallet.address,
           liquidity,
           reserves[0].add(unusedAmount0),
@@ -290,52 +289,52 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
       expect(t1).to.be.lte(amount1);
     });
 
-    it("should withdraw after pulling liquidity", async () => {
-      await vault
-        .connect(other)
-        .deposit(
-          parseUnits("1000", "18"),
-          parseUnits("1000", "18"),
-          other.address,
-        );
+    // it("should withdraw after pulling liquidity", async () => {
+    //   await vault
+    //     .connect(other)
+    //     .deposit(
+    //       parseUnits("1000", "18"),
+    //       parseUnits("1000", "18"),
+    //       other.address,
+    //     );
 
-      const { lpShares } = await vault
-        .connect(other)
-        .callStatic.deposit(
-          parseUnits("1000", "18"),
-          parseUnits("1000", "18"),
-          other.address,
-        );
+    //   const { lpShares } = await vault
+    //     .connect(other)
+    //     .callStatic.deposit(
+    //       parseUnits("1000", "18"),
+    //       parseUnits("1000", "18"),
+    //       other.address,
+    //     );
 
-      const user1LP = await vault.balanceOf(other.address);
-      const totalSupply = await vault.totalSupply();
-      const userShare = user1LP.div(totalSupply);
+    //   const user1LP = await vault.balanceOf(other.address);
+    //   const totalSupply = await vault.totalSupply();
+    //   const userShare = user1LP.div(totalSupply);
 
-      const user1DaiBalanceBefore = await DAI.balanceOf(other.address);
-      const user1UsdtBalanceBefore = await USDT.balanceOf(other.address);
+    //   const user1DaiBalanceBefore = await DAI.balanceOf(other.address);
+    //   const user1UsdtBalanceBefore = await USDT.balanceOf(other.address);
 
-      await vault.pullLiquidity();
+    //   await vault.pullLiquidity();
 
-      const contractDaiBalance = await DAI.balanceOf(vault.address);
-      const contractUsdtBalance = await USDT.balanceOf(vault.address);
+    //   const contractDaiBalance = await DAI.balanceOf(vault.address);
+    //   const contractUsdtBalance = await USDT.balanceOf(vault.address);
 
-      await vault.connect(other).withdraw(user1LP, other.address, false);
+    //   await vault.connect(other).withdraw(user1LP, other.address, false);
 
-      const user1LpBalance = await vault.balanceOf(other.address);
+    //   const user1LpBalance = await vault.balanceOf(other.address);
 
-      const contractDaiBalanceAfter = await DAI.balanceOf(vault.address);
-      const contractUsdtBalanceAfter = await USDT.balanceOf(vault.address);
+    //   const contractDaiBalanceAfter = await DAI.balanceOf(vault.address);
+    //   const contractUsdtBalanceAfter = await USDT.balanceOf(vault.address);
 
-      const user1DaiBalance = await DAI.balanceOf(other.address);
-      const user1UsdtBalance = await USDT.balanceOf(other.address);
+    //   const user1DaiBalance = await DAI.balanceOf(other.address);
+    //   const user1UsdtBalance = await USDT.balanceOf(other.address);
 
-      expect(user1LpBalance).to.be.eq(0);
-      expect(user1UsdtBalance.sub(user1UsdtBalanceBefore)).to.be.eq(
-        contractUsdtBalance.div(2),
-      );
-      expect(user1DaiBalance.sub(user1DaiBalanceBefore)).to.be.eq(
-        contractDaiBalance.div(2),
-      );
-    });
+    //   expect(user1LpBalance).to.be.eq(0);
+    //   expect(user1UsdtBalance.sub(user1UsdtBalanceBefore)).to.be.eq(
+    //     contractUsdtBalance.div(2),
+    //   );
+    //   expect(user1DaiBalance.sub(user1DaiBalanceBefore)).to.be.eq(
+    //     contractDaiBalance.div(2),
+    //   );
+    // });
   });
 }
