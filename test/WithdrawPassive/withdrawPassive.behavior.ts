@@ -121,7 +121,11 @@ export async function shouldBehaveLikeWithdrawPassive(): Promise<void> {
 
   describe("#withdraw for passive pools", () => {
     beforeEach("Deposit in unipilot vault", async () => {
-      await vault.deposit(parseUnits("1000", "18"), parseUnits("1000", "18"));
+      await vault.deposit(
+        parseUnits("1000", "18"),
+        parseUnits("1000", "18"),
+        wallet.address,
+      );
     });
 
     it("withdraw", async () => {
@@ -164,7 +168,11 @@ export async function shouldBehaveLikeWithdrawPassive(): Promise<void> {
     it("fees compounding on withdraw", async () => {
       await vault
         .connect(other)
-        .deposit(parseUnits("1000", "18"), parseUnits("1000", "18"));
+        .deposit(
+          parseUnits("1000", "18"),
+          parseUnits("1000", "18"),
+          other.address,
+        );
 
       const user0LP = await vault.balanceOf(wallet.address);
       const user1LP = await vault.balanceOf(other.address);
@@ -204,7 +212,11 @@ export async function shouldBehaveLikeWithdrawPassive(): Promise<void> {
     it("should withdraw after pulling liquidity", async () => {
       await vault
         .connect(other)
-        .deposit(parseUnits("1000", "18"), parseUnits("1000", "18"));
+        .deposit(
+          parseUnits("1000", "18"),
+          parseUnits("1000", "18"),
+          other.address,
+        );
 
       const user1LP = await vault.balanceOf(other.address);
       const user1DaiBalanceBefore = await DAI.balanceOf(other.address);

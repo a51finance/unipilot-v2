@@ -154,29 +154,29 @@ contract UnipilotMigrator is
             uint256
         )
     {
-        TransferHelper.safeApprove(
-            params.token0,
-            params.unipilotVault,
-            params.amount0ToMigrate
-        );
-        TransferHelper.safeApprove(
-            params.token1,
-            params.unipilotVault,
-            params.amount1ToMigrate
-        );
-        IUnipilotVault(params.unipilotVault).deposit(
-            params.amount0ToMigrate,
-            params.amount1ToMigrate
-        );
-        uint256 lp = IERC20(params.unipilotVault).balanceOf(address(this));
-        if (lp > 0) {
-            IERC20(params.unipilotVault).transfer(params.sender, lp);
-        }
-        return (
-            params.unipilotVault,
-            params.amount0ToMigrate,
-            params.amount1ToMigrate
-        );
+        // TransferHelper.safeApprove(
+        //     params.token0,
+        //     params.unipilotVault,
+        //     params.amount0ToMigrate
+        // );
+        // TransferHelper.safeApprove(
+        //     params.token1,
+        //     params.unipilotVault,
+        //     params.amount1ToMigrate
+        // );
+        // IUnipilotVault(params.unipilotVault).deposit(
+        //     params.amount0ToMigrate,
+        //     params.amount1ToMigrate
+        // );
+        // uint256 lp = IERC20(params.unipilotVault).balanceOf(address(this));
+        // if (lp > 0) {
+        //     IERC20(params.unipilotVault).transfer(params.sender, lp);
+        // }
+        // return (
+        //     params.unipilotVault,
+        //     params.amount0ToMigrate,
+        //     params.amount1ToMigrate
+        // );
     }
 
     function migrateV2Liquidity(MigrateV2Params calldata params) external {
