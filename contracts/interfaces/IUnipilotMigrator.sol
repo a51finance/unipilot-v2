@@ -59,41 +59,49 @@ interface IUnipilotMigrator {
     }
 
     event LiquidityMigratedFromV2(
-        address pairV2,
-        address unipilotVault,
+        address pool,
+        address vault,
         address owner,
         uint256 amount0,
         uint256 amount1
     );
 
     event LiquidityMigratedFromV3(
-        address unipilotVault,
+        address vault,
         address owner,
         uint256 amount0,
         uint256 amount1
     );
 
-    event LiquidityMigratedFromVisor(
-        address hypervisor,
-        address unipilotVault,
-        address owner,
-        uint256 amount0,
-        uint256 amount1
-    );
+    // event LiquidityMigratedFromUnipilotV1(
+    //     address pool,
+    //     address vault,
+    //     address owner,
+    //     uint256 amount0,
+    //     uint256 amount1
+    // );
 
-    event LiquidityMigratedFromLixir(
-        address lixirVault,
-        address unipilotVault,
-        address owner,
-        uint256 amount0,
-        uint256 amount1
-    );
+    // event LiquidityMigratedFromVisor(
+    //     address pool,
+    //     address vault,
+    //     address owner,
+    //     uint256 amount0,
+    //     uint256 amount1
+    // );
 
-    event LiquidityMigratedFromPopsicle(
-        address popsicleVault,
-        address unipilotVault,
-        address owner,
-        uint256 amount0,
-        uint256 amount1
-    );
+    // event LiquidityMigratedFromLixir(
+    //     address pool,
+    //     address vault,
+    //     address owner,
+    //     uint256 amount0,
+    //     uint256 amount1
+    // );
+
+    // event LiquidityMigratedFromPopsicle(
+    //     address pool,
+    //     address vault,
+    //     address owner,
+    //     uint256 amount0,
+    //     uint256 amount1
+    // );
 }

@@ -139,6 +139,13 @@ contract UnipilotMigrator is
                 refundAsETH: false
             })
         );
+
+        emit LiquidityMigratedFromV3(
+            params.vault,
+            _msgSender(),
+            amount0Unipilot,
+            amount1Unipilot
+        );
     }
 
     function _addLiquidityUnipilot(
@@ -379,7 +386,7 @@ contract UnipilotMigrator is
             })
         );
 
-        emit LiquidityMigratedFromVisor(
+        emit LiquidityMigratedFromV2(
             params.pair,
             pairV3,
             _msgSender(),
@@ -451,7 +458,7 @@ contract UnipilotMigrator is
             })
         );
 
-        emit LiquidityMigratedFromLixir(
+        emit LiquidityMigratedFromV2(
             params.pair,
             pairV3,
             _msgSender(),
@@ -512,7 +519,7 @@ contract UnipilotMigrator is
             })
         );
 
-        emit LiquidityMigratedFromPopsicle(
+        emit LiquidityMigratedFromV2(
             params.pair,
             pairV3,
             _msgSender(),
