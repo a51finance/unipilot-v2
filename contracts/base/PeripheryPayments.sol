@@ -7,7 +7,7 @@ import "../libraries/TransferHelper.sol";
 abstract contract PeripheryPayments {
     address internal constant PILOT =
         0x37C997B35C619C21323F3518B9357914E8B99525;
-    address internal constant WETH = 0x33e9faF78C4CbD5F3EB1A39078A8914dCE13910d;
+    address internal constant WETH = 0xc778417E063141139Fce010982780140Aa0cD5Ab;
 
     receive() external payable {}
 

@@ -7,21 +7,19 @@ import "./external/IExchangeManager.sol";
 interface IUnipilotMigrator {
     struct UnipilotMigrateParams {
         address pool;
-        uint256 tokenId;
-        address recipient;
         address vault;
-        bool refundAsETH;
-    }
-    struct UnipilotParams {
-        address sender;
         address token0;
         address token1;
         uint24 fee;
+        address recipient;
+        uint256 tokenId;
+        bool refundAsETH;
+    }
+
+    struct UnipilotParams {
+        address sender;
         uint256 amount0ToMigrate;
         uint256 amount1ToMigrate;
-        uint256 unipilotTokenId;
-        uint256 sqrtPriceX96;
-        address unipilotVault;
     }
 
     struct MigrateV2Params {
@@ -32,10 +30,8 @@ interface IUnipilotMigrator {
         uint24 fee;
         uint8 percentageToMigrate; // represented as a numerator over 100
         uint256 liquidityToMigrate;
-        uint256 sqrtPriceX96;
         uint256 unipilotTokenId;
         bool refundAsETH;
-        address unipilotVault;
     }
 
     struct MigrateV3Params {
@@ -44,11 +40,9 @@ interface IUnipilotMigrator {
         address token1;
         uint24 fee;
         uint8 percentageToMigrate;
-        uint256 sqrtPriceX96;
         uint256 uniswapTokenId;
         uint256 unipilotTokenId;
         bool refundAsETH;
-        address unipilotVault;
     }
 
     struct RefundLiquidityParams {
@@ -65,41 +59,49 @@ interface IUnipilotMigrator {
     }
 
     event LiquidityMigratedFromV2(
-        address pairV2,
-        address unipilotVault,
+        address pool,
+        address vault,
         address owner,
         uint256 amount0,
         uint256 amount1
     );
 
     event LiquidityMigratedFromV3(
-        address unipilotVault,
+        address vault,
         address owner,
         uint256 amount0,
         uint256 amount1
     );
 
-    event LiquidityMigratedFromVisor(
-        address hypervisor,
-        address unipilotVault,
-        address owner,
-        uint256 amount0,
-        uint256 amount1
-    );
+    // event LiquidityMigratedFromUnipilotV1(
+    //     address pool,
+    //     address vault,
+    //     address owner,
+    //     uint256 amount0,
+    //     uint256 amount1
+    // );
 
-    event LiquidityMigratedFromLixir(
-        address lixirVault,
-        address unipilotVault,
-        address owner,
-        uint256 amount0,
-        uint256 amount1
-    );
+    // event LiquidityMigratedFromVisor(
+    //     address pool,
+    //     address vault,
+    //     address owner,
+    //     uint256 amount0,
+    //     uint256 amount1
+    // );
 
-    event LiquidityMigratedFromPopsicle(
-        address popsicleVault,
-        address unipilotVault,
-        address owner,
-        uint256 amount0,
-        uint256 amount1
-    );
+    // event LiquidityMigratedFromLixir(
+    //     address pool,
+    //     address vault,
+    //     address owner,
+    //     uint256 amount0,
+    //     uint256 amount1
+    // );
+
+    // event LiquidityMigratedFromPopsicle(
+    //     address pool,
+    //     address vault,
+    //     address owner,
+    //     uint256 amount0,
+    //     uint256 amount1
+    // );
 }
