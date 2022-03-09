@@ -356,7 +356,6 @@ task("deploy-migrator", "Deploy Unipilot Migrator contract")
       positionManager: "0xC36442b4a4522E871399CD717aBDD847Ab11FE88",
       uniswapFactory: "0x1F98431c8aD98523631AE4a59f267346ea31F984",
       unipilot: "0x7c0C2de74929Fb8cAc9E42dF3594B727b39549Fb",
-      v2Factory: "0x0177C2D02df438C9802dB032fE5272594e1B6b47",
       ulm: "0x1d85374b386CaBf80cabA0AD58e01B5319149840",
     };
 
@@ -369,13 +368,7 @@ task("deploy-migrator", "Deploy Unipilot Migrator contract")
       "UnipilotMigrator",
       await await ethers.getContractFactory("UnipilotMigrator"),
       signer,
-      [
-        args.positionManager,
-        args.uniswapFactory,
-        args.unipilot,
-        args.v2Factory,
-        args.ulm,
-      ],
+      [args.positionManager, args.uniswapFactory, args.unipilot, args.ulm],
     );
 
     delay(60000);
@@ -386,7 +379,6 @@ task("deploy-migrator", "Deploy Unipilot Migrator contract")
         args.positionManager,
         args.uniswapFactory,
         args.unipilot,
-        args.v2Factory,
         args.ulm,
       ],
     });

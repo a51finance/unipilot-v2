@@ -9,7 +9,6 @@ import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
 import "@uniswap/v3-periphery/contracts/interfaces/INonfungiblePositionManager.sol";
-// import "@openzeppelin/contracts/math/SafeMath.sol";
 
 import "./interfaces/IUnipilotVault.sol";
 import "./interfaces/external/IWETH9.sol";
@@ -20,10 +19,8 @@ import "./libraries/TransferHelper.sol";
 import "./base/PeripheryPayments.sol";
 
 import "./interfaces/external/IUniswapLiquidityManager.sol";
-import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 
 import "@uniswap/v2-core/contracts/interfaces/IUniswapV2Pair.sol";
-import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 
 import "./interfaces/popsicle-interfaces/IPopsicleV3Optimizer.sol";
 import "./interfaces/visor-interfaces/IVault.sol";
@@ -44,7 +41,6 @@ contract UnipilotMigrator is
 
     address private immutable ulm;
     address private immutable unipilot;
-    address private immutable v2Factory;
     address private immutable uniswapFactory;
     address private immutable positionManager;
 
@@ -52,13 +48,11 @@ contract UnipilotMigrator is
         address _positionManager,
         address _uniswapFactory,
         address _unipilot,
-        address _v2Factory,
         address _ulm
     ) {
         positionManager = _positionManager;
         uniswapFactory = _uniswapFactory;
         unipilot = _unipilot;
-        v2Factory = _v2Factory;
         ulm = _ulm;
     }
 
@@ -108,7 +102,6 @@ contract UnipilotMigrator is
         _tokenApproval(params.token1, params.vault, amount1);
 
         (
-            ,
             uint256 amount0Unipilot,
             uint256 amount1Unipilot
         ) = _addLiquidityUnipilot(params.vault, amount0, amount1, msg.sender);
@@ -154,21 +147,9 @@ contract UnipilotMigrator is
         uint256 amount0,
         uint256 amount1,
         address recipient
-    )
-        private
-        returns (
-            address,
-            uint256,
-            uint256
-        )
-    {
-        (
-            uint256 LpShare,
-            uint256 despositedAmount0,
-            uint256 despositedAmount1
-        ) = IUnipilotVault(vault).deposit(amount0, amount1, _msgSender());
-
-        return (vault, despositedAmount0, despositedAmount1);
+    ) private returns (uint256 despositedAmount0, uint256 despositedAmount1) {
+        (, despositedAmount0, despositedAmount1) = IUnipilotVault(vault)
+            .deposit(amount0, amount1, _msgSender());
     }
 
     function migrateV2Liquidity(MigrateV2Params calldata params) external {
@@ -202,16 +183,12 @@ contract UnipilotMigrator is
 
         _tokenApproval(params.token1, params.vault, amount1ToMigrate);
 
-        (
-            address pairV3,
-            uint256 amount0V3,
-            uint256 amount1V3
-        ) = _addLiquidityUnipilot(
-                params.vault,
-                amount0ToMigrate,
-                amount1ToMigrate,
-                msg.sender
-            );
+        (uint256 amount0V3, uint256 amount1V3) = _addLiquidityUnipilot(
+            params.vault,
+            amount0ToMigrate,
+            amount1ToMigrate,
+            msg.sender
+        );
 
         _refundRemainingLiquidiy(
             RefundLiquidityParams({
@@ -230,7 +207,7 @@ contract UnipilotMigrator is
 
         emit LiquidityMigratedFromV2(
             params.pair,
-            pairV3,
+            params.vault,
             _msgSender(),
             amount0V3,
             amount1V3
@@ -307,7 +284,6 @@ contract UnipilotMigrator is
         _tokenApproval(params.token1, params.vault, amount1ToMigrate);
 
         (
-            address pair,
             uint256 amount0Unipilot,
             uint256 amount1Unipilot
         ) = _addLiquidityUnipilot(
@@ -335,7 +311,7 @@ contract UnipilotMigrator is
         periphery.burn(params.uniswapTokenId);
 
         emit LiquidityMigratedFromV3(
-            pair,
+            params.vault,
             _msgSender(),
             amount0Unipilot,
             amount1Unipilot
@@ -375,16 +351,12 @@ contract UnipilotMigrator is
         _tokenApproval(params.token0, params.vault, amount0ToMigrate);
         _tokenApproval(params.token1, params.vault, amount1ToMigrate);
 
-        (
-            address pairV3,
-            uint256 amount0V3,
-            uint256 amount1V3
-        ) = _addLiquidityUnipilot(
-                params.vault,
-                amount0ToMigrate,
-                amount1ToMigrate,
-                msg.sender
-            );
+        (uint256 amount0V3, uint256 amount1V3) = _addLiquidityUnipilot(
+            params.vault,
+            amount0ToMigrate,
+            amount1ToMigrate,
+            msg.sender
+        );
 
         _refundRemainingLiquidiy(
             RefundLiquidityParams({
@@ -403,7 +375,7 @@ contract UnipilotMigrator is
 
         emit LiquidityMigratedFromV2(
             params.pair,
-            pairV3,
+            params.vault,
             _msgSender(),
             amount0V3,
             amount1V3
@@ -451,16 +423,12 @@ contract UnipilotMigrator is
         _tokenApproval(weth, params.vault, wethAmountToMigrate);
         _tokenApproval(alt, params.vault, altAmountToMigrate);
 
-        (
-            address pairV3,
-            uint256 amount0V3,
-            uint256 amount1V3
-        ) = _addLiquidityUnipilot(
-                params.vault,
-                wethAmountToMigrate,
-                altAmountToMigrate,
-                msg.sender
-            );
+        (uint256 amount0V3, uint256 amount1V3) = _addLiquidityUnipilot(
+            params.vault,
+            wethAmountToMigrate,
+            altAmountToMigrate,
+            msg.sender
+        );
 
         _refundRemainingLiquidiy(
             RefundLiquidityParams({
@@ -479,7 +447,7 @@ contract UnipilotMigrator is
 
         emit LiquidityMigratedFromV2(
             params.pair,
-            pairV3,
+            params.vault,
             _msgSender(),
             amount0V3,
             amount1V3
@@ -518,16 +486,12 @@ contract UnipilotMigrator is
         _tokenApproval(params.token0, params.vault, amount0ToMigrate);
         _tokenApproval(params.token1, params.vault, amount1ToMigrate);
 
-        (
-            address pairV3,
-            uint256 amount0V3,
-            uint256 amount1V3
-        ) = _addLiquidityUnipilot(
-                params.vault,
-                amount0ToMigrate,
-                amount1ToMigrate,
-                msg.sender
-            );
+        (uint256 amount0V3, uint256 amount1V3) = _addLiquidityUnipilot(
+            params.vault,
+            amount0ToMigrate,
+            amount1ToMigrate,
+            msg.sender
+        );
 
         _refundRemainingLiquidiy(
             RefundLiquidityParams({
@@ -546,7 +510,7 @@ contract UnipilotMigrator is
 
         emit LiquidityMigratedFromV2(
             params.pair,
-            pairV3,
+            params.vault,
             _msgSender(),
             amount0V3,
             amount1V3
