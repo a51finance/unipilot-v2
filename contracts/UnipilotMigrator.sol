@@ -65,9 +65,7 @@ contract UnipilotMigrator is
         return IERC721Receiver(0).onERC721Received.selector;
     }
 
-    function migrateUnipilotLiquididty(UnipilotMigrateParams memory params)
-        external
-    {
+    function migrateUnipilotLiquididty(MigrateV3Params memory params) external {
         IUniswapLiquidityManager.Position
             memory userPosition = IUniswapLiquidityManager(ulm).userPositions(
                 params.tokenId
@@ -215,20 +213,16 @@ contract UnipilotMigrator is
     }
 
     function migrateV3Liquidity(MigrateV3Params calldata params) external {
-        require(
-            params.percentageToMigrate > 0 && params.percentageToMigrate <= 100,
-            "IPA"
-        );
+        // require(
+        //     params.percentageToMigrate > 0 && params.percentageToMigrate <= 100,
+        //     "IPA"
+        // );
 
         INonfungiblePositionManager periphery = INonfungiblePositionManager(
             positionManager
         );
 
-        periphery.safeTransferFrom(
-            _msgSender(),
-            address(this),
-            params.uniswapTokenId
-        );
+        periphery.safeTransferFrom(_msgSender(), address(this), params.tokenId);
 
         (
             ,
@@ -244,12 +238,12 @@ contract UnipilotMigrator is
             ,
 
         ) = INonfungiblePositionManager(positionManager).positions(
-                params.uniswapTokenId
+                params.tokenId
             );
 
         periphery.decreaseLiquidity(
             INonfungiblePositionManager.DecreaseLiquidityParams({
-                tokenId: params.uniswapTokenId,
+                tokenId: params.tokenId,
                 liquidity: liquidityV3,
                 amount0Min: 0,
                 amount1Min: 0,
@@ -260,36 +254,36 @@ contract UnipilotMigrator is
         // returns the total amount of Liquidity with collected fees to user
         (uint256 amount0V3, uint256 amount1V3) = periphery.collect(
             INonfungiblePositionManager.CollectParams({
-                tokenId: params.uniswapTokenId,
+                tokenId: params.tokenId,
                 recipient: address(this),
                 amount0Max: type(uint128).max,
                 amount1Max: type(uint128).max
             })
         );
 
-        uint256 amount0ToMigrate = FullMath.mulDiv(
-            amount0V3,
-            params.percentageToMigrate,
-            100
-        );
+        // uint256 amount0ToMigrate = FullMath.mulDiv(
+        //     amount0V3,
+        //     params.percentageToMigrate,
+        //     100
+        // );
 
-        uint256 amount1ToMigrate = FullMath.mulDiv(
-            amount1V3,
-            params.percentageToMigrate,
-            100
-        );
+        // uint256 amount1ToMigrate = FullMath.mulDiv(
+        //     amount1V3,
+        //     params.percentageToMigrate,
+        //     100
+        // );
 
         // approve the Unipilot up to the maximum token amounts
-        _tokenApproval(params.token0, params.vault, amount0ToMigrate);
-        _tokenApproval(params.token1, params.vault, amount1ToMigrate);
+        _tokenApproval(params.token0, params.vault, amount0V3);
+        _tokenApproval(params.token1, params.vault, amount1V3);
 
         (
             uint256 amount0Unipilot,
             uint256 amount1Unipilot
         ) = _addLiquidityUnipilot(
                 params.vault,
-                amount0ToMigrate,
-                amount1ToMigrate,
+                amount0V3,
+                amount1V3,
                 msg.sender
             );
 
@@ -302,13 +296,13 @@ contract UnipilotMigrator is
                 amount1Unipilot: amount1Unipilot,
                 amount0Recieved: amount0V3,
                 amount1Recieved: amount1V3,
-                amount0ToMigrate: amount0ToMigrate,
-                amount1ToMigrate: amount1ToMigrate,
+                amount0ToMigrate: amount0V3,
+                amount1ToMigrate: amount1V3,
                 refundAsETH: params.refundAsETH
             })
         );
 
-        periphery.burn(params.uniswapTokenId);
+        periphery.burn(params.tokenId);
 
         emit LiquidityMigratedFromV3(
             params.vault,
