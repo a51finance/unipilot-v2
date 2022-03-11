@@ -23,6 +23,7 @@ interface IUnipilotMigrator {
         address recipient;
         uint256 tokenId;
         bool refundAsETH;
+        bool wethToken;
     }
 
     struct MigrateV2Params {

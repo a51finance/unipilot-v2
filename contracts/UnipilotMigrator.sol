@@ -74,7 +74,7 @@ contract UnipilotMigrator is
         IExchangeManager.WithdrawParams memory withdrawParam = IExchangeManager
             .WithdrawParams({
                 pilotToken: false,
-                wethToken: false,
+                wethToken: params.wethToken,
                 exchangeManagerAddress: ulm,
                 liquidity: userPosition.liquidity,
                 tokenId: params.tokenId
@@ -260,18 +260,6 @@ contract UnipilotMigrator is
                 amount1Max: type(uint128).max
             })
         );
-
-        // uint256 amount0ToMigrate = FullMath.mulDiv(
-        //     amount0V3,
-        //     params.percentageToMigrate,
-        //     100
-        // );
-
-        // uint256 amount1ToMigrate = FullMath.mulDiv(
-        //     amount1V3,
-        //     params.percentageToMigrate,
-        //     100
-        // );
 
         // approve the Unipilot up to the maximum token amounts
         _tokenApproval(params.token0, params.vault, amount0V3);
