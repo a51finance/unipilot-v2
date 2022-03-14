@@ -93,6 +93,8 @@ contract UnipilotPassiveVault is ERC20Permit, IUnipilotVault {
         pay(address(token0), sender, address(this), amount0);
         pay(address(token1), sender, address(this), amount1);
 
+        pool.increasePoolCardinality(); // should be remove for mainnet
+
         if (totalSupply == 0) {
             setPassivePositions(amount0, amount1);
         } else {
@@ -131,7 +133,7 @@ contract UnipilotPassiveVault is ERC20Permit, IUnipilotVault {
         (, , , , uint128 baseLiquidity, uint128 rangeLiquidity) = pool
             .getTotalAmounts(false, ticksData);
 
-        uint128 totalLiquidity = baseLiquidity + rangeLiquidity;
+        uint256 totalLiquidity = baseLiquidity + rangeLiquidity;
 
         /// @dev if liquidity has pulled in contract then calculate share accordingly
         if (totalLiquidity > 0) {
@@ -206,7 +208,7 @@ contract UnipilotPassiveVault is ERC20Permit, IUnipilotVault {
         (, , , , uint128 baseLiquidity, uint128 rangeLiquidity) = pool
             .getTotalAmounts(false, ticksData);
 
-        uint128 totalLiquidity = baseLiquidity + rangeLiquidity;
+        uint256 totalLiquidity = baseLiquidity + rangeLiquidity;
 
         uint256 amount0;
         uint256 amount1;
