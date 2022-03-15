@@ -41,19 +41,20 @@ contract UnipilotMigrator is
 
     address private immutable ulm;
     address private immutable unipilot;
-    address private immutable uniswapFactory;
     address private immutable positionManager;
+
+    IUnipilot private Unipilot;
 
     constructor(
         address _positionManager,
-        address _uniswapFactory,
         address _unipilot,
         address _ulm
     ) {
         positionManager = _positionManager;
-        uniswapFactory = _uniswapFactory;
         unipilot = _unipilot;
         ulm = _ulm;
+
+        Unipilot = IUnipilot(_unipilot);
     }
 
     function onERC721Received(
@@ -66,6 +67,7 @@ contract UnipilotMigrator is
     }
 
     function migrateUnipilotLiquididty(MigrateV3Params memory params) external {
+        address caller = _msgSender();
         IUniswapLiquidityManager.Position
             memory userPosition = IUniswapLiquidityManager(ulm).userPositions(
                 params.tokenId
@@ -74,25 +76,18 @@ contract UnipilotMigrator is
         IExchangeManager.WithdrawParams memory withdrawParam = IExchangeManager
             .WithdrawParams({
                 pilotToken: false,
-                wethToken: params.wethToken,
+                wethToken: true,
                 exchangeManagerAddress: ulm,
                 liquidity: userPosition.liquidity,
                 tokenId: params.tokenId
             });
 
-        IUnipilot(unipilot).withdraw(
-            withdrawParam,
-            abi.encode(params.recipient)
-        );
+        Unipilot.safeTransferFrom(msg.sender, address(this), params.tokenId);
 
-        IERC721(unipilot).safeTransferFrom(
-            msg.sender,
-            address(this),
-            params.tokenId
-        );
+        Unipilot.withdraw(withdrawParam, abi.encode(params.recipient));
 
-        uint256 amount0 = IERC20(params.token0).balanceOf(address(this));
-        uint256 amount1 = IERC20(params.token1).balanceOf(address(this));
+        uint256 amount0 = _balanceOf(params.token0, address(this));
+        uint256 amount1 = _balanceOf(params.token1, address(this));
 
         require(amount0 > 0 && amount1 > 0, "IF");
 
@@ -102,20 +97,20 @@ contract UnipilotMigrator is
         (
             uint256 amount0Unipilot,
             uint256 amount1Unipilot
-        ) = _addLiquidityUnipilot(params.vault, amount0, amount1, msg.sender);
+        ) = _addLiquidityUnipilot(params.vault, amount0, amount1, caller);
 
-        if (amount0 > amount0Unipilot) {
-            IERC20(params.token0).transfer(
-                msg.sender,
-                amount0.sub(amount0Unipilot)
-            );
-        }
-        if (amount1 > amount1Unipilot) {
-            IERC20(params.token1).transfer(
-                msg.sender,
-                amount1.sub(amount1Unipilot)
-            );
-        }
+        // if (amount0 > amount0Unipilot) {
+        //     IERC20(params.token0).transfer(
+        //         caller,
+        //         amount0.sub(amount0Unipilot)
+        //     );
+        // }
+        // if (amount1 > amount1Unipilot) {
+        //     IERC20(params.token1).transfer(
+        //         caller,
+        //         amount1.sub(amount1Unipilot)
+        //     );
+        // }
 
         _refundRemainingLiquidiy(
             RefundLiquidityParams({
@@ -124,17 +119,20 @@ contract UnipilotMigrator is
                 token1: params.token1,
                 amount0Unipilot: amount0Unipilot,
                 amount1Unipilot: amount1Unipilot,
-                amount0Recieved: amount0.sub(amount0Unipilot),
-                amount1Recieved: amount1.sub(amount1Unipilot),
+                amount0Recieved: amount0,
+                amount1Recieved: amount1,
                 amount0ToMigrate: amount0,
                 amount1ToMigrate: amount1,
                 refundAsETH: false
             })
         );
 
+        Unipilot._burn(params.tokenId);
+
         emit LiquidityMigratedFromV3(
+            "UnipilotV1",
             params.vault,
-            _msgSender(),
+            caller,
             amount0Unipilot,
             amount1Unipilot
         );
@@ -213,11 +211,6 @@ contract UnipilotMigrator is
     }
 
     function migrateV3Liquidity(MigrateV3Params calldata params) external {
-        // require(
-        //     params.percentageToMigrate > 0 && params.percentageToMigrate <= 100,
-        //     "IPA"
-        // );
-
         INonfungiblePositionManager periphery = INonfungiblePositionManager(
             positionManager
         );
@@ -293,6 +286,7 @@ contract UnipilotMigrator is
         periphery.burn(params.tokenId);
 
         emit LiquidityMigratedFromV3(
+            "UniswapV3",
             params.vault,
             _msgSender(),
             amount0Unipilot,
@@ -559,5 +553,13 @@ contract UnipilotMigrator is
         uint256 amount
     ) private {
         TransferHelper.safeApprove(token, vault, amount);
+    }
+
+    function _balanceOf(address token, address caller)
+        private
+        view
+        returns (uint256)
+    {
+        return IERC20(token).balanceOf(caller);
     }
 }

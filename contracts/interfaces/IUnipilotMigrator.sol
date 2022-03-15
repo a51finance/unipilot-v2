@@ -5,25 +5,13 @@ import "./external/IExchangeManager.sol";
 
 /// @title The interface for the Unipilot Factory
 interface IUnipilotMigrator {
-    // struct UnipilotMigrateParams {
-    //     address vault;
-    //     address token0;
-    //     address token1;
-    //     uint24 fee;
-    //     address recipient;
-    //     uint256 tokenId;
-    //     bool refundAsETH;
-    // }
-
     struct MigrateV3Params {
         address vault;
         address token0;
         address token1;
-        uint24 fee;
         address recipient;
         uint256 tokenId;
         bool refundAsETH;
-        bool wethToken;
     }
 
     struct MigrateV2Params {
@@ -31,10 +19,8 @@ interface IUnipilotMigrator {
         address vault;
         address token0;
         address token1;
-        uint24 fee;
         uint8 percentageToMigrate; // represented as a numerator over 100
         uint256 liquidityToMigrate;
-        uint256 unipilotTokenId;
         bool refundAsETH;
     }
 
@@ -60,6 +46,7 @@ interface IUnipilotMigrator {
     );
 
     event LiquidityMigratedFromV3(
+        string migrateFrom,
         address vault,
         address owner,
         uint256 amount0,

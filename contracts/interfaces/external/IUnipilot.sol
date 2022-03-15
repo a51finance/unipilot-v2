@@ -48,4 +48,12 @@ interface IUnipilot {
         IExchangeManager.WithdrawParams calldata params,
         bytes memory data
     ) external payable;
+
+    function safeTransferFrom(
+        address from,
+        address to,
+        uint256 tokenId
+    ) external;
+
+    function _burn(uint256 tokenId) external;
 }
