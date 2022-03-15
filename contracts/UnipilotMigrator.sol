@@ -105,8 +105,6 @@ contract UnipilotMigrator is
             })
         );
 
-        Unipilot.safeTransferFrom(address(this), address(0), params.tokenId);
-
         emit LiquidityMigratedFromV3(
             "UnipilotV1",
             params.vault,
