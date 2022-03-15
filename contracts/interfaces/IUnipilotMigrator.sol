@@ -45,7 +45,7 @@ interface IUnipilotMigrator {
     );
 
     event LiquidityMigratedFromV3(
-        string migrateFrom,
+        bool migrateFromUnipilot,
         address vault,
         address owner,
         uint256 amount0,

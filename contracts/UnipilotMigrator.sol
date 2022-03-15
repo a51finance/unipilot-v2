@@ -6,19 +6,21 @@ pragma abicoder v2;
 import "@openzeppelin/contracts/utils/Context.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
+
 import "@uniswap/v3-periphery/contracts/interfaces/INonfungiblePositionManager.sol";
+import "@uniswap/v2-core/contracts/interfaces/IUniswapV2Pair.sol";
+import "@uniswap/v3-core/contracts/libraries/FullMath.sol";
+
 import "./interfaces/IUnipilotVault.sol";
 import "./interfaces/external/IWETH9.sol";
 import "./interfaces/IUnipilotMigrator.sol";
 import "./libraries/TransferHelper.sol";
-import "./base/PeripheryPayments.sol";
 import "./interfaces/external/IUniswapLiquidityManager.sol";
-import "@uniswap/v2-core/contracts/interfaces/IUniswapV2Pair.sol";
 import "./interfaces/popsicle-interfaces/IPopsicleV3Optimizer.sol";
 import "./interfaces/visor-interfaces/IVault.sol";
 import "./interfaces/lixir-interfaces/ILixirVaultETH.sol";
 import "./interfaces/external/IUnipilot.sol";
-import "@uniswap/v3-core/contracts/libraries/FullMath.sol";
+import "./base/PeripheryPayments.sol";
 
 /// @title Uniswap V2, V3, Sushiswap, Visor, Lixir, Popsicle Liquidity Migrator
 contract UnipilotMigrator is
@@ -31,10 +33,9 @@ contract UnipilotMigrator is
     using SafeERC20 for IERC20;
 
     address private immutable ulm;
-    address private immutable unipilot;
     address private immutable positionManager;
 
-    IUnipilot private Unipilot;
+    IUnipilot private unipilot;
 
     constructor(
         address _positionManager,
@@ -42,10 +43,9 @@ contract UnipilotMigrator is
         address _ulm
     ) {
         positionManager = _positionManager;
-        unipilot = _unipilot;
         ulm = _ulm;
 
-        Unipilot = IUnipilot(_unipilot);
+        unipilot = IUnipilot(_unipilot);
     }
 
     function onERC721Received(
@@ -73,9 +73,9 @@ contract UnipilotMigrator is
                 tokenId: params.tokenId
             });
 
-        Unipilot.safeTransferFrom(msg.sender, address(this), params.tokenId);
+        unipilot.safeTransferFrom(caller, address(this), params.tokenId);
 
-        Unipilot.withdraw(withdrawParam, abi.encode(address(this)));
+        unipilot.withdraw(withdrawParam, abi.encode(address(this)));
 
         uint256 amount0 = _balanceOf(params.token0, address(this));
         uint256 amount1 = _balanceOf(params.token1, address(this));
@@ -106,7 +106,7 @@ contract UnipilotMigrator is
         );
 
         emit LiquidityMigratedFromV3(
-            "UnipilotV1",
+            true,
             params.vault,
             caller,
             amount0Unipilot,
@@ -262,7 +262,7 @@ contract UnipilotMigrator is
         periphery.burn(params.tokenId);
 
         emit LiquidityMigratedFromV3(
-            "UniswapV3",
+            false,
             params.vault,
             _msgSender(),
             amount0Unipilot,
@@ -524,18 +524,18 @@ contract UnipilotMigrator is
     }
 
     function _tokenApproval(
-        address token,
-        address vault,
-        uint256 amount
+        address _token,
+        address _vault,
+        uint256 _amount
     ) private {
-        TransferHelper.safeApprove(token, vault, amount);
+        TransferHelper.safeApprove(_token, _vault, _amount);
     }
 
-    function _balanceOf(address token, address caller)
+    function _balanceOf(address _token, address _caller)
         private
         view
         returns (uint256)
     {
-        return IERC20(token).balanceOf(caller);
+        return IERC20(_token).balanceOf(_caller);
     }
 }
