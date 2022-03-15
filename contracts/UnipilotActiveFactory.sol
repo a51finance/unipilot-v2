@@ -13,6 +13,7 @@ contract UnipilotActiveFactory is IUnipilotFactory {
     address private strategy;
     address private indexFund;
     address private WETH;
+    uint8 private swapPercentage;
     uint8 private indexFundPercentage;
     IUniswapV3Factory private uniswapFactory;
 
@@ -51,10 +52,17 @@ contract UnipilotActiveFactory is IUnipilotFactory {
             address,
             address,
             address,
+            uint8,
             uint8
         )
     {
-        return (governance, strategy, indexFund, indexFundPercentage);
+        return (
+            governance,
+            strategy,
+            indexFund,
+            indexFundPercentage,
+            swapPercentage
+        );
     }
 
     /// @inheritdoc IUnipilotFactory

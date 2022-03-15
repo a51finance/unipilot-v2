@@ -9,10 +9,12 @@ import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 /// @title Unipilot factory
 /// @notice Deploys Unipilot vaults and manages ownership and control over active and passive vaults
 contract UnipilotPassiveFactory is IUnipilotFactory {
+    address private WETH;
     address private governance;
     address private strategy;
     address private indexFund;
-    address private WETH;
+
+    uint8 private swapPercentage;
     uint8 private indexFundPercentage;
     IUniswapV3Factory private uniswapFactory;
 
@@ -22,14 +24,16 @@ contract UnipilotPassiveFactory is IUnipilotFactory {
         address _uniStrategy,
         address _indexFund,
         address _WETH,
-        uint8 percentage
+        uint8 _indexFundPercentage,
+        uint8 _swapPercentage
     ) {
         governance = _governance;
         strategy = _uniStrategy;
         uniswapFactory = IUniswapV3Factory(_uniswapFactory);
         indexFund = _indexFund;
         WETH = _WETH;
-        indexFundPercentage = percentage;
+        indexFundPercentage = _indexFundPercentage;
+        swapPercentage = _swapPercentage;
     }
 
     /// @notice Used to give address of vaults
@@ -51,10 +55,17 @@ contract UnipilotPassiveFactory is IUnipilotFactory {
             address,
             address,
             address,
+            uint8,
             uint8
         )
     {
-        return (governance, strategy, indexFund, indexFundPercentage);
+        return (
+            governance,
+            strategy,
+            indexFund,
+            indexFundPercentage,
+            swapPercentage
+        );
     }
 
     /// @inheritdoc IUnipilotFactory
@@ -99,12 +110,14 @@ contract UnipilotPassiveFactory is IUnipilotFactory {
     function setUnipilotDetails(
         address _strategy,
         address _indexFund,
+        uint8 _swapPercentage,
         uint8 _indexFundPercentage
     ) external onlyGovernance {
         require(_strategy != address(0) && _indexFund != address(0));
-        require(_indexFundPercentage > 0);
+        require(_indexFundPercentage > 0 && _swapPercentage > 0);
         strategy = _strategy;
         indexFund = _indexFund;
         indexFundPercentage = _indexFundPercentage;
+        swapPercentage = _swapPercentage;
     }
 }

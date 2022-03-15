@@ -62,6 +62,7 @@ async function unipilotFactoryFixture(
   uniStrategy: string,
   WETH9: Contract,
   indexFundPercentage: BigNumber,
+  swapPercentage: BigNumber,
 ): Promise<UNIPILOT_FACTORY_FIXTURE> {
   const unipilotFactoryDep = await ethers.getContractFactory(
     "UnipilotPassiveFactory",
@@ -73,6 +74,7 @@ async function unipilotFactoryFixture(
     indexFund.address,
     WETH9.address,
     indexFundPercentage,
+    swapPercentage,
   )) as UnipilotPassiveFactory;
   return { unipilotFactory };
 }
@@ -117,6 +119,7 @@ export const unipilotPassiveVaultFixture: Fixture<UNIPILOT_VAULT_FIXTURE> =
       indexFund,
       uniStrategy.address,
       WETH9,
+      BigNumber.from(10),
       BigNumber.from(10),
     );
 

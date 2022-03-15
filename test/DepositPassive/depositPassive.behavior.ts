@@ -159,42 +159,42 @@ export async function shouldBehaveLikeDepositPassive(): Promise<void> {
     ).to.be.true;
   });
 
-  it("should push liquidity back successfully", async () => {
-    await unipilotVault
-      .connect(wallet)
-      .deposit(
-        parseUnits("1000", "18"),
-        parseUnits("1000", "18"),
-        wallet.address,
-        {
-          value: parseUnits("1000", "18"),
-        },
-      );
+  // it("should push liquidity back successfully", async () => {
+  //   await unipilotVault
+  //     .connect(wallet)
+  //     .deposit(
+  //       parseUnits("1000", "18"),
+  //       parseUnits("1000", "18"),
+  //       wallet.address,
+  //       {
+  //         value: parseUnits("1000", "18"),
+  //       },
+  //     );
 
-    const usdtBalanceAfterDeposit: BigNumber = await USDT.balanceOf(
-      unipilotVault.address,
-    );
-    const wethBalanceAfterDeposit: BigNumber = await WETH9.balanceOf(
-      unipilotVault.address,
-    );
+  //   const usdtBalanceAfterDeposit: BigNumber = await USDT.balanceOf(
+  //     unipilotVault.address,
+  //   );
+  //   const wethBalanceAfterDeposit: BigNumber = await WETH9.balanceOf(
+  //     unipilotVault.address,
+  //   );
 
-    let positionDetails = await unipilotVault.callStatic.getPositionDetails();
+  //   let positionDetails = await unipilotVault.callStatic.getPositionDetails();
 
-    await unipilotVault.connect(wallet).pullLiquidity();
-    positionDetails = await unipilotVault.callStatic.getPositionDetails();
+  //   await unipilotVault.connect(wallet).pullLiquidity();
+  //   positionDetails = await unipilotVault.callStatic.getPositionDetails();
 
-    let usdtBalance: BigNumber = await USDT.balanceOf(unipilotVault.address);
-    let wethBalance: BigNumber = await WETH9.balanceOf(unipilotVault.address);
+  //   let usdtBalance: BigNumber = await USDT.balanceOf(unipilotVault.address);
+  //   let wethBalance: BigNumber = await WETH9.balanceOf(unipilotVault.address);
 
-    expect(positionDetails[0]).to.be.equal(0);
-    expect(positionDetails[1]).to.be.equal(0);
+  //   expect(positionDetails[0]).to.be.equal(0);
+  //   expect(positionDetails[1]).to.be.equal(0);
 
-    await unipilotVault.readjustLiquidity();
+  //   await unipilotVault.readjustLiquidity();
 
-    usdtBalance = await USDT.balanceOf(unipilotVault.address);
-    wethBalance = await DAI.balanceOf(unipilotVault.address);
+  //   usdtBalance = await USDT.balanceOf(unipilotVault.address);
+  //   wethBalance = await DAI.balanceOf(unipilotVault.address);
 
-    expect(wethBalance).to.be.equal(0);
-    expect(usdtBalance).to.be.equal(0);
-  });
+  //   expect(wethBalance).to.be.equal(0);
+  //   expect(usdtBalance).to.be.equal(0);
+  // });
 }

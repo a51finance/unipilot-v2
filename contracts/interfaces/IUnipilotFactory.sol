@@ -49,6 +49,7 @@ interface IUnipilotFactory {
             address,
             address,
             address,
+            uint8,
             uint8
         );
 }
