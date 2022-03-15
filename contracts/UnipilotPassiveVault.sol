@@ -29,7 +29,7 @@ contract UnipilotPassiveVault is ERC20Permit, IUnipilotVault {
     uint24 private fee;
 
     modifier onlyGovernance() {
-        (address governance, , , ) = getProtocolDetails();
+        (address governance, , , , ) = getProtocolDetails();
         require(msg.sender == governance);
         _;
     }
@@ -42,7 +42,7 @@ contract UnipilotPassiveVault is ERC20Permit, IUnipilotVault {
     }
 
     modifier checkDeviation() {
-        (, address strategy, , ) = getProtocolDetails();
+        (, address strategy, , , ) = getProtocolDetails();
         IUnipilotStrategy(strategy).checkDeviation(address(pool));
         _;
     }
@@ -130,34 +130,26 @@ contract UnipilotPassiveVault is ERC20Permit, IUnipilotVault {
     {
         require(liquidity > 0);
 
-        (, , , , uint128 baseLiquidity, uint128 rangeLiquidity) = pool
-            .getTotalAmounts(false, ticksData);
+        uint256 liquidityShare = FullMath.mulDiv(
+            liquidity,
+            1e18,
+            totalSupply()
+        );
 
-        uint256 totalLiquidity = baseLiquidity + rangeLiquidity;
+        (uint256 base0, uint256 base1) = burnAndCollect(
+            ticksData.baseTickLower,
+            ticksData.baseTickUpper,
+            liquidityShare
+        );
 
-        /// @dev if liquidity has pulled in contract then calculate share accordingly
-        if (totalLiquidity > 0) {
-            uint256 liquidityShare = FullMath.mulDiv(
-                liquidity,
-                1e18,
-                totalSupply()
-            );
+        (uint256 range0, uint256 range1) = burnAndCollect(
+            ticksData.rangeTickLower,
+            ticksData.rangeTickUpper,
+            liquidityShare
+        );
 
-            (uint256 base0, uint256 base1) = burnAndCollect(
-                ticksData.baseTickLower,
-                ticksData.baseTickUpper,
-                liquidityShare
-            );
-
-            (uint256 range0, uint256 range1) = burnAndCollect(
-                ticksData.rangeTickLower,
-                ticksData.rangeTickUpper,
-                liquidityShare
-            );
-
-            amount0 = base0.add(range0);
-            amount1 = base1.add(range1);
-        }
+        amount0 = base0.add(range0);
+        amount1 = base1.add(range1);
 
         uint256 unusedAmount0 = FullMath.mulDiv(
             _balance0().sub(amount0),
@@ -182,82 +174,70 @@ contract UnipilotPassiveVault is ERC20Permit, IUnipilotVault {
             transferFunds(refundAsETH, recipient, address(token1), amount1);
         }
 
+        (base0, base1) = pool.mintLiquidity(
+            ticksData.baseTickLower,
+            ticksData.baseTickUpper,
+            _balance0(),
+            _balance1()
+        );
+
+        (range0, range1) = pool.mintLiquidity(
+            ticksData.rangeTickLower,
+            ticksData.rangeTickUpper,
+            _balance0(),
+            _balance1()
+        );
+
         _burn(msg.sender, liquidity);
         emit Withdraw(recipient, liquidity, amount0, amount1);
-
-        if (totalLiquidity > 0) {
-            (uint256 c0, uint256 c1) = pool.mintLiquidity(
-                ticksData.baseTickLower,
-                ticksData.baseTickUpper,
-                _balance0(),
-                _balance1()
-            );
-
-            (uint256 r0, uint256 r1) = pool.mintLiquidity(
-                ticksData.rangeTickLower,
-                ticksData.rangeTickUpper,
-                _balance0(),
-                _balance1()
-            );
-
-            emit CompoundFees(c0.add(r0), c1.add(r1));
-        }
+        emit CompoundFees(base0.add(range0), base1.add(range1));
     }
 
     function readjustLiquidity() external override nonReentrant checkDeviation {
-        (, , , , uint128 baseLiquidity, uint128 rangeLiquidity) = pool
-            .getTotalAmounts(false, ticksData);
-
-        uint256 totalLiquidity = baseLiquidity + rangeLiquidity;
-
-        uint256 amount0;
-        uint256 amount1;
-
-        if (totalLiquidity > 0) {
-            (
-                uint256 baseAmount0,
-                uint256 baseAmount1,
-                uint256 baseFees0,
-                uint256 baseFees1
-            ) = pool.burnLiquidity(
-                    ticksData.baseTickLower,
-                    ticksData.baseTickUpper,
-                    address(this)
-                );
-
-            (
-                uint256 rangeAmount0,
-                uint256 rangeAmount1,
-                uint256 rangeFees0,
-                uint256 rangeFees1
-            ) = pool.burnLiquidity(
-                    ticksData.rangeTickLower,
-                    ticksData.rangeTickUpper,
-                    address(this)
-                );
-
-            (uint256 fees0, uint256 fees1) = (
-                baseFees0.add(rangeFees0),
-                baseFees1.add(rangeFees1)
+        (
+            uint256 baseAmount0,
+            uint256 baseAmount1,
+            uint256 baseFees0,
+            uint256 baseFees1
+        ) = pool.burnLiquidity(
+                ticksData.baseTickLower,
+                ticksData.baseTickUpper,
+                address(this)
             );
 
-            transferFeesToIF(true, fees0, fees1);
+        (
+            uint256 rangeAmount0,
+            uint256 rangeAmount1,
+            uint256 rangeFees0,
+            uint256 rangeFees1
+        ) = pool.burnLiquidity(
+                ticksData.rangeTickLower,
+                ticksData.rangeTickUpper,
+                address(this)
+            );
 
-            amount0 = baseAmount0.add(rangeAmount0);
-            amount1 = baseAmount1.add(rangeAmount1);
+        transferFeesToIF(
+            true,
+            baseFees0.add(rangeFees0),
+            baseFees1.add(rangeFees1)
+        );
 
-            if (amount0 == 0 || amount1 == 0) {
-                bool zeroForOne = amount0 > 0 ? true : false;
+        uint256 amount0 = baseAmount0.add(rangeAmount0);
+        uint256 amount1 = baseAmount1.add(rangeAmount1);
 
-                int256 amountSpecified = zeroForOne
-                    ? int256(FullMath.mulDiv(amount0, 50, 100))
-                    : int256(FullMath.mulDiv(amount1, 50, 100));
+        if (amount0 == 0 || amount1 == 0) {
+            bool zeroForOne = amount0 > 0 ? true : false;
 
-                pool.swapToken(address(this), zeroForOne, amountSpecified);
-            }
+            (, , , , uint8 swapPercentage) = getProtocolDetails();
+
+            int256 amountSpecified = zeroForOne
+                ? int256(FullMath.mulDiv(amount0, swapPercentage, 100))
+                : int256(FullMath.mulDiv(amount1, swapPercentage, 100));
+
+            pool.swapToken(address(this), zeroForOne, amountSpecified);
         }
 
-        /// @dev to add remaining amounts in contract other than position liquidity && also when positions are empty
+        /// @dev to add remaining amounts in contract other than position liquidity
         amount0 = _balance0();
         amount1 = _balance1();
 
@@ -293,20 +273,6 @@ contract UnipilotPassiveVault is ERC20Permit, IUnipilotVault {
         if (zeroForOne)
             pay(address(token0), address(this), msg.sender, uint256(amount0));
         else pay(address(token1), address(this), msg.sender, uint256(amount1));
-    }
-
-    function pullLiquidity() external onlyGovernance {
-        pool.burnLiquidity(
-            ticksData.baseTickLower,
-            ticksData.baseTickUpper,
-            address(this)
-        );
-
-        pool.burnLiquidity(
-            ticksData.rangeTickLower,
-            ticksData.rangeTickUpper,
-            address(this)
-        );
     }
 
     /// @dev function to check unipilot position fees and reserves
@@ -359,7 +325,8 @@ contract UnipilotPassiveVault is ERC20Permit, IUnipilotVault {
             address governance,
             address strategy,
             address indexFund,
-            uint8 indexFundPercentage
+            uint8 indexFundPercentage,
+            uint8 swapPercentage
         )
     {
         return unipilotFactory.getUnipilotDetails();
@@ -463,7 +430,7 @@ contract UnipilotPassiveVault is ERC20Permit, IUnipilotVault {
             int24 rangeTickUpper
         )
     {
-        (, address strategy, , ) = getProtocolDetails();
+        (, address strategy, , , ) = getProtocolDetails();
         return IUnipilotStrategy(strategy).getTicks(_pool);
     }
 
@@ -473,7 +440,7 @@ contract UnipilotPassiveVault is ERC20Permit, IUnipilotVault {
         uint256 fees0,
         uint256 fees1
     ) internal {
-        (, , address indexFund, uint8 percentage) = getProtocolDetails();
+        (, , address indexFund, uint8 percentage, ) = getProtocolDetails();
 
         if (fees0 > 0)
             token0.transfer(indexFund, FullMath.mulDiv(fees0, percentage, 100));
