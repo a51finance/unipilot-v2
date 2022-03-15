@@ -9,7 +9,6 @@ interface IUnipilotMigrator {
         address vault;
         address token0;
         address token1;
-        address recipient;
         uint256 tokenId;
         bool refundAsETH;
     }

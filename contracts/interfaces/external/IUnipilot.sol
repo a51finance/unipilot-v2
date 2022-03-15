@@ -54,6 +54,4 @@ interface IUnipilot {
         address to,
         uint256 tokenId
     ) external;
-
-    function _burn(uint256 tokenId) external;
 }

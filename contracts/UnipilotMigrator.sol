@@ -4,27 +4,18 @@ pragma solidity =0.7.6;
 pragma abicoder v2;
 
 import "@openzeppelin/contracts/utils/Context.sol";
-
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
-
 import "@uniswap/v3-periphery/contracts/interfaces/INonfungiblePositionManager.sol";
-
 import "./interfaces/IUnipilotVault.sol";
 import "./interfaces/external/IWETH9.sol";
-
 import "./interfaces/IUnipilotMigrator.sol";
-
 import "./libraries/TransferHelper.sol";
 import "./base/PeripheryPayments.sol";
-
 import "./interfaces/external/IUniswapLiquidityManager.sol";
-
 import "@uniswap/v2-core/contracts/interfaces/IUniswapV2Pair.sol";
-
 import "./interfaces/popsicle-interfaces/IPopsicleV3Optimizer.sol";
 import "./interfaces/visor-interfaces/IVault.sol";
-
 import "./interfaces/lixir-interfaces/ILixirVaultETH.sol";
 import "./interfaces/external/IUnipilot.sol";
 import "@uniswap/v3-core/contracts/libraries/FullMath.sol";
@@ -84,7 +75,7 @@ contract UnipilotMigrator is
 
         Unipilot.safeTransferFrom(msg.sender, address(this), params.tokenId);
 
-        Unipilot.withdraw(withdrawParam, abi.encode(params.recipient));
+        Unipilot.withdraw(withdrawParam, abi.encode(address(this)));
 
         uint256 amount0 = _balanceOf(params.token0, address(this));
         uint256 amount1 = _balanceOf(params.token1, address(this));
@@ -98,19 +89,6 @@ contract UnipilotMigrator is
             uint256 amount0Unipilot,
             uint256 amount1Unipilot
         ) = _addLiquidityUnipilot(params.vault, amount0, amount1, caller);
-
-        // if (amount0 > amount0Unipilot) {
-        //     IERC20(params.token0).transfer(
-        //         caller,
-        //         amount0.sub(amount0Unipilot)
-        //     );
-        // }
-        // if (amount1 > amount1Unipilot) {
-        //     IERC20(params.token1).transfer(
-        //         caller,
-        //         amount1.sub(amount1Unipilot)
-        //     );
-        // }
 
         _refundRemainingLiquidiy(
             RefundLiquidityParams({
@@ -127,7 +105,7 @@ contract UnipilotMigrator is
             })
         );
 
-        Unipilot._burn(params.tokenId);
+        Unipilot.safeTransferFrom(address(this), address(0), params.tokenId);
 
         emit LiquidityMigratedFromV3(
             "UnipilotV1",
