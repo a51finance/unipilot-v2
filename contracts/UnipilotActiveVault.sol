@@ -29,7 +29,7 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
     uint24 private fee;
 
     modifier onlyGovernance() {
-        (address governance, , , ) = getProtocolDetails();
+        (address governance, , , , ) = getProtocolDetails();
         require(msg.sender == governance);
         _;
     }
@@ -42,7 +42,7 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
     }
 
     modifier checkDeviation() {
-        (, address strategy, , ) = getProtocolDetails();
+        (, address strategy, , , ) = getProtocolDetails();
         IUnipilotStrategy(strategy).checkDeviation(address(pool));
         _;
     }
@@ -383,7 +383,7 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
     }
 
     function getBaseThreshold() internal view returns (int24 baseThreshold) {
-        (, address strategy, , ) = getProtocolDetails();
+        (, address strategy, , , ) = getProtocolDetails();
         return
             IUnipilotStrategy(strategy).getBaseThreshold(
                 address(pool),
@@ -398,7 +398,8 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
             address governance,
             address strategy,
             address indexFund,
-            uint8 indexFundPercentage
+            uint8 indexFundPercentage,
+            uint8 swapPercentage
         )
     {
         return unipilotFactory.getUnipilotDetails();
@@ -410,7 +411,7 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         uint256 fees0,
         uint256 fees1
     ) internal {
-        (, , address indexFund, uint8 percentage) = getProtocolDetails();
+        (, , address indexFund, uint8 percentage, ) = getProtocolDetails();
 
         if (fees0 > 0)
             token0.transfer(indexFund, FullMath.mulDiv(fees0, percentage, 100));
