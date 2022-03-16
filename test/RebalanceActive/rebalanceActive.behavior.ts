@@ -162,33 +162,6 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
     );
   });
 
-  // it("rebalance with 50/50", async () => {
-  //   // const usdtMindtedOnWallet = parseUnits("2000000", "18");
-  //   // const daiMintedOnWallet = parseUnits("2000000", "18");
-
-  //   await daiUsdtVault.init();
-
-  //   await daiUsdtVault
-  //     .connect(wallet)
-  //     .deposit(parseUnits("5000", "18"), parseUnits("5000", "18"));
-
-  //   // let positionDetails = await daiUsdtVault.callStatic.getPositionDetails();
-
-  //   // console.log("positionDetails before swap", positionDetails);
-
-  //   await generateFeeThroughSwap(swapRouter, bob, USDT, DAI, "5000");
-
-  //   // positionDetails = await daiUsdtVault.callStatic.getPositionDetails();
-
-  //   // console.log("positionDetails after swap", positionDetails);
-
-  //   // await daiUsdtVault.readjustLiquidity();
-
-  //   // positionDetails = await daiUsdtVault.callStatic.getPositionDetails();
-
-  //   // console.log("positionDetails", positionDetails);
-  // });
-
   it("Only called by owner and whitelisted vaults are eligible for rebalance", async () => {
     await daiUsdtVault.init();
     await daiUsdtVault
@@ -201,7 +174,7 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
     await expect(daiUsdtVault.readjustLiquidity()).to.be.reverted;
   });
 
-  it(" Index fund account should recieve 10% of the pool fees earned.", async () => {
+  it("Index fund account should recieve 10% of the pool fees earned.", async () => {
     await daiUsdtVault.init();
 
     await daiUsdtVault
@@ -215,8 +188,6 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
     await generateFeeThroughSwap(swapRouter, bob, USDT, DAI, "5000");
 
     let positionDetails = await daiUsdtVault.callStatic.getPositionDetails();
-
-    console.log("positionDetails after swap", positionDetails);
 
     await daiUsdtVault.readjustLiquidity();
 
@@ -235,9 +206,6 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
 
     const usdtBalanceOfIndexFund = await USDT.balanceOf(indexFund);
     const daiBalanceOfIndexFund = await DAI.balanceOf(indexFund);
-
-    console.log("percentageOfFees0Collected", percentageOfFees0Collected);
-    console.log("percentageOfFees1Collected", percentageOfFees1Collected);
 
     expect(percentageOfFees0Collected).to.be.equal(usdtBalanceOfIndexFund);
     expect(percentageOfFees1Collected).to.be.equal(daiBalanceOfIndexFund);
@@ -262,8 +230,6 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
 
     positionDetails = await daiUsdtVault.callStatic.getPositionDetails();
 
-    console.log("positionDetails after swap", positionDetails);
-
     expect(positionDetails[2]).to.be.gt(parseUnits("0", "18"));
 
     await daiUsdtVault.readjustLiquidity();
@@ -271,7 +237,6 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
     let positionDetailsAferReadjust =
       await daiUsdtVault.callStatic.getPositionDetails();
 
-    console.log("position details after readjust", positionDetailsAferReadjust);
     expect(positionDetailsAferReadjust[2]).to.be.eq(parseUnits("0", "18"));
 
     let lpBalance = await daiUsdtVault.balanceOf(wallet.address);

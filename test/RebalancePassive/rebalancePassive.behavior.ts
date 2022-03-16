@@ -16,6 +16,7 @@ import {
 import hre from "hardhat";
 
 import { generateFeeThroughSwap } from "../utils/SwapFunction/swap";
+import { expect } from "chai";
 export async function shouldBehaveLikeRebalancePassive(): Promise<void> {
   const createFixtureLoader = waffle.createFixtureLoader;
   let uniswapV3Factory: Contract;
@@ -119,8 +120,8 @@ export async function shouldBehaveLikeRebalancePassive(): Promise<void> {
     await USDT._mint(wallet.address, parseUnits("1000000", "18"));
     await DAI._mint(wallet.address, parseUnits("1000000", "18"));
 
-    await USDT._mint(alice.address, parseUnits("5000", "18"));
-    await DAI._mint(alice.address, parseUnits("5000", "18"));
+    await USDT._mint(alice.address, parseUnits("2000000", "18"));
+    await DAI._mint(alice.address, parseUnits("2000000", "18"));
 
     await USDT._mint(bob.address, parseUnits("100000000", "18"));
     await DAI._mint(bob.address, parseUnits("100000000", "18"));
@@ -173,8 +174,8 @@ export async function shouldBehaveLikeRebalancePassive(): Promise<void> {
         tickUpper: getMaxTick(60),
         fee: 3000,
         recipient: alice.address,
-        amount0Desired: parseUnits("5000", "18"),
-        amount1Desired: parseUnits("5000", "18"),
+        amount0Desired: parseUnits("7000", "18"),
+        amount1Desired: parseUnits("7000", "18"),
         amount0Min: 0,
         amount1Min: 0,
         deadline: 2000000000,
@@ -183,10 +184,10 @@ export async function shouldBehaveLikeRebalancePassive(): Promise<void> {
         gasLimit: "3000000",
       },
     );
-    await daiUsdtUniswapPool.increaseObservationCardinalityNext("80");
+    // await daiUsdtUniswapPool.increaseObservationCardinalityNext("80");
   });
 
-  it("No tokens left unused", async () => {
+  it("Index fund account should recieve 10% of the pool fees earned.", async () => {
     await daiUsdtVault
       .connect(wallet)
       .deposit(
@@ -195,15 +196,75 @@ export async function shouldBehaveLikeRebalancePassive(): Promise<void> {
         wallet.address,
       );
 
-    await generateFeeThroughSwap(swapRouter, bob, USDT, DAI, "2000");
+    await generateFeeThroughSwap(swapRouter, bob, USDT, DAI, "5000");
 
     await hre.network.provider.send("evm_increaseTime", [3600]);
     await hre.network.provider.send("evm_mine");
 
     let positionDetails = await daiUsdtVault.callStatic.getPositionDetails();
 
-    console.log("positionDetails", positionDetails);
+    await daiUsdtVault.connect(wallet).readjustLiquidity();
+
+    const fees0 = positionDetails[2];
+    const fees1 = positionDetails[3];
+
+    const percentageOfFees0Collected = fees0
+      .mul(parseInt("10"))
+      .div(parseInt("100"));
+
+    const percentageOfFees1Collected = fees1
+      .mul(parseInt("10"))
+      .div(parseInt("100"));
+
+    const indexFund = carol.address;
+
+    const usdtBalanceOfIndexFund = await USDT.balanceOf(indexFund);
+    const daiBalanceOfIndexFund = await DAI.balanceOf(indexFund);
+
+    expect(percentageOfFees0Collected).to.be.equal(usdtBalanceOfIndexFund);
+    expect(percentageOfFees1Collected).to.be.equal(daiBalanceOfIndexFund);
+  });
+
+  it("check fees compounding", async () => {
+    await daiUsdtVault
+      .connect(wallet)
+      .deposit(
+        parseUnits("5000", "18"),
+        parseUnits("5000", "18"),
+        wallet.address,
+      );
+
+    const usdtBalanceAfterDeposit = await USDT.balanceOf(wallet.address);
+    const daiBalanceAfterDeposit = await DAI.balanceOf(wallet.address);
+
+    await generateFeeThroughSwap(swapRouter, bob, USDT, DAI, "5000");
+
+    await hre.network.provider.send("evm_increaseTime", [3600]);
+    await hre.network.provider.send("evm_mine");
+
+    let positionDetails = await daiUsdtVault.callStatic.getPositionDetails();
+
+    expect(positionDetails[2]).to.be.gt(parseUnits("0", "18"));
 
     await daiUsdtVault.readjustLiquidity();
+
+    let positionDetailsAferReadjust =
+      await daiUsdtVault.callStatic.getPositionDetails();
+
+    expect(positionDetailsAferReadjust[2]).to.be.eq(parseUnits("0", "18"));
+
+    let lpBalance = await daiUsdtVault.balanceOf(wallet.address);
+
+    await daiUsdtVault.withdraw(lpBalance, wallet.address, false);
+
+    lpBalance = await daiUsdtVault.balanceOf(wallet.address);
+
+    expect(lpBalance).to.be.equal(parseUnits("0", "18"));
+
+    const usdtBalanceAfterWithdraw = await USDT.balanceOf(wallet.address);
+    const daiBalanceAfterWithdraw = await DAI.balanceOf(wallet.address);
+
+    expect(usdtBalanceAfterWithdraw).to.be.gt(usdtBalanceAfterDeposit);
+    expect(daiBalanceAfterWithdraw).to.be.gt(daiBalanceAfterDeposit);
   });
 }
