@@ -88,7 +88,7 @@ contract UnipilotActiveFactory is IUnipilotFactory {
         _vault = address(
             new UnipilotActiveVault{
                 salt: keccak256(abi.encodePacked(_tokenA, _tokenB, _fee))
-            }(pool, address(this), WETH, _name, _symbol)
+            }(pool, address(this), WETH, governance, _name, _symbol)
         );
         vaults[token0][token1][_fee] = _vault;
         vaults[token1][token0][_fee] = _vault; // populate mapping in the reverse direction
