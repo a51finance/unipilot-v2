@@ -14,9 +14,9 @@ use(solidity);
 //   await shouldBehaveLikeDepositActive();
 // });
 
-// describe("Invokes Deposit Passive Tests", async () => {
-//   await shouldBehaveLikeDepositPassive();
-// });
+describe("Invokes Deposit Passive Tests", async () => {
+  await shouldBehaveLikeDepositPassive();
+});
 
 // describe("Invokes Rebalance Active Tests", async () => {
 //   await shouldBehaveLikeRebalanceActive();
@@ -30,6 +30,6 @@ use(solidity);
 //   await shouldBehaveLikeWithdrawPassive();
 // });
 
-describe("Withdraw Liquidity for Active", async () => {
-  await shouldBehaveLikeWithdrawActive();
-});
+// describe("Withdraw Liquidity for Active", async () => {
+//   await shouldBehaveLikeWithdrawActive();
+// });

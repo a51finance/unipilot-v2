@@ -5,6 +5,7 @@ import "./UnipilotActiveVault.sol";
 import "./interfaces/IUnipilotFactory.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 /// @title Unipilot factory
 /// @notice Deploys Unipilot vaults and manages ownership and control over active and passive vaults
@@ -85,11 +86,13 @@ contract UnipilotActiveFactory is IUnipilotFactory {
             pool = uniswapFactory.createPool(token0, token1, _fee);
             IUniswapV3Pool(pool).initialize(_sqrtPriceX96);
         }
+
         _vault = address(
             new UnipilotActiveVault{
                 salt: keccak256(abi.encodePacked(_tokenA, _tokenB, _fee))
             }(pool, address(this), WETH, governance, _name, _symbol)
         );
+
         vaults[token0][token1][_fee] = _vault;
         vaults[token1][token0][_fee] = _vault; // populate mapping in the reverse direction
         emit VaultCreated(token0, token1, _fee, _vault);

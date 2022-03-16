@@ -131,6 +131,16 @@ export async function shouldBehaveLikeDepositPassive(): Promise<void> {
     );
   });
 
+  it("checking name of vault LP Token", async () => {
+    const vaultName = (await unipilotVault.name()).toString();
+    expect(vaultName).to.be.equal("Unipilot Wrapped Ether Tether Stable Vault");
+  });
+
+  it("checking symbol of vault LP Token", async () => {
+    const vaultSymbol = (await unipilotVault.symbol()).toString();
+    expect(vaultSymbol).to.be.equal("ULP-WETH-USDT");
+  });
+
   it("deposit suceed for eth", async () => {
     const ethBalanceBeforeDeposit = await wallet.getBalance();
 
