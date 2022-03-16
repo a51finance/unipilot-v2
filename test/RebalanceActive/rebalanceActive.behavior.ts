@@ -25,10 +25,10 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
   let unipilotFactory: Contract;
   let swapRouter: Contract;
   let daiUsdtVault: UnipilotActiveVault;
-  let SHIB: Contract;
-  let PILOT: Contract;
-  let DAI: Contract;
-  let USDT: Contract;
+
+  let SUSDC: Contract;
+  let UNI: Contract;
+
   let daiUsdtUniswapPool: UniswapV3Pool;
 
   const encodedPrice = encodePriceSqrt(
@@ -55,18 +55,16 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
       uniswapV3PositionManager,
       swapRouter,
       unipilotFactory,
-      DAI,
-      USDT,
-      PILOT,
-      SHIB,
+      SUSDC,
+      UNI,
       uniStrategy,
       createVault,
     } = await loadFixture(unipilotActiveVaultFixture));
 
-    await uniswapV3Factory.createPool(DAI.address, USDT.address, 3000);
+    await uniswapV3Factory.createPool(SUSDC.address, UNI.address, 3000);
     let daiUsdtPoolAddress = await uniswapV3Factory.getPool(
-      DAI.address,
-      USDT.address,
+      SUSDC.address,
+      UNI.address,
       3000,
     );
 
@@ -80,72 +78,58 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
     await uniStrategy.setBaseTicks([daiUsdtPoolAddress], [1800]);
 
     daiUsdtVault = await createVault(
-      USDT.address,
-      DAI.address,
+      UNI.address,
+      SUSDC.address,
       3000,
       encodedPrice,
-      "unipilot PILOT-USDT",
-      "PILOT-USDT",
+      "unipilot PILOT-UNI",
+      "PILOT-UNI",
     );
 
-    await USDT._mint(wallet.address, parseUnits("5000", "18"));
-    await DAI._mint(wallet.address, parseUnits("5000", "18"));
+    await UNI._mint(wallet.address, parseUnits("5000", "18"));
+    await SUSDC._mint(wallet.address, parseUnits("5000", "18"));
 
-    await USDT._mint(bob.address, parseUnits("5000", "18"));
-    await DAI._mint(bob.address, parseUnits("5000", "18"));
+    await UNI._mint(bob.address, parseUnits("5000", "18"));
+    await SUSDC._mint(bob.address, parseUnits("5000", "18"));
 
-    await USDT._mint(alice.address, parseUnits("2000000", "18"));
-    await DAI._mint(alice.address, parseUnits("2000000", "18"));
+    await UNI._mint(alice.address, parseUnits("2000000", "18"));
+    await SUSDC._mint(alice.address, parseUnits("2000000", "18"));
 
-    await SHIB._mint(wallet.address, parseUnits("2000000", "18"));
-    await PILOT._mint(wallet.address, parseUnits("2000000", "18"));
+    await UNI.connect(wallet).approve(daiUsdtVault.address, MaxUint256);
+    await SUSDC.connect(wallet).approve(daiUsdtVault.address, MaxUint256);
 
-    await SHIB._mint(alice.address, parseUnits("2000000", "18"));
-    await PILOT._mint(alice.address, parseUnits("2000000", "18"));
-
-    await SHIB._mint(bob.address, parseUnits("100000000000", "18"));
-    await PILOT._mint(bob.address, parseUnits("100000000000", "18"));
-
-    await USDT.connect(wallet).approve(daiUsdtVault.address, MaxUint256);
-    await DAI.connect(wallet).approve(daiUsdtVault.address, MaxUint256);
-
-    await DAI.connect(wallet).approve(
+    await SUSDC.connect(wallet).approve(
       uniswapV3PositionManager.address,
       MaxUint256,
     );
 
-    await USDT.connect(wallet).approve(
+    await UNI.connect(wallet).approve(
       uniswapV3PositionManager.address,
       MaxUint256,
     );
 
-    await USDT.connect(alice).approve(
+    await UNI.connect(alice).approve(
       uniswapV3PositionManager.address,
       MaxUint256,
     );
-    await DAI.connect(alice).approve(
+    await SUSDC.connect(alice).approve(
       uniswapV3PositionManager.address,
       MaxUint256,
     );
 
-    await USDT.connect(wallet).approve(swapRouter.address, MaxUint256);
-    await DAI.connect(wallet).approve(swapRouter.address, MaxUint256);
+    await UNI.connect(wallet).approve(swapRouter.address, MaxUint256);
+    await SUSDC.connect(wallet).approve(swapRouter.address, MaxUint256);
 
-    await USDT.connect(bob).approve(swapRouter.address, MaxUint256);
-    await DAI.connect(bob).approve(swapRouter.address, MaxUint256);
+    await UNI.connect(bob).approve(swapRouter.address, MaxUint256);
+    await SUSDC.connect(bob).approve(swapRouter.address, MaxUint256);
 
-    await SHIB.connect(wallet).approve(swapRouter.address, MaxUint256);
-    await PILOT.connect(wallet).approve(swapRouter.address, MaxUint256);
-
-    await SHIB.connect(alice).approve(swapRouter.address, MaxUint256);
-
-    await SHIB.connect(bob).approve(swapRouter.address, MaxUint256);
-    await PILOT.connect(bob).approve(swapRouter.address, MaxUint256);
+    const token0 = UNI.address < SUSDC.address ? UNI.address : SUSDC.address;
+    const token1 = UNI.address > SUSDC.address ? UNI.address : SUSDC.address;
 
     await uniswapV3PositionManager.connect(alice).mint(
       {
-        token0: USDT.address,
-        token1: DAI.address,
+        token0: token0,
+        token1: token1,
         tickLower: getMinTick(60),
         tickUpper: getMaxTick(60),
         fee: 3000,
@@ -171,7 +155,7 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
         parseUnits("5000", "18"),
         wallet.address,
       );
-    await expect(daiUsdtVault.readjustLiquidity()).to.be.reverted;
+    expect(await daiUsdtVault.readjustLiquidity()).to.be.ok;
   });
 
   it("Index fund account should recieve 10% of the pool fees earned.", async () => {
@@ -185,9 +169,11 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
         wallet.address,
       );
 
-    await generateFeeThroughSwap(swapRouter, bob, USDT, DAI, "5000");
+    await generateFeeThroughSwap(swapRouter, bob, UNI, SUSDC, "5000");
 
     let positionDetails = await daiUsdtVault.callStatic.getPositionDetails();
+
+    console.log("positionDetails", positionDetails);
 
     await daiUsdtVault.readjustLiquidity();
 
@@ -204,11 +190,11 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
 
     const indexFund = carol.address;
 
-    const usdtBalanceOfIndexFund = await USDT.balanceOf(indexFund);
-    const daiBalanceOfIndexFund = await DAI.balanceOf(indexFund);
+    const uniBalanceOfIndexFund = await UNI.balanceOf(indexFund);
+    const susdcBalanceOfIndexFund = await SUSDC.balanceOf(indexFund);
 
-    expect(percentageOfFees0Collected).to.be.equal(usdtBalanceOfIndexFund);
-    expect(percentageOfFees1Collected).to.be.equal(daiBalanceOfIndexFund);
+    expect(percentageOfFees0Collected).to.be.equal(susdcBalanceOfIndexFund);
+    expect(percentageOfFees1Collected).to.be.equal(uniBalanceOfIndexFund);
   });
 
   it("check fees compounding", async () => {
@@ -222,15 +208,15 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
         wallet.address,
       );
 
-    const usdtBalanceAfterDeposit = await USDT.balanceOf(wallet.address);
-    const daiBalanceAfterDeposit = await DAI.balanceOf(wallet.address);
+    const uniBalanceAfterDeposit = await UNI.balanceOf(wallet.address);
+    const susdcBalanceAfterDeposit = await SUSDC.balanceOf(wallet.address);
 
     let positionDetails = await daiUsdtVault.callStatic.getPositionDetails();
-    await generateFeeThroughSwap(swapRouter, bob, USDT, DAI, "5000");
+    await generateFeeThroughSwap(swapRouter, bob, UNI, SUSDC, "5000");
 
     positionDetails = await daiUsdtVault.callStatic.getPositionDetails();
 
-    expect(positionDetails[2]).to.be.gt(parseUnits("0", "18"));
+    expect(positionDetails[1]).to.be.gt(parseUnits("0", "18"));
 
     await daiUsdtVault.readjustLiquidity();
 
@@ -247,10 +233,10 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
 
     expect(lpBalance).to.be.equal(parseUnits("0", "18"));
 
-    const usdtBalanceAfterWithdraw = await USDT.balanceOf(wallet.address);
-    const daiBalanceAfterWithdraw = await DAI.balanceOf(wallet.address);
+    const uniBalanceAfterWithdraw = await UNI.balanceOf(wallet.address);
+    const susdcBalanceAfterWithdraw = await SUSDC.balanceOf(wallet.address);
 
-    expect(usdtBalanceAfterWithdraw).to.be.gt(usdtBalanceAfterDeposit);
-    expect(daiBalanceAfterWithdraw).to.be.gt(daiBalanceAfterDeposit);
+    expect(uniBalanceAfterWithdraw).to.be.gt(uniBalanceAfterDeposit);
+    expect(susdcBalanceAfterWithdraw).to.be.gt(susdcBalanceAfterDeposit);
   });
 }

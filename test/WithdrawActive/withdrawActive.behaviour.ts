@@ -99,10 +99,13 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
     );
     await USDT.connect(other).approve(swapRouter.address, constants.MaxUint256);
 
+    const token0 = USDT.address < DAI.address ? USDT.address : DAI.address;
+    const token1 = USDT.address > DAI.address ? USDT.address : DAI.address;
+
     await uniswapV3PositionManager.connect(other).mint(
       {
-        token0: USDT.address,
-        token1: DAI.address,
+        token0: token0,
+        token1: token1,
         tickLower: getMinTick(60),
         tickUpper: getMaxTick(60),
         fee: 3000,

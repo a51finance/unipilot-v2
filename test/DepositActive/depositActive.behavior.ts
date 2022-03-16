@@ -165,10 +165,13 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
     await SHIB.connect(alice).approve(swapRouter.address, MaxUint256);
     await PILOT.connect(alice).approve(swapRouter.address, MaxUint256);
 
+    const token0 = USDT.address < DAI.address ? USDT.address : DAI.address;
+    const token1 = USDT.address > DAI.address ? USDT.address : DAI.address;
+
     await uniswapV3PositionManager.connect(wallet).mint(
       {
-        token0: USDT.address,
-        token1: DAI.address,
+        token0: token0,
+        token1: token1,
         tickLower: getMinTick(60),
         tickUpper: getMaxTick(60),
         fee: 3000,
