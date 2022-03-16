@@ -161,6 +161,7 @@ export async function shouldBehaveLikeDepositPassive(): Promise<void> {
         value: parseUnits("1000", "18"),
       });
 
+    await unipilotVault.connect(wallet).getPositionDetails();
     const usdtBalanceAfterDeposit: BigNumber = await USDT.balanceOf(
       unipilotVault.address,
     );
@@ -169,6 +170,7 @@ export async function shouldBehaveLikeDepositPassive(): Promise<void> {
     );
 
     let positionDetails = await unipilotVault.callStatic.getPositionDetails();
+    console.log("positionDetails", positionDetails);
 
     await unipilotVault.connect(wallet).pullLiquidity();
     positionDetails = await unipilotVault.callStatic.getPositionDetails();
