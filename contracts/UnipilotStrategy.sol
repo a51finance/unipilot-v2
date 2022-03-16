@@ -8,7 +8,6 @@ import "./base/oracle/libraries/OracleLibrary.sol";
 
 import "@uniswap/v3-core/contracts/libraries/TickMath.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
-import "hardhat/console.sol";
 
 /**
  *
@@ -32,6 +31,8 @@ contract UnipilotStrategy is IUnipilotStrategy {
     int24 public baseTicks;
     /// @dev rangeOrder is the range calculate the spread behind and ahead of the base range
     int24 private rangeOrder;
+    /// @dev readjustMultiplier is the percentage multiplier of raedjust threshold
+    int24 private readjustMultiplier;
     /// @dev maxTwapDeviation is the max time weighted average deviation of price from the normal range in both directions
     int24 public override maxTwapDeviation;
     /// @dev twapDuration is the minimum duration in which the diviated price moves
@@ -43,6 +44,7 @@ contract UnipilotStrategy is IUnipilotStrategy {
         twapDuration = 3600;
         rangeTicks = 1800;
         baseTicks = 1800;
+        readjustMultiplier = 10;
     }
 
     /// @dev poolStrategy maintains the base,range multipliers and
@@ -92,6 +94,7 @@ contract UnipilotStrategy is IUnipilotStrategy {
                 baseThreshold: baseFloor,
                 rangeThreshold: _floor(rangeTicks, tickSpacing),
                 maxTwapDeviation: maxTwapDeviation,
+                readjustThreshold: (baseFloor * readjustMultiplier) / 100,
                 twapDuration: twapDuration
             });
         }
@@ -140,6 +143,7 @@ contract UnipilotStrategy is IUnipilotStrategy {
         external
         onlyGovernance
     {
+        require(_pools.length == _baseTicks.length, "IVI");
         for (uint256 i = 0; i < _pools.length; i++) {
             poolStrategy[_pools[i]].baseThreshold = _baseTicks[i];
         }
@@ -150,6 +154,7 @@ contract UnipilotStrategy is IUnipilotStrategy {
      *   @param _twapDeviation: a value to decide the maximum price deviation
      **/
     function setMaxTwapDeviation(int24 _twapDeviation) external onlyGovernance {
+        require(_twapDeviation >= 20, "PF");
         emit MaxTwapDeviationUpdated(
             maxTwapDeviation,
             maxTwapDeviation = _twapDeviation
@@ -161,7 +166,19 @@ contract UnipilotStrategy is IUnipilotStrategy {
      *   @param _twapDuration: a value for the duration of recalbiration of the twap
      **/
     function setTwapDuration(uint32 _twapDuration) external onlyGovernance {
+        require(_twapDuration >= 100, "TD");
         emit TwapDurationUpdated(twapDuration, twapDuration = _twapDuration);
+    }
+
+    function setReadjustMultiplier(int24 _readjustMultipier)
+        external
+        onlyGovernance
+    {
+        require(_readjustMultipier > 0, "IREM");
+        emit ReadjustMultiplierUpdated(
+            readjustMultiplier,
+            readjustMultiplier = _readjustMultipier
+        );
     }
 
     /**
@@ -184,6 +201,7 @@ contract UnipilotStrategy is IUnipilotStrategy {
                 baseThreshold: params.baseThreshold,
                 rangeThreshold: params.rangeThreshold,
                 maxTwapDeviation: params.maxTwapDeviation,
+                readjustThreshold: params.readjustThreshold,
                 twapDuration: params.twapDuration
             })
         );
@@ -231,6 +249,19 @@ contract UnipilotStrategy is IUnipilotStrategy {
         strategy = poolStrategy[_pool];
     }
 
+    /**
+     *   @notice This function returns the readjust threshold of a pool
+     *   @param _pool: pool address
+     **/
+    function getReadjustThreshold(address _pool)
+        public
+        view
+        returns (int24 readjustThreshold)
+    {
+        readjustThreshold = poolStrategy[_pool].readjustThreshold;
+        return readjustThreshold;
+    }
+
     function getBaseThreshold(address _pool, int24 _tickSpacing)
         external
         view
@@ -272,7 +303,6 @@ contract UnipilotStrategy is IUnipilotStrategy {
         (uint32 lastTimeStamp, , , ) = uniswapV3Pool.observations(
             (observationIndex + 1) % observationCardinality
         );
-
         uint32 timeDiff = uint32(block.timestamp) - lastTimeStamp;
         uint32 duration = poolStrategy[_pool].twapDuration;
         if (duration == 0) {

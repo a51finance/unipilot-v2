@@ -29,7 +29,7 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
     uint24 private fee;
 
     modifier onlyGovernance() {
-        (address governance, , , ) = getProtocolDetails();
+        (address governance, , , , ) = getProtocolDetails();
         require(msg.sender == governance);
         _;
     }
@@ -42,7 +42,7 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
     }
 
     modifier checkDeviation() {
-        (, address strategy, , ) = getProtocolDetails();
+        (, address strategy, , , ) = getProtocolDetails();
         IUnipilotStrategy(strategy).checkDeviation(address(pool));
         _;
     }
@@ -63,7 +63,30 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         tickSpacing = pool.tickSpacing();
     }
 
-    function deposit(uint256 amount0Desired, uint256 amount1Desired)
+    function init() external onlyGovernance {
+        int24 _tickSpacing = tickSpacing;
+        int24 baseThreshold = _tickSpacing * getBaseThreshold();
+        (, int24 currentTick, ) = pool.getSqrtRatioX96AndTick();
+
+        int24 tickFloor = UniswapLiquidityManagement.floor(
+            currentTick,
+            _tickSpacing
+        );
+
+        ticksData.baseTickLower = tickFloor - baseThreshold;
+        ticksData.baseTickUpper = tickFloor + baseThreshold;
+
+        UniswapLiquidityManagement.checkRange(
+            ticksData.baseTickLower,
+            ticksData.baseTickUpper
+        );
+    }
+
+    function deposit(
+        uint256 amount0Desired,
+        uint256 amount1Desired,
+        address recipient
+    )
         external
         payable
         override
@@ -95,27 +118,89 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
             amount1
         );
 
-        _mint(sender, lpShares);
-        emit Deposit(sender, amount0, amount1, lpShares);
+        _mint(recipient, lpShares);
+        emit Deposit(sender, recipient, amount0, amount1, lpShares);
     }
 
-    function init() external onlyGovernance {
-        int24 _tickSpacing = tickSpacing;
-        int24 baseThreshold = _tickSpacing * getBaseThreshold();
-        (, int24 currentTick, ) = pool.getSqrtRatioX96AndTick();
+    function withdraw(
+        uint256 liquidity,
+        address recipient,
+        bool refundAsETH
+    )
+        external
+        override
+        nonReentrant
+        checkDeviation
+        returns (uint256 amount0, uint256 amount1)
+    {
+        require(liquidity > 0);
+        uint256 totalSupply = totalSupply();
 
-        int24 tickFloor = UniswapLiquidityManagement.floor(
-            currentTick,
-            _tickSpacing
-        );
-
-        ticksData.baseTickLower = tickFloor - baseThreshold;
-        ticksData.baseTickUpper = tickFloor + baseThreshold;
-
-        UniswapLiquidityManagement.checkRange(
+        (uint128 totalLiquidity, , ) = pool.getPositionLiquidity(
             ticksData.baseTickLower,
             ticksData.baseTickUpper
         );
+
+        /// @dev if liquidity has pulled in contract then calculate share accordingly
+        if (totalLiquidity > 0) {
+            uint256 liquidityShare = FullMath.mulDiv(
+                liquidity,
+                1e18,
+                totalSupply
+            );
+
+            (amount0, amount1) = pool.burnUserLiquidity(
+                ticksData.baseTickLower,
+                ticksData.baseTickUpper,
+                liquidityShare,
+                address(this)
+            );
+
+            (uint256 fees0, uint256 fees1) = pool.collectPendingFees(
+                address(this),
+                ticksData.baseTickLower,
+                ticksData.baseTickUpper
+            );
+
+            transferFeesToIF(false, fees0, fees1);
+        }
+
+        uint256 unusedAmount0 = FullMath.mulDiv(
+            _balance0().sub(amount0),
+            liquidity,
+            totalSupply
+        );
+
+        uint256 unusedAmount1 = FullMath.mulDiv(
+            _balance1().sub(amount1),
+            liquidity,
+            totalSupply
+        );
+
+        amount0 = amount0.add(unusedAmount0);
+        amount1 = amount1.add(unusedAmount1);
+
+        if (amount0 > 0) {
+            transferFunds(refundAsETH, recipient, address(token0), amount0);
+        }
+
+        if (amount1 > 0) {
+            transferFunds(refundAsETH, recipient, address(token1), amount1);
+        }
+
+        _burn(msg.sender, liquidity);
+        emit Withdraw(recipient, liquidity, amount0, amount1);
+
+        if (totalLiquidity > 0) {
+            (uint256 c0, uint256 c1) = pool.mintLiquidity(
+                ticksData.baseTickLower,
+                ticksData.baseTickUpper,
+                _balance0(),
+                _balance1()
+            );
+
+            emit CompoundFees(c0, c1);
+        }
     }
 
     function readjustLiquidity()
@@ -215,131 +300,6 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         );
     }
 
-    function pullLiquidity() external onlyGovernance {
-        pool.burnLiquidity(
-            ticksData.baseTickLower,
-            ticksData.baseTickUpper,
-            address(this)
-        );
-    }
-
-    // temperory function to check position fees and reserves
-    function getPositionDetails()
-        external
-        returns (
-            uint256 amount0,
-            uint256 amount1,
-            uint256 fees0,
-            uint256 fees1,
-            uint128 totalLiquidity
-        )
-    {
-        return pool.getTotalAmounts(true, ticksData);
-    }
-
-    function withdraw(
-        uint256 liquidity,
-        address recipient,
-        bool refundAsETH
-    )
-        external
-        override
-        nonReentrant
-        checkDeviation
-        returns (uint256 amount0, uint256 amount1)
-    {
-        require(liquidity > 0);
-        uint256 totalSupply = totalSupply();
-
-        (uint128 totalLiquidity, , ) = pool.getPositionLiquidity(
-            ticksData.baseTickLower,
-            ticksData.baseTickUpper
-        );
-
-        if (totalLiquidity > 0) {
-            uint256 liquidityShare = FullMath.mulDiv(
-                liquidity,
-                1e18,
-                totalSupply
-            );
-
-            (amount0, amount1) = pool.burnUserLiquidity(
-                ticksData.baseTickLower,
-                ticksData.baseTickUpper,
-                liquidityShare,
-                address(this)
-            );
-
-            (uint256 fees0, uint256 fees1) = pool.collectPendingFees(
-                address(this),
-                ticksData.baseTickLower,
-                ticksData.baseTickUpper
-            );
-
-            transferFeesToIF(false, fees0, fees1);
-        }
-
-        uint256 unusedAmount0 = FullMath.mulDiv(
-            _balance0().sub(amount0),
-            liquidity,
-            totalSupply
-        );
-
-        uint256 unusedAmount1 = FullMath.mulDiv(
-            _balance1().sub(amount1),
-            liquidity,
-            totalSupply
-        );
-
-        amount0 = amount0.add(unusedAmount0);
-        amount1 = amount1.add(unusedAmount1);
-
-        if (amount0 > 0) {
-            transferFunds(refundAsETH, recipient, address(token0), amount0);
-        }
-
-        if (amount1 > 0) {
-            transferFunds(refundAsETH, recipient, address(token1), amount1);
-        }
-
-        _burn(msg.sender, liquidity);
-        emit Withdraw(recipient, liquidity, amount0, amount1);
-
-        if (totalLiquidity > 0) {
-            (uint256 c0, uint256 c1) = pool.mintLiquidity(
-                ticksData.baseTickLower,
-                ticksData.baseTickUpper,
-                _balance0(),
-                _balance1()
-            );
-
-            emit CompoundFees(c0, c1);
-        }
-    }
-
-    function getVaultInfo()
-        external
-        view
-        returns (
-            address,
-            address,
-            uint24,
-            address
-        )
-    {
-        return (address(token0), address(token1), fee, address(pool));
-    }
-
-    /// @dev Amount of token0 held as unused balance.
-    function _balance0() private view returns (uint256) {
-        return token0.balanceOf(address(this));
-    }
-
-    /// @dev Amount of token1 held as unused balance.
-    function _balance1() private view returns (uint256) {
-        return token1.balanceOf(address(this));
-    }
-
     /// @inheritdoc IUnipilotVault
     function uniswapV3MintCallback(
         uint256 amount0Owed,
@@ -371,30 +331,87 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         else pay(address(token1), address(this), msg.sender, uint256(amount1));
     }
 
+    function pullLiquidity() external onlyGovernance {
+        pool.burnLiquidity(
+            ticksData.baseTickLower,
+            ticksData.baseTickUpper,
+            address(this)
+        );
+    }
+
+    /// @dev function to check unipilot position fees and reserves
+    function getPositionDetails()
+        external
+        returns (
+            uint256 amount0,
+            uint256 amount1,
+            uint256 fees0,
+            uint256 fees1,
+            uint128 baseLiquidity,
+            uint128 rangeLiquidity
+        )
+    {
+        return pool.getTotalAmounts(true, ticksData);
+    }
+
+    function getVaultInfo()
+        external
+        view
+        returns (
+            address,
+            address,
+            uint24,
+            address
+        )
+    {
+        return (address(token0), address(token1), fee, address(pool));
+    }
+
+    /// @dev Amount of token0 held as unused balance.
+    function _balance0() internal view returns (uint256) {
+        return token0.balanceOf(address(this));
+    }
+
+    /// @dev Amount of token1 held as unused balance.
+    function _balance1() internal view returns (uint256) {
+        return token1.balanceOf(address(this));
+    }
+
     /// @notice Verify that caller should be the address of a valid Uniswap V3 Pool
-    function _verifyCallback() private view {
+    function _verifyCallback() internal view {
         require(msg.sender == address(pool));
     }
 
+    function getBaseThreshold() internal view returns (int24 baseThreshold) {
+        (, address strategy, , , ) = getProtocolDetails();
+        return
+            IUnipilotStrategy(strategy).getBaseThreshold(
+                address(pool),
+                tickSpacing
+            );
+    }
+
     function getProtocolDetails()
-        private
+        internal
         view
         returns (
             address governance,
             address strategy,
             address indexFund,
-            uint8 indexFundPercentage
+            uint8 indexFundPercentage,
+            uint8 swapPercentage
         )
     {
         return unipilotFactory.getUnipilotDetails();
     }
 
+    /// @dev method to transfer unipilot earned fees to Index Fund
     function transferFeesToIF(
         bool isReadjustLiquidity,
         uint256 fees0,
         uint256 fees1
-    ) private {
-        (, , address indexFund, uint8 percentage) = getProtocolDetails();
+    ) internal {
+        (, , address indexFund, uint8 percentage, ) = getProtocolDetails();
 
         if (fees0 > 0)
             token0.transfer(indexFund, FullMath.mulDiv(fees0, percentage, 100));
@@ -416,21 +433,12 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         address recipient,
         address token,
         uint256 amount
-    ) private {
+    ) internal {
         if (refundAsETH && token == WETH) {
             unwrapWETH9(amount, recipient);
         } else {
             TransferHelper.safeTransfer(token, recipient, amount);
         }
-    }
-
-    function getBaseThreshold() private view returns (int24 baseThreshold) {
-        (, address strategy, , ) = getProtocolDetails();
-        return
-            IUnipilotStrategy(strategy).getBaseThreshold(
-                address(pool),
-                tickSpacing
-            );
     }
 
     /// @param token The token to pay

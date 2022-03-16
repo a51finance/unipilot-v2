@@ -235,7 +235,11 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
     await unipilotVault.init();
     await unipilotVault
       .connect(wallet)
-      .deposit(parseUnits("1000", "18"), parseUnits("1000", "18"));
+      .deposit(
+        parseUnits("1000", "18"),
+        parseUnits("1000", "18"),
+        wallet.address,
+      );
 
     const daiBalance: BigNumber = await DAI.balanceOf(wallet.address);
     const usdtBalance: BigNumber = await USDT.balanceOf(wallet.address);
@@ -256,13 +260,21 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
     await unipilotVault.init();
     await unipilotVault
       .connect(wallet)
-      .deposit(parseUnits("1000", "18"), parseUnits("1000", "18"));
+      .deposit(
+        parseUnits("1000", "18"),
+        parseUnits("1000", "18"),
+        wallet.address,
+      );
 
     await unipilotVault.readjustLiquidity();
 
     await unipilotVault
       .connect(wallet)
-      .deposit(parseUnits("1000", "18"), parseUnits("1000", "18"));
+      .deposit(
+        parseUnits("1000", "18"),
+        parseUnits("1000", "18"),
+        wallet.address,
+      );
 
     const usdtMintedOnWallet0 = parseUnits("2000000", "18");
 
@@ -307,11 +319,19 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
     await shibPilotVault.init();
     const a = await shibPilotVault
       .connect(wallet)
-      .callStatic.deposit(parseUnits("10000", "18"), parseUnits("80000", "18"));
+      .callStatic.deposit(
+        parseUnits("10000", "18"),
+        parseUnits("80000", "18"),
+        wallet.address,
+      );
 
     await shibPilotVault
       .connect(wallet)
-      .deposit(parseUnits("10000", "18"), parseUnits("80000", "18"));
+      .deposit(
+        parseUnits("10000", "18"),
+        parseUnits("80000", "18"),
+        wallet.address,
+      );
 
     const lpBalance: BigNumber = await shibPilotVault
       .connect(wallet)
@@ -332,7 +352,11 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
     await unipilotVault.init();
     await unipilotVault
       .connect(wallet)
-      .deposit(parseUnits("1000", "18"), parseUnits("1000", "18"));
+      .deposit(
+        parseUnits("1000", "18"),
+        parseUnits("1000", "18"),
+        wallet.address,
+      );
     const positionDetails = await unipilotVault.callStatic.getPositionDetails();
     const reserve1 =
       positionDetails[0].lte(parseUnits("1000", "18")) &&
@@ -347,15 +371,23 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
     await unipilotVault.init();
     await unipilotVault
       .connect(wallet)
-      .deposit(parseUnits("1000", "18"), parseUnits("1000", "18"));
+      .deposit(
+        parseUnits("1000", "18"),
+        parseUnits("1000", "18"),
+        wallet.address,
+      );
 
     await unipilotVault
       .connect(bob)
-      .deposit(parseUnits("1000", "18"), parseUnits("1000", "18"));
+      .deposit(parseUnits("1000", "18"), parseUnits("1000", "18"), bob.address);
 
     await unipilotVault
       .connect(carol)
-      .deposit(parseUnits("1000", "18"), parseUnits("1000", "18"));
+      .deposit(
+        parseUnits("1000", "18"),
+        parseUnits("1000", "18"),
+        carol.address,
+      );
 
     let positionDetails = await unipilotVault.callStatic.getPositionDetails();
 
@@ -365,7 +397,11 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
 
     await unipilotVault
       .connect(user0)
-      .deposit(parseUnits("4000", "18"), parseUnits("4000", "18"));
+      .deposit(
+        parseUnits("4000", "18"),
+        parseUnits("4000", "18"),
+        user0.address,
+      );
 
     positionDetails = await unipilotVault.callStatic.getPositionDetails();
 
@@ -396,7 +432,11 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
     await unipilotVault.init();
     await unipilotVault
       .connect(wallet)
-      .deposit(parseUnits("1000", "18"), parseUnits("1000", "18"));
+      .deposit(
+        parseUnits("1000", "18"),
+        parseUnits("1000", "18"),
+        wallet.address,
+      );
 
     const usdtBalanceAfterDeposit: BigNumber = await USDT.balanceOf(
       unipilotVault.address,
@@ -430,7 +470,11 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
     await unipilotVault.init();
     await unipilotVault
       .connect(wallet)
-      .deposit(parseUnits("1000", "18"), parseUnits("1000", "18"));
+      .deposit(
+        parseUnits("1000", "18"),
+        parseUnits("1000", "18"),
+        wallet.address,
+      );
 
     const usdtBalanceAfterDeposit: BigNumber = await USDT.balanceOf(
       unipilotVault.address,

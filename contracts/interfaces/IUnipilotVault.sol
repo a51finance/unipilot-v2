@@ -41,7 +41,8 @@ interface IUnipilotVault {
     }
 
     event Deposit(
-        address depositor,
+        address indexed depositor,
+        address indexed recipient,
         uint256 amount0,
         uint256 amount1,
         uint256 lpShares
@@ -65,7 +66,11 @@ interface IUnipilotVault {
 
     event CompoundFees(uint256 amount0, uint256 amount1);
 
-    function deposit(uint256 _amount0Desired, uint256 _amount1Desired)
+    function deposit(
+        uint256 amount0Desired,
+        uint256 amount1Desired,
+        address recipient
+    )
         external
         payable
         returns (

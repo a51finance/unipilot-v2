@@ -8,8 +8,8 @@ import "@nomiclabs/hardhat-ethers";
 import { config as dotenvConfig } from "dotenv";
 import { resolve } from "path";
 
-import UnipilotFactoryArtifacts from "../artifacts/contracts/UnipilotFactory.sol/UnipilotFactory.json";
-import UnipilotVaultArtifacts from "../artifacts/contracts/UnipilotVault.sol/UnipilotVault.json";
+import UnipilotFactoryArtifacts from "../artifacts/contracts/UnipilotActiveFactory.sol/UnipilotActiveFactory.json";
+import UnipilotVaultArtifacts from "../artifacts/contracts/UnipilotActiveVault.sol/UnipilotActiveVault.json";
 import UnipilotStrategyArtifacts from "../artifacts/contracts/UnipilotStrategy.sol/UnipilotStrategy.json";
 import ERC20Artifact from "../artifacts/contracts/test/ERC20.sol/ERC20.json";
 
@@ -142,9 +142,9 @@ const main = async () => {
   //await deployUnipilotStrategy();
   await getERC20Approval(
     TKN2_TOKEN_ADDRESS,
-    "0xf0A26DEAd8e0D31Fdb5CF046693Ab06895F400b3",
+    "0xF235D7de97C9D9665cc3F7B519Cc46D9BEBb1a08",
   );
-  await getERC20Approval(TTC99, "0xf0A26DEAd8e0D31Fdb5CF046693Ab06895F400b3");
+  await getERC20Approval(TTC99, "0xF235D7de97C9D9665cc3F7B519Cc46D9BEBb1a08");
   // await checkGovernance("0xcE8f9628aD97D45ee6B7088ccd316D11B37cce71");
 };
 

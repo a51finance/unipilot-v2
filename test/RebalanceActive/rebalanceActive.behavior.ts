@@ -193,7 +193,11 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
     await daiUsdtVault.init();
     await daiUsdtVault
       .connect(wallet)
-      .deposit(parseUnits("5000", "18"), parseUnits("5000", "18"));
+      .deposit(
+        parseUnits("5000", "18"),
+        parseUnits("5000", "18"),
+        wallet.address,
+      );
     await expect(daiUsdtVault.readjustLiquidity()).to.be.reverted;
   });
 
@@ -202,7 +206,11 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
 
     await daiUsdtVault
       .connect(wallet)
-      .deposit(parseUnits("5000", "18"), parseUnits("5000", "18"));
+      .deposit(
+        parseUnits("5000", "18"),
+        parseUnits("5000", "18"),
+        wallet.address,
+      );
 
     await generateFeeThroughSwap(swapRouter, bob, USDT, DAI, "5000");
 
@@ -240,7 +248,11 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
 
     await daiUsdtVault
       .connect(wallet)
-      .deposit(parseUnits("5000", "18"), parseUnits("5000", "18"));
+      .deposit(
+        parseUnits("5000", "18"),
+        parseUnits("5000", "18"),
+        wallet.address,
+      );
 
     const usdtBalanceAfterDeposit = await USDT.balanceOf(wallet.address);
     const daiBalanceAfterDeposit = await DAI.balanceOf(wallet.address);

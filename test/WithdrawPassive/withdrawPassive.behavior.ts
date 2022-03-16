@@ -121,7 +121,11 @@ export async function shouldBehaveLikeWithdrawPassive(): Promise<void> {
 
   describe("#withdraw for passive pools", () => {
     beforeEach("Deposit in unipilot vault", async () => {
-      await vault.deposit(parseUnits("1000", "18"), parseUnits("1000", "18"));
+      await vault.deposit(
+        parseUnits("1000", "18"),
+        parseUnits("1000", "18"),
+        wallet.address,
+      );
     });
 
     it("withdraw", async () => {
@@ -164,7 +168,11 @@ export async function shouldBehaveLikeWithdrawPassive(): Promise<void> {
     it("fees compounding on withdraw", async () => {
       await vault
         .connect(other)
-        .deposit(parseUnits("1000", "18"), parseUnits("1000", "18"));
+        .deposit(
+          parseUnits("1000", "18"),
+          parseUnits("1000", "18"),
+          other.address,
+        );
 
       const user0LP = await vault.balanceOf(wallet.address);
       const user1LP = await vault.balanceOf(other.address);
@@ -201,34 +209,38 @@ export async function shouldBehaveLikeWithdrawPassive(): Promise<void> {
       expect(userDaiBalance).to.be.eq(reservesAfter[1]);
     });
 
-    it("should withdraw after pulling liquidity", async () => {
-      await vault
-        .connect(other)
-        .deposit(parseUnits("1000", "18"), parseUnits("1000", "18"));
+    // it("should withdraw after pulling liquidity", async () => {
+    //   await vault
+    //     .connect(other)
+    //     .deposit(
+    //       parseUnits("1000", "18"),
+    //       parseUnits("1000", "18"),
+    //       other.address,
+    //     );
 
-      const user1LP = await vault.balanceOf(other.address);
-      const user1DaiBalanceBefore = await DAI.balanceOf(other.address);
-      const user1UsdtBalanceBefore = await USDT.balanceOf(other.address);
+    //   const user1LP = await vault.balanceOf(other.address);
+    //   const user1DaiBalanceBefore = await DAI.balanceOf(other.address);
+    //   const user1UsdtBalanceBefore = await USDT.balanceOf(other.address);
 
-      await vault.pullLiquidity();
+    //   await vault.pullLiquidity();
 
-      const contractDaiBalance = await DAI.balanceOf(vault.address);
-      const contractUsdtBalance = await USDT.balanceOf(vault.address);
+    //   const contractDaiBalance = await DAI.balanceOf(vault.address);
+    //   const contractUsdtBalance = await USDT.balanceOf(vault.address);
 
-      await vault.connect(other).withdraw(user1LP, other.address, false);
+    //   await vault.connect(other).withdraw(user1LP, other.address, false);
 
-      const user1LpBalance = await vault.balanceOf(other.address);
+    //   const user1LpBalance = await vault.balanceOf(other.address);
 
-      const user1DaiBalance = await DAI.balanceOf(other.address);
-      const user1UsdtBalance = await USDT.balanceOf(other.address);
+    //   const user1DaiBalance = await DAI.balanceOf(other.address);
+    //   const user1UsdtBalance = await USDT.balanceOf(other.address);
 
-      expect(user1LpBalance).to.be.eq(0);
-      expect(user1UsdtBalance.sub(user1UsdtBalanceBefore)).to.be.eq(
-        contractUsdtBalance.div(2),
-      );
-      expect(user1DaiBalance.sub(user1DaiBalanceBefore)).to.be.eq(
-        contractDaiBalance.div(2),
-      );
-    });
+    //   expect(user1LpBalance).to.be.eq(0);
+    //   expect(user1UsdtBalance.sub(user1UsdtBalanceBefore)).to.be.eq(
+    //     contractUsdtBalance.div(2),
+    //   );
+    //   expect(user1DaiBalance.sub(user1DaiBalanceBefore)).to.be.eq(
+    //     contractDaiBalance.div(2),
+    //   );
+    // });
   });
 }
