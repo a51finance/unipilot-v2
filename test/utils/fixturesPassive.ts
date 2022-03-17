@@ -45,6 +45,7 @@ interface TEST_ERC20 {
   PILOT: Contract;
   SHIB: Contract;
   WETH9: Contract;
+  ENS: Contract;
 }
 
 interface STRATEGIES {
@@ -127,6 +128,8 @@ export const unipilotPassiveVaultFixture: Fixture<UNIPILOT_VAULT_FIXTURE> =
     const USDT = await deployToken(wallet, "Tether Stable", "USDT", 18);
     const PILOT = await deployToken(wallet, "Pilot", "PILOT", 18);
     const SHIB = await deployToken(wallet, "Shiba Inu", "SHIB", 18);
+    const ENS = await deployToken(wallet, "Shiba Inu", "ENS", 18);
+
     const unipilotVaultDep = await ethers.getContractFactory(
       "UnipilotPassiveVault",
     );
@@ -141,6 +144,7 @@ export const unipilotPassiveVaultFixture: Fixture<UNIPILOT_VAULT_FIXTURE> =
       PILOT,
       SHIB,
       WETH9,
+      ENS,
       uniStrategy,
       createVault: async (
         tokenA,

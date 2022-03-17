@@ -24,16 +24,11 @@ export async function shouldBehaveLikeRebalancePassive(): Promise<void> {
   let uniStrategy: Contract;
   let unipilotFactory: Contract;
   let swapRouter: Contract;
-  let daiUsdtVault: UnipilotPassiveVault;
-  let shibPilotVault: UnipilotPassiveVault;
-  let SHIB: Contract;
+  let unipilotVault: UnipilotPassiveVault;
   let PILOT: Contract;
-  let DAI: Contract;
-  let USDT: Contract;
-  let daiUsdtUniswapPool: UniswapV3Pool;
-  let shibPilotUniswapPool: UniswapV3Pool;
-  let token0: string;
-  let token1: string;
+  let ENS: Contract;
+  let uniswapPool: UniswapV3Pool;
+
   const encodedPrice = encodePriceSqrt(
     parseUnits("1", "18"),
     parseUnits("2", "18"),
@@ -58,116 +53,71 @@ export async function shouldBehaveLikeRebalancePassive(): Promise<void> {
       uniswapV3PositionManager,
       swapRouter,
       unipilotFactory,
-      DAI,
-      USDT,
       PILOT,
-      SHIB,
+      ENS,
       uniStrategy,
       createVault,
     } = await loadFixture(unipilotPassiveVaultFixture));
 
-    await uniswapV3Factory.createPool(DAI.address, USDT.address, 3000);
-    await uniswapV3Factory.createPool(SHIB.address, PILOT.address, 3000);
+    await uniswapV3Factory.createPool(PILOT.address, ENS.address, 3000);
 
-    let daiUsdtPoolAddress = await uniswapV3Factory.getPool(
-      DAI.address,
-      USDT.address,
-      3000,
-    );
-
-    let shibPilotPoolAddress = await uniswapV3Factory.getPool(
-      SHIB.address,
+    let uniswapPoolAddress = await uniswapV3Factory.getPool(
       PILOT.address,
+      ENS.address,
       3000,
     );
 
-    daiUsdtUniswapPool = (await ethers.getContractAt(
+    uniswapPool = (await ethers.getContractAt(
       "UniswapV3Pool",
-      daiUsdtPoolAddress,
+      uniswapPoolAddress,
     )) as UniswapV3Pool;
 
-    shibPilotUniswapPool = (await ethers.getContractAt(
-      "UniswapV3Pool",
-      shibPilotPoolAddress,
-    )) as UniswapV3Pool;
+    await uniswapPool.initialize(encodedPrice);
 
-    await daiUsdtUniswapPool.initialize(encodedPrice);
-    await shibPilotUniswapPool.initialize(encodedPrice);
+    await uniStrategy.setBaseTicks([uniswapPoolAddress], [1800]);
 
-    await uniStrategy.setBaseTicks(
-      [daiUsdtPoolAddress, shibPilotPoolAddress],
-      [1800, 1800],
-    );
-
-    daiUsdtVault = await createVault(
-      USDT.address,
-      DAI.address,
-      3000,
-      encodedPrice,
-      "unipilot PILOT-USDT",
-      "PILOT-USDT",
-    );
-
-    shibPilotVault = await createVault(
-      SHIB.address,
+    unipilotVault = await createVault(
+      ENS.address,
       PILOT.address,
       3000,
       encodedPrice,
-      "unipilot PILOT-USDT",
-      "PILOT-USDT",
+      "unipilot PILOT-ENS",
+      "PILOT-ENS",
     );
 
-    await USDT._mint(wallet.address, parseUnits("1000000", "18"));
-    await DAI._mint(wallet.address, parseUnits("1000000", "18"));
+    await ENS._mint(wallet.address, parseUnits("1000000", "18"));
+    await PILOT._mint(wallet.address, parseUnits("1000000", "18"));
 
-    await USDT._mint(alice.address, parseUnits("2000000", "18"));
-    await DAI._mint(alice.address, parseUnits("2000000", "18"));
-
-    await USDT._mint(bob.address, parseUnits("100000000", "18"));
-    await DAI._mint(bob.address, parseUnits("100000000", "18"));
-
-    await SHIB._mint(wallet.address, parseUnits("2000000", "18"));
-    await PILOT._mint(wallet.address, parseUnits("2000000", "18"));
-
-    await SHIB._mint(alice.address, parseUnits("2000000", "18"));
+    await ENS._mint(alice.address, parseUnits("2000000", "18"));
     await PILOT._mint(alice.address, parseUnits("2000000", "18"));
 
-    await DAI.approve(uniswapV3PositionManager.address, MaxUint256);
-    await USDT.approve(uniswapV3PositionManager.address, MaxUint256);
+    await ENS._mint(bob.address, parseUnits("100000000", "18"));
+    await PILOT._mint(bob.address, parseUnits("100000000", "18"));
 
-    await DAI.connect(alice).approve(
-      uniswapV3PositionManager.address,
-      MaxUint256,
-    );
-
-    await USDT.connect(alice).approve(
-      uniswapV3PositionManager.address,
-      MaxUint256,
-    );
-
-    await SHIB.approve(uniswapV3PositionManager.address, MaxUint256);
     await PILOT.approve(uniswapV3PositionManager.address, MaxUint256);
+    await ENS.approve(uniswapV3PositionManager.address, MaxUint256);
 
-    await USDT.connect(wallet).approve(daiUsdtVault.address, MaxUint256);
-    await DAI.connect(wallet).approve(daiUsdtVault.address, MaxUint256);
+    await PILOT.connect(alice).approve(
+      uniswapV3PositionManager.address,
+      MaxUint256,
+    );
 
-    await SHIB.connect(wallet).approve(shibPilotVault.address, MaxUint256);
-    await PILOT.connect(wallet).approve(shibPilotVault.address, MaxUint256);
+    await ENS.connect(alice).approve(
+      uniswapV3PositionManager.address,
+      MaxUint256,
+    );
 
-    await USDT.connect(wallet).approve(swapRouter.address, MaxUint256);
-    await DAI.connect(wallet).approve(swapRouter.address, MaxUint256);
+    await ENS.connect(wallet).approve(unipilotVault.address, MaxUint256);
+    await PILOT.connect(wallet).approve(unipilotVault.address, MaxUint256);
 
-    await USDT.connect(bob).approve(swapRouter.address, MaxUint256);
-    await DAI.connect(bob).approve(swapRouter.address, MaxUint256);
-
-    await SHIB.connect(wallet).approve(swapRouter.address, MaxUint256);
+    await ENS.connect(wallet).approve(swapRouter.address, MaxUint256);
     await PILOT.connect(wallet).approve(swapRouter.address, MaxUint256);
 
-    await SHIB.connect(alice).approve(swapRouter.address, MaxUint256);
-    await PILOT.connect(alice).approve(swapRouter.address, MaxUint256);
+    await ENS.connect(bob).approve(swapRouter.address, MaxUint256);
+    await PILOT.connect(bob).approve(swapRouter.address, MaxUint256);
 
-    const token0 = USDT.address < DAI.address ? USDT.address : DAI.address;
-    const token1 = USDT.address > DAI.address ? USDT.address : DAI.address;
+    const token0 = ENS.address < PILOT.address ? ENS.address : PILOT.address;
+    const token1 = ENS.address > PILOT.address ? ENS.address : PILOT.address;
 
     await uniswapV3PositionManager.connect(alice).mint(
       {
@@ -187,11 +137,11 @@ export async function shouldBehaveLikeRebalancePassive(): Promise<void> {
         gasLimit: "3000000",
       },
     );
-    // await daiUsdtUniswapPool.increaseObservationCardinalityNext("80");
+    // await uniswapPool.increaseObservationCardinalityNext("80");
   });
 
   it("Index fund account should recieve 10% of the pool fees earned.", async () => {
-    await daiUsdtVault
+    await unipilotVault
       .connect(wallet)
       .deposit(
         parseUnits("5000", "18"),
@@ -199,14 +149,14 @@ export async function shouldBehaveLikeRebalancePassive(): Promise<void> {
         wallet.address,
       );
 
-    await generateFeeThroughSwap(swapRouter, bob, USDT, DAI, "5000");
+    await generateFeeThroughSwap(swapRouter, bob, ENS, PILOT, "5000");
 
     await hre.network.provider.send("evm_increaseTime", [3600]);
     await hre.network.provider.send("evm_mine");
 
-    let positionDetails = await daiUsdtVault.callStatic.getPositionDetails();
+    let positionDetails = await unipilotVault.callStatic.getPositionDetails();
 
-    await daiUsdtVault.connect(wallet).readjustLiquidity();
+    await unipilotVault.connect(wallet).readjustLiquidity();
 
     const fees0 = positionDetails[2];
     const fees1 = positionDetails[3];
@@ -221,15 +171,15 @@ export async function shouldBehaveLikeRebalancePassive(): Promise<void> {
 
     const indexFund = carol.address;
 
-    const usdtBalanceOfIndexFund = await USDT.balanceOf(indexFund);
-    const daiBalanceOfIndexFund = await DAI.balanceOf(indexFund);
+    const usdtBalanceOfIndexFund = await ENS.balanceOf(indexFund);
+    const daiBalanceOfIndexFund = await PILOT.balanceOf(indexFund);
 
     expect(percentageOfFees0Collected).to.be.equal(usdtBalanceOfIndexFund);
     expect(percentageOfFees1Collected).to.be.equal(daiBalanceOfIndexFund);
   });
 
   it("check fees compounding", async () => {
-    await daiUsdtVault
+    await unipilotVault
       .connect(wallet)
       .deposit(
         parseUnits("5000", "18"),
@@ -237,37 +187,37 @@ export async function shouldBehaveLikeRebalancePassive(): Promise<void> {
         wallet.address,
       );
 
-    const usdtBalanceAfterDeposit = await USDT.balanceOf(wallet.address);
-    const daiBalanceAfterDeposit = await DAI.balanceOf(wallet.address);
+    const ensBalanceAfterDeposit = await ENS.balanceOf(wallet.address);
+    const pilotBalanceAfterDeposit = await PILOT.balanceOf(wallet.address);
 
-    await generateFeeThroughSwap(swapRouter, bob, USDT, DAI, "5000");
+    await generateFeeThroughSwap(swapRouter, bob, ENS, PILOT, "5000");
 
     await hre.network.provider.send("evm_increaseTime", [3600]);
     await hre.network.provider.send("evm_mine");
 
-    let positionDetails = await daiUsdtVault.callStatic.getPositionDetails();
+    let positionDetails = await unipilotVault.callStatic.getPositionDetails();
 
     expect(positionDetails[2]).to.be.gt(parseUnits("0", "18"));
 
-    await daiUsdtVault.readjustLiquidity();
+    await unipilotVault.readjustLiquidity();
 
     let positionDetailsAferReadjust =
-      await daiUsdtVault.callStatic.getPositionDetails();
+      await unipilotVault.callStatic.getPositionDetails();
 
     expect(positionDetailsAferReadjust[2]).to.be.eq(parseUnits("0", "18"));
 
-    let lpBalance = await daiUsdtVault.balanceOf(wallet.address);
+    let lpBalance = await unipilotVault.balanceOf(wallet.address);
 
-    await daiUsdtVault.withdraw(lpBalance, wallet.address, false);
+    await unipilotVault.withdraw(lpBalance, wallet.address, false);
 
-    lpBalance = await daiUsdtVault.balanceOf(wallet.address);
+    lpBalance = await unipilotVault.balanceOf(wallet.address);
 
     expect(lpBalance).to.be.equal(parseUnits("0", "18"));
 
-    const usdtBalanceAfterWithdraw = await USDT.balanceOf(wallet.address);
-    const daiBalanceAfterWithdraw = await DAI.balanceOf(wallet.address);
+    const ensBalanceAfterWithdraw = await ENS.balanceOf(wallet.address);
+    const pilotBalanceAfterWithdraw = await PILOT.balanceOf(wallet.address);
 
-    expect(usdtBalanceAfterWithdraw).to.be.gt(usdtBalanceAfterDeposit);
-    expect(daiBalanceAfterWithdraw).to.be.gt(daiBalanceAfterDeposit);
+    expect(ensBalanceAfterWithdraw).to.be.gt(ensBalanceAfterDeposit);
+    expect(pilotBalanceAfterWithdraw).to.be.gt(pilotBalanceAfterDeposit);
   });
 }

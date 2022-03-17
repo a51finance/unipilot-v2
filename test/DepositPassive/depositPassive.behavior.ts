@@ -24,12 +24,10 @@ export async function shouldBehaveLikeDepositPassive(): Promise<void> {
   let unipilotFactory: Contract;
   let swapRouter: Contract;
   let unipilotVault: UnipilotPassiveVault;
-  let DAI: Contract;
-  let USDT: Contract;
   let WETH9: Contract;
   let SHIB: Contract;
 
-  let wethUsdtUniswapPool: UniswapV3Pool;
+  let uniswapPool: UniswapV3Pool;
   const provider = waffle.provider;
 
   const encodedPrice = encodePriceSqrt(
@@ -40,8 +38,6 @@ export async function shouldBehaveLikeDepositPassive(): Promise<void> {
   type ThenArg<T> = T extends PromiseLike<infer U> ? U : T;
   const [wallet, alice, bob, carol, other, user0, user1, user2, user3, user4] =
     waffle.provider.getWallets();
-
-  let governance = wallet;
 
   let loadFixture: ReturnType<typeof createFixtureLoader>;
   let createVault: ThenArg<
@@ -58,8 +54,6 @@ export async function shouldBehaveLikeDepositPassive(): Promise<void> {
       uniswapV3PositionManager,
       swapRouter,
       unipilotFactory,
-      DAI,
-      USDT,
       WETH9,
       SHIB,
       uniStrategy,
@@ -68,20 +62,20 @@ export async function shouldBehaveLikeDepositPassive(): Promise<void> {
 
     await uniswapV3Factory.createPool(WETH9.address, SHIB.address, 3000);
 
-    let wethUsdtPoolAddress = await uniswapV3Factory.getPool(
+    let uniswapPoolAddress = await uniswapV3Factory.getPool(
       WETH9.address,
       SHIB.address,
       3000,
     );
 
-    wethUsdtUniswapPool = (await ethers.getContractAt(
+    uniswapPool = (await ethers.getContractAt(
       "UniswapV3Pool",
-      wethUsdtPoolAddress,
+      uniswapPoolAddress,
     )) as UniswapV3Pool;
 
-    await wethUsdtUniswapPool.initialize(encodedPrice);
+    await uniswapPool.initialize(encodedPrice);
 
-    await uniStrategy.setBaseTicks([wethUsdtPoolAddress], [1800]);
+    await uniStrategy.setBaseTicks([uniswapPoolAddress], [1800]);
 
     unipilotVault = await createVault(
       WETH9.address,
@@ -110,8 +104,8 @@ export async function shouldBehaveLikeDepositPassive(): Promise<void> {
     await SHIB.connect(wallet).approve(swapRouter.address, MaxUint256);
     await WETH9.connect(wallet).approve(swapRouter.address, MaxUint256);
 
-    await SHIB.connect(wallet).approve(wethUsdtPoolAddress, MaxUint256);
-    await WETH9.connect(wallet).approve(wethUsdtPoolAddress, MaxUint256);
+    await SHIB.connect(wallet).approve(uniswapPoolAddress, MaxUint256);
+    await WETH9.connect(wallet).approve(uniswapPoolAddress, MaxUint256);
 
     const token0 = SHIB.address < WETH9.address ? SHIB.address : WETH9.address;
     const token1 = SHIB.address > WETH9.address ? SHIB.address : WETH9.address;
@@ -139,12 +133,22 @@ export async function shouldBehaveLikeDepositPassive(): Promise<void> {
 
   it("checking name of vault LP Token", async () => {
     const vaultName = (await unipilotVault.name()).toString();
-    expect(vaultName).to.be.equal("Unipilot Shiba Inu Wrapped Ether Vault");
+
+    const tokenName =
+      SHIB.address < WETH9.address
+        ? "Unipilot Shiba Inu Wrapped Ether Vault"
+        : "Unipilot Wrapped Ether Shiba Inu Vault";
+
+    expect(vaultName).to.be.equal(tokenName);
   });
 
   it("checking symbol of vault LP Token", async () => {
     const vaultSymbol = (await unipilotVault.symbol()).toString();
-    expect(vaultSymbol).to.be.equal("ULP-SHIB-WETH");
+
+    const tokenSymbol =
+      SHIB.address < WETH9.address ? "ULP-SHIB-WETH" : "ULP-WETH-SHIB";
+
+    expect(vaultSymbol).to.be.equal(tokenSymbol);
   });
 
   it("deposit suceed for eth", async () => {
