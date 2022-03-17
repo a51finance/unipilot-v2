@@ -40,6 +40,8 @@ interface IUnipilotFactory {
         string memory _symbol
     ) external returns (address _vault);
 
+    function isWhitelist(address recipient) external view returns (bool);
+
     /// @notice Used to give addresses of governance, strategy, indexFund
     /// @return governance address, strategy address, indexFund address
     function getUnipilotDetails()

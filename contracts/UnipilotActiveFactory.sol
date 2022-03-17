@@ -32,7 +32,10 @@ contract UnipilotActiveFactory is IUnipilotFactory {
         indexFund = _indexFund;
         WETH = _WETH;
         indexFundPercentage = percentage;
+        isWhitelist[governance] = true;
     }
+
+    mapping(address => bool) public override isWhitelist;
 
     /// @notice Used to give address of vaults
     /// @return vault address
@@ -93,6 +96,7 @@ contract UnipilotActiveFactory is IUnipilotFactory {
             }(pool, address(this), WETH, governance, _name, _symbol)
         );
 
+        isWhitelist[_vault] = true;
         vaults[token0][token1][_fee] = _vault;
         vaults[token1][token0][_fee] = _vault; // populate mapping in the reverse direction
         emit VaultCreated(token0, token1, _fee, _vault);
@@ -105,6 +109,11 @@ contract UnipilotActiveFactory is IUnipilotFactory {
         require(_newGovernance != address(0));
         emit GovernanceChanged(governance, _newGovernance);
         governance = _newGovernance;
+    }
+
+    function toggleWhitelistAccount(address _address) external onlyGovernance {
+        require(_address != address(0));
+        isWhitelist[_address] = !isWhitelist[_address];
     }
 
     function setUnipilotDetails(

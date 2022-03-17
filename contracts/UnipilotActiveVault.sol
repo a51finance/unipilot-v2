@@ -120,12 +120,19 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         pay(address(token0), sender, address(this), amount0);
         pay(address(token1), sender, address(this), amount1);
 
-        pool.mintLiquidity(
+        (uint128 totalLiquidity, , ) = pool.getPositionLiquidity(
             ticksData.baseTickLower,
-            ticksData.baseTickUpper,
-            amount0,
-            amount1
+            ticksData.baseTickUpper
         );
+
+        if (totalLiquidity > 0) {
+            pool.mintLiquidity(
+                ticksData.baseTickLower,
+                ticksData.baseTickUpper,
+                amount0,
+                amount1
+            );
+        }
 
         _mint(recipient, lpShares);
         emit Deposit(sender, recipient, amount0, amount1, lpShares);
@@ -340,11 +347,13 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         else pay(address(token1), address(this), msg.sender, uint256(amount1));
     }
 
-    function pullLiquidity() external onlyOperator {
+    function pullLiquidity(address recipient) external onlyOperator {
+        require(unipilotFactory.isWhitelist(recipient));
+
         pool.burnLiquidity(
             ticksData.baseTickLower,
             ticksData.baseTickUpper,
-            address(this)
+            recipient
         );
     }
 

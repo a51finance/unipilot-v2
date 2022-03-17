@@ -37,6 +37,8 @@ contract UnipilotPassiveFactory is IUnipilotFactory {
         swapPercentage = _swapPercentage;
     }
 
+    mapping(address => bool) public override isWhitelist;
+
     /// @notice Used to give address of vaults
     /// @return vault address
     mapping(address => mapping(address => mapping(uint24 => address)))
