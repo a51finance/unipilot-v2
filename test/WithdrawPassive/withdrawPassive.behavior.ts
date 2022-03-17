@@ -26,6 +26,8 @@ export async function shouldBehaveLikeWithdrawPassive(): Promise<void> {
   let FEI: Contract;
   let SPELL: Contract;
   let pool: UniswapV3Pool;
+  let token0Instance: Contract;
+  let token1Instance: Contract;
 
   type ThenArg<T> = T extends PromiseLike<infer U> ? U : T;
   const [wallet, other] = waffle.provider.getWallets();
@@ -112,6 +114,12 @@ export async function shouldBehaveLikeWithdrawPassive(): Promise<void> {
         ? SPELL.address.toLowerCase()
         : FEI.address.toLowerCase();
 
+    token0Instance =
+      SPELL.address.toLowerCase() < FEI.address.toLowerCase() ? SPELL : FEI;
+
+    token1Instance =
+      SPELL.address.toLowerCase() > FEI.address.toLowerCase() ? SPELL : FEI;
+
     await uniswapV3PositionManager.connect(other).mint(
       {
         token0: token0,
@@ -150,25 +158,37 @@ export async function shouldBehaveLikeWithdrawPassive(): Promise<void> {
       await vault.withdraw(parseUnits("1000", "18"), wallet.address, false);
 
       const userLpBalance = await vault.balanceOf(wallet.address);
-      const userDaiBalance = await FEI.balanceOf(wallet.address);
-      const userUsdtBalance = await SPELL.balanceOf(wallet.address);
+      const userToken0Balance = await token0Instance.balanceOf(wallet.address);
+      const userToken1Balance = await token1Instance.balanceOf(wallet.address);
 
       expect(userLpBalance).to.be.eq(0);
-      expect(userUsdtBalance).to.be.eq(reserves[1]);
-      expect(userDaiBalance).to.be.eq(reserves[0]);
+      expect(userToken0Balance).to.be.eq(reserves[0]);
+      expect(userToken1Balance).to.be.eq(reserves[1]);
     });
 
     it("withdraw with fees earned", async () => {
-      await generateFeeThroughSwap(swapRouter, other, SPELL, FEI, "1000");
-      await generateFeeThroughSwap(swapRouter, other, FEI, SPELL, "1000");
+      await generateFeeThroughSwap(
+        swapRouter,
+        other,
+        token0Instance,
+        token1Instance,
+        "1000",
+      );
+      await generateFeeThroughSwap(
+        swapRouter,
+        other,
+        token1Instance,
+        token0Instance,
+        "1000",
+      );
 
       await hre.network.provider.send("evm_increaseTime", [3600]);
       await hre.network.provider.send("evm_mine");
 
       const fees = await vault.callStatic.getPositionDetails();
       await vault.withdraw(parseUnits("1000", "18"), wallet.address, false);
-      const userFeiBalance = await FEI.balanceOf(wallet.address);
-      const userSpellBalance = await SPELL.balanceOf(wallet.address);
+      const userToken0Balance = await token0Instance.balanceOf(wallet.address);
+      const userToken1Balance = await token1Instance.balanceOf(wallet.address);
 
       const details = await unipilotFactory.getUnipilotDetails();
 
@@ -181,8 +201,8 @@ export async function shouldBehaveLikeWithdrawPassive(): Promise<void> {
       const indexFundAmount0 = fees[2].div(details[3]);
       const indexFundAmount1 = fees[3].div(details[3]);
 
-      expect(userSpellBalance).to.be.gte(total1.sub(indexFundAmount1));
-      expect(userFeiBalance).to.be.gte(total0.sub(indexFundAmount0));
+      expect(userToken0Balance).to.be.gte(total0.sub(indexFundAmount0));
+      expect(userToken1Balance).to.be.gte(total1.sub(indexFundAmount1));
     });
 
     it("fees compounding on withdraw", async () => {
@@ -197,8 +217,20 @@ export async function shouldBehaveLikeWithdrawPassive(): Promise<void> {
       const user0LP = await vault.balanceOf(wallet.address);
       const user1LP = await vault.balanceOf(other.address);
 
-      await generateFeeThroughSwap(swapRouter, other, SPELL, FEI, "1000");
-      await generateFeeThroughSwap(swapRouter, other, FEI, SPELL, "1000");
+      await generateFeeThroughSwap(
+        swapRouter,
+        other,
+        token0Instance,
+        token1Instance,
+        "1000",
+      );
+      await generateFeeThroughSwap(
+        swapRouter,
+        other,
+        token1Instance,
+        token0Instance,
+        "1000",
+      );
 
       await hre.network.provider.send("evm_increaseTime", [3600]);
       await hre.network.provider.send("evm_mine");
@@ -208,6 +240,7 @@ export async function shouldBehaveLikeWithdrawPassive(): Promise<void> {
       const amount1ToCompound = reservesBefore[1].add(reservesBefore[3]).div(2);
 
       const details = await unipilotFactory.getUnipilotDetails();
+
       const amount0IndexFund = reservesBefore[2].div(details[3]);
       const amount1IndexFund = reservesBefore[3].div(details[3]);
 
@@ -222,14 +255,14 @@ export async function shouldBehaveLikeWithdrawPassive(): Promise<void> {
         amount1ToCompound.sub(amount1IndexFund).sub(parseUnits("0.15", "18")),
       );
 
-      const unusedAmount0 = await SPELL.balanceOf(vault.address);
+      const unusedAmount0 = await token0Instance.balanceOf(vault.address);
 
       await vault.withdraw(user0LP, wallet.address, false);
-      const userFeiBalance = await FEI.balanceOf(wallet.address);
-      const userSpellBalance = await SPELL.balanceOf(wallet.address);
+      const userToken0Balance = await token0Instance.balanceOf(wallet.address);
+      const userToken1Balance = await token1Instance.balanceOf(wallet.address);
 
-      expect(userFeiBalance).to.be.eq(reservesAfter[0].add(unusedAmount0));
-      expect(userSpellBalance).to.be.eq(reservesAfter[1]);
+      expect(userToken0Balance).to.be.eq(reservesAfter[0].add(unusedAmount0));
+      expect(userToken1Balance).to.be.eq(reservesAfter[1]);
     });
 
     // it("should withdraw after pulling liquidity", async () => {
