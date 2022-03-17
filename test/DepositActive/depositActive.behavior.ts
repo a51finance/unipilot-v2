@@ -120,8 +120,15 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
     await USDT.connect(wallet).approve(swapRouter.address, MaxUint256);
     await DAI.connect(wallet).approve(swapRouter.address, MaxUint256);
 
-    const token0 = USDT.address < DAI.address ? USDT.address : DAI.address;
-    const token1 = USDT.address > DAI.address ? USDT.address : DAI.address;
+    const token0 =
+      USDT.address.toLowerCase() < DAI.address.toLowerCase()
+        ? USDT.address.toLowerCase()
+        : DAI.address.toLowerCase();
+
+    const token1 =
+      USDT.address.toLowerCase() > DAI.address.toLowerCase()
+        ? USDT.address.toLowerCase()
+        : DAI.address.toLowerCase();
 
     await uniswapV3PositionManager.connect(wallet).mint(
       {
@@ -382,6 +389,7 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
 
   it("should pull liquidity successfully", async () => {
     await unipilotVault.init();
+
     await unipilotVault
       .connect(wallet)
       .deposit(

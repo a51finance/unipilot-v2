@@ -78,8 +78,8 @@ export async function shouldBehaveLikeDepositPassive(): Promise<void> {
     await uniStrategy.setBaseTicks([uniswapPoolAddress], [1800]);
 
     unipilotVault = await createVault(
-      WETH9.address,
       SHIB.address,
+      WETH9.address,
       3000,
       encodedPrice,
       "unipilot WETH-SHIB",
@@ -107,8 +107,15 @@ export async function shouldBehaveLikeDepositPassive(): Promise<void> {
     await SHIB.connect(wallet).approve(uniswapPoolAddress, MaxUint256);
     await WETH9.connect(wallet).approve(uniswapPoolAddress, MaxUint256);
 
-    const token0 = SHIB.address < WETH9.address ? SHIB.address : WETH9.address;
-    const token1 = SHIB.address > WETH9.address ? SHIB.address : WETH9.address;
+    const token0 =
+      SHIB.address.toLowerCase() < WETH9.address.toLowerCase()
+        ? SHIB.address.toLowerCase()
+        : WETH9.address.toLowerCase();
+
+    const token1 =
+      SHIB.address.toLowerCase() > WETH9.address.toLowerCase()
+        ? SHIB.address.toLowerCase()
+        : WETH9.address.toLowerCase();
 
     await uniswapV3PositionManager.connect(alice).mint(
       {
@@ -135,7 +142,7 @@ export async function shouldBehaveLikeDepositPassive(): Promise<void> {
     const vaultName = (await unipilotVault.name()).toString();
 
     const tokenName =
-      SHIB.address < WETH9.address
+      SHIB.address.toLowerCase() < WETH9.address.toLowerCase()
         ? "Unipilot Shiba Inu Wrapped Ether Vault"
         : "Unipilot Wrapped Ether Shiba Inu Vault";
 
@@ -146,7 +153,9 @@ export async function shouldBehaveLikeDepositPassive(): Promise<void> {
     const vaultSymbol = (await unipilotVault.symbol()).toString();
 
     const tokenSymbol =
-      SHIB.address < WETH9.address ? "ULP-SHIB-WETH" : "ULP-WETH-SHIB";
+      SHIB.address.toLowerCase() < WETH9.address.toLowerCase()
+        ? "ULP-SHIB-WETH"
+        : "ULP-WETH-SHIB";
 
     expect(vaultSymbol).to.be.equal(tokenSymbol);
   });

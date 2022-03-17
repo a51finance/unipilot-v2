@@ -123,8 +123,15 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
     await UNI.connect(bob).approve(swapRouter.address, MaxUint256);
     await SUSDC.connect(bob).approve(swapRouter.address, MaxUint256);
 
-    const token0 = UNI.address < SUSDC.address ? UNI.address : SUSDC.address;
-    const token1 = UNI.address > SUSDC.address ? UNI.address : SUSDC.address;
+    const token0 =
+      UNI.address.toLowerCase() < SUSDC.address.toLowerCase()
+        ? UNI.address.toLowerCase()
+        : SUSDC.address.toLowerCase();
+
+    const token1 =
+      UNI.address.toLowerCase() > SUSDC.address.toLowerCase()
+        ? UNI.address.toLowerCase()
+        : SUSDC.address.toLowerCase();
 
     await uniswapV3PositionManager.connect(alice).mint(
       {

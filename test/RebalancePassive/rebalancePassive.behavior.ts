@@ -116,8 +116,15 @@ export async function shouldBehaveLikeRebalancePassive(): Promise<void> {
     await ENS.connect(bob).approve(swapRouter.address, MaxUint256);
     await PILOT.connect(bob).approve(swapRouter.address, MaxUint256);
 
-    const token0 = ENS.address < PILOT.address ? ENS.address : PILOT.address;
-    const token1 = ENS.address > PILOT.address ? ENS.address : PILOT.address;
+    const token0 =
+      ENS.address.toLowerCase() < PILOT.address.toLowerCase()
+        ? ENS.address.toLowerCase()
+        : PILOT.address.toLowerCase();
+
+    const token1 =
+      ENS.address.toLowerCase() > PILOT.address.toLowerCase()
+        ? ENS.address.toLowerCase()
+        : PILOT.address.toLowerCase();
 
     await uniswapV3PositionManager.connect(alice).mint(
       {
