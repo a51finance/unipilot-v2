@@ -442,7 +442,6 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
 
     const token0VaultBalance = positionDetails[0];
     const token1VaultBalance = positionDetails[1];
-    console.log("position Details after deposit", positionDetails);
 
     await unipilotVault.connect(wallet).pullLiquidity();
     positionDetails = await unipilotVault.callStatic.getPositionDetails();

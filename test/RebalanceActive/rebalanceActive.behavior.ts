@@ -29,6 +29,9 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
   let SUSDC: Contract;
   let UNI: Contract;
 
+  let token0Instance: Contract;
+  let token1Instance: Contract;
+
   let uniswapPool: UniswapV3Pool;
 
   const encodedPrice = encodePriceSqrt(
@@ -133,6 +136,12 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
         ? UNI.address.toLowerCase()
         : SUSDC.address.toLowerCase();
 
+    token0Instance =
+      UNI.address.toLowerCase() < SUSDC.address.toLowerCase() ? UNI : SUSDC;
+
+    token1Instance =
+      UNI.address.toLowerCase() > SUSDC.address.toLowerCase() ? UNI : SUSDC;
+
     await uniswapV3PositionManager.connect(alice).mint(
       {
         token0: token0,
@@ -176,11 +185,15 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
         wallet.address,
       );
 
-    await generateFeeThroughSwap(swapRouter, bob, UNI, SUSDC, "5000");
+    await generateFeeThroughSwap(
+      swapRouter,
+      bob,
+      token0Instance,
+      token1Instance,
+      "5000",
+    );
 
     let positionDetails = await unipilotVault.callStatic.getPositionDetails();
-
-    console.log("positionDetails", positionDetails);
 
     await unipilotVault.readjustLiquidity();
 
@@ -197,11 +210,11 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
 
     const indexFund = carol.address;
 
-    const uniBalanceOfIndexFund = await UNI.balanceOf(indexFund);
-    const susdcBalanceOfIndexFund = await SUSDC.balanceOf(indexFund);
+    const token0BalanceOfIndexFund = await token0Instance.balanceOf(indexFund);
+    const token1BalanceOfIndexFund = await token1Instance.balanceOf(indexFund);
 
-    expect(percentageOfFees0Collected).to.be.equal(susdcBalanceOfIndexFund);
-    expect(percentageOfFees1Collected).to.be.equal(uniBalanceOfIndexFund);
+    expect(percentageOfFees0Collected).to.be.equal(token0BalanceOfIndexFund);
+    expect(percentageOfFees1Collected).to.be.equal(token1BalanceOfIndexFund);
   });
 
   it("check fees compounding", async () => {
@@ -215,11 +228,21 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
         wallet.address,
       );
 
-    const uniBalanceAfterDeposit = await UNI.balanceOf(wallet.address);
-    const susdcBalanceAfterDeposit = await SUSDC.balanceOf(wallet.address);
+    const token0BalanceAfterDeposit = await token0Instance.balanceOf(
+      wallet.address,
+    );
+    const token1BalanceAfterDeposit = await token1Instance.balanceOf(
+      wallet.address,
+    );
 
     let positionDetails = await unipilotVault.callStatic.getPositionDetails();
-    await generateFeeThroughSwap(swapRouter, bob, UNI, SUSDC, "5000");
+    await generateFeeThroughSwap(
+      swapRouter,
+      bob,
+      token0Instance,
+      token1Instance,
+      "5000",
+    );
 
     positionDetails = await unipilotVault.callStatic.getPositionDetails();
 
@@ -240,10 +263,14 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
 
     expect(lpBalance).to.be.equal(parseUnits("0", "18"));
 
-    const uniBalanceAfterWithdraw = await UNI.balanceOf(wallet.address);
-    const susdcBalanceAfterWithdraw = await SUSDC.balanceOf(wallet.address);
+    const token0BalanceAfterWithdraw = await token0Instance.balanceOf(
+      wallet.address,
+    );
+    const token1BalanceAfterWithdraw = await token1Instance.balanceOf(
+      wallet.address,
+    );
 
-    expect(uniBalanceAfterWithdraw).to.be.gt(uniBalanceAfterDeposit);
-    expect(susdcBalanceAfterWithdraw).to.be.gt(susdcBalanceAfterDeposit);
+    expect(token0BalanceAfterWithdraw).to.be.gt(token0BalanceAfterDeposit);
+    expect(token1BalanceAfterWithdraw).to.be.gt(token1BalanceAfterDeposit);
   });
 }

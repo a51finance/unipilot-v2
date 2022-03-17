@@ -26,6 +26,8 @@ export async function shouldBehaveLikeDepositPassive(): Promise<void> {
   let unipilotVault: UnipilotPassiveVault;
   let WETH9: Contract;
   let SHIB: Contract;
+  let token0Instance: Contract;
+  let token1Instance: Contract;
 
   let uniswapPool: UniswapV3Pool;
   const provider = waffle.provider;
@@ -116,6 +118,12 @@ export async function shouldBehaveLikeDepositPassive(): Promise<void> {
       SHIB.address.toLowerCase() > WETH9.address.toLowerCase()
         ? SHIB.address.toLowerCase()
         : WETH9.address.toLowerCase();
+
+    token0Instance =
+      SHIB.address.toLowerCase() < WETH9.address.toLowerCase() ? SHIB : WETH9;
+
+    token1Instance =
+      SHIB.address.toLowerCase() > WETH9.address.toLowerCase() ? SHIB : WETH9;
 
     await uniswapV3PositionManager.connect(alice).mint(
       {
