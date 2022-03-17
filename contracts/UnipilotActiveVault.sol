@@ -120,12 +120,7 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         pay(address(token0), sender, address(this), amount0);
         pay(address(token1), sender, address(this), amount1);
 
-        (uint128 totalLiquidity, , ) = pool.getPositionLiquidity(
-            ticksData.baseTickLower,
-            ticksData.baseTickUpper
-        );
-
-        if (totalLiquidity > 0) {
+        if (ticksData.baseTickLower != ticksData.baseTickUpper) {
             pool.mintLiquidity(
                 ticksData.baseTickLower,
                 ticksData.baseTickUpper,
@@ -246,13 +241,8 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
             tickSpacing
         );
 
-        (uint128 totalLiquidity, , ) = pool.getPositionLiquidity(
-            ticksData.baseTickLower,
-            ticksData.baseTickUpper
-        );
-
         if (
-            totalLiquidity > 0 &&
+            (ticksData.baseTickLower != ticksData.baseTickUpper) &&
             (a.amount0Desired == 0 || a.amount1Desired == 0)
         ) {
             bool zeroForOne = a.amount0Desired > 0 ? true : false;
@@ -355,6 +345,8 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
             ticksData.baseTickUpper,
             recipient
         );
+
+        (ticksData.baseTickLower, ticksData.baseTickUpper) = (0, 0);
     }
 
     /// @dev function to check unipilot position fees and reserves
