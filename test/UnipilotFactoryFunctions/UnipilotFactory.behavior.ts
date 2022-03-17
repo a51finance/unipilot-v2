@@ -6,6 +6,7 @@ import { ethers, waffle } from "hardhat";
 import { encodePriceSqrt } from "../utils/encodePriceSqrt";
 import { UniswapV3Pool, UnipilotPassiveVault } from "../../typechain";
 import snapshotGasCost from "../utils/snapshotGasCost";
+import { unipilotActiveVaultFixture } from "../utils/fixuresActive";
 
 export async function shouldBehaveLikeUnipilotFactory(): Promise<void> {
   const createFixtureLoader = waffle.createFixtureLoader;
@@ -45,7 +46,7 @@ export async function shouldBehaveLikeUnipilotFactory(): Promise<void> {
       USDT,
       uniStrategy,
       createVault,
-    } = await loadFixture(unipilotPassiveVaultFixture)),
+    } = await loadFixture(unipilotActiveVaultFixture)),
       await uniswapV3Factory.createPool(DAI.address, USDT.address, 3000);
 
     let daiUsdtPoolAddress = await uniswapV3Factory.getPool(

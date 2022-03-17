@@ -28,6 +28,8 @@ export async function shouldBehaveLikeRebalancePassive(): Promise<void> {
   let PILOT: Contract;
   let ENS: Contract;
   let uniswapPool: UniswapV3Pool;
+  let token0Instance: Contract;
+  let token1Instance: Contract;
 
   const encodedPrice = encodePriceSqrt(
     parseUnits("1", "18"),
@@ -126,6 +128,12 @@ export async function shouldBehaveLikeRebalancePassive(): Promise<void> {
         ? ENS.address.toLowerCase()
         : PILOT.address.toLowerCase();
 
+    token0Instance =
+      ENS.address.toLowerCase() < PILOT.address.toLowerCase() ? ENS : PILOT;
+
+    token1Instance =
+      ENS.address.toLowerCase() > PILOT.address.toLowerCase() ? ENS : PILOT;
+
     await uniswapV3PositionManager.connect(alice).mint(
       {
         token0: token0,
@@ -156,7 +164,13 @@ export async function shouldBehaveLikeRebalancePassive(): Promise<void> {
         wallet.address,
       );
 
-    await generateFeeThroughSwap(swapRouter, bob, ENS, PILOT, "5000");
+    await generateFeeThroughSwap(
+      swapRouter,
+      bob,
+      token0Instance,
+      token1Instance,
+      "5000",
+    );
 
     await hre.network.provider.send("evm_increaseTime", [3600]);
     await hre.network.provider.send("evm_mine");
@@ -178,11 +192,11 @@ export async function shouldBehaveLikeRebalancePassive(): Promise<void> {
 
     const indexFund = carol.address;
 
-    const usdtBalanceOfIndexFund = await ENS.balanceOf(indexFund);
-    const daiBalanceOfIndexFund = await PILOT.balanceOf(indexFund);
+    const token0BalanceOfIndexFund = await token0Instance.balanceOf(indexFund);
+    const token1BalanceOfIndexFund = await token1Instance.balanceOf(indexFund);
 
-    expect(percentageOfFees0Collected).to.be.equal(usdtBalanceOfIndexFund);
-    expect(percentageOfFees1Collected).to.be.equal(daiBalanceOfIndexFund);
+    expect(percentageOfFees0Collected).to.be.equal(token0BalanceOfIndexFund);
+    expect(percentageOfFees1Collected).to.be.equal(token1BalanceOfIndexFund);
   });
 
   it("check fees compounding", async () => {
@@ -194,10 +208,20 @@ export async function shouldBehaveLikeRebalancePassive(): Promise<void> {
         wallet.address,
       );
 
-    const ensBalanceAfterDeposit = await ENS.balanceOf(wallet.address);
-    const pilotBalanceAfterDeposit = await PILOT.balanceOf(wallet.address);
+    const token0BalanceAfterDeposit = await token0Instance.balanceOf(
+      wallet.address,
+    );
+    const token1BalanceAfterDeposit = await token1Instance.balanceOf(
+      wallet.address,
+    );
 
-    await generateFeeThroughSwap(swapRouter, bob, ENS, PILOT, "5000");
+    await generateFeeThroughSwap(
+      swapRouter,
+      bob,
+      token0Instance,
+      token1Instance,
+      "5000",
+    );
 
     await hre.network.provider.send("evm_increaseTime", [3600]);
     await hre.network.provider.send("evm_mine");
@@ -221,10 +245,14 @@ export async function shouldBehaveLikeRebalancePassive(): Promise<void> {
 
     expect(lpBalance).to.be.equal(parseUnits("0", "18"));
 
-    const ensBalanceAfterWithdraw = await ENS.balanceOf(wallet.address);
-    const pilotBalanceAfterWithdraw = await PILOT.balanceOf(wallet.address);
+    const token0BalanceAfterWithdraw = await token0Instance.balanceOf(
+      wallet.address,
+    );
+    const token1BalanceAfterWithdraw = await token1Instance.balanceOf(
+      wallet.address,
+    );
 
-    expect(ensBalanceAfterWithdraw).to.be.gt(ensBalanceAfterDeposit);
-    expect(pilotBalanceAfterWithdraw).to.be.gt(pilotBalanceAfterDeposit);
+    expect(token0BalanceAfterWithdraw).to.be.gt(token0BalanceAfterDeposit);
+    expect(token1BalanceAfterWithdraw).to.be.gt(token1BalanceAfterDeposit);
   });
 }

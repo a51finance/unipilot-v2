@@ -40,8 +40,6 @@ interface UNISWAP_V3_FIXTURES {
 }
 
 interface TEST_ERC20 {
-  DAI: Contract;
-  USDT: Contract;
   PILOT: Contract;
   SHIB: Contract;
   WETH9: Contract;
@@ -126,8 +124,6 @@ export const unipilotPassiveVaultFixture: Fixture<UNIPILOT_VAULT_FIXTURE> =
       BigNumber.from(10),
     );
 
-    const DAI = await deployToken(wallet, "Dai Stablecoin", "DAI", 18);
-    const USDT = await deployToken(wallet, "Tether Stable", "USDT", 18);
     const PILOT = await deployToken(wallet, "Pilot", "PILOT", 18);
     const SHIB = await deployToken(wallet, "Shiba Inu", "SHIB", 18);
     const ENS = await deployToken(wallet, "Shiba Inu", "ENS", 18);
@@ -143,8 +139,6 @@ export const unipilotPassiveVaultFixture: Fixture<UNIPILOT_VAULT_FIXTURE> =
       uniswapV3PositionManager,
       swapRouter,
       unipilotFactory,
-      DAI,
-      USDT,
       PILOT,
       SHIB,
       WETH9,

@@ -41,11 +41,10 @@ interface UNISWAP_V3_FIXTURES {
 interface TEST_ERC20 {
   DAI: Contract;
   USDT: Contract;
-  PILOT: Contract;
-  WETH9: Contract;
-  USDC: Contract;
   UNI: Contract;
   SUSDC: Contract;
+  USDC: Contract;
+  AAVE: Contract;
 }
 
 interface STRATEGIES {
@@ -123,10 +122,10 @@ export const unipilotActiveVaultFixture: Fixture<UNIPILOT_VAULT_FIXTURE> =
 
     const DAI = await deployToken(wallet, "Dai Stablecoin", "DAI", 18);
     const USDT = await deployToken(wallet, "Tether Stable", "USDT", 18);
-    const PILOT = await deployToken(wallet, "Pilot", "PILOT", 18);
-    const USDC = await deployToken(wallet, "USDC Token", "USDC", 18);
     const UNI = await deployToken(wallet, "Uniswap token", "UNI", 18);
     const SUSDC = await deployToken(wallet, "SUSDC token", "SUSDC", 18);
+    const USDC = await deployToken(wallet, "USDC Token", "USDC", 18);
+    const AAVE = await deployToken(wallet, "Aave token", "AAVE", 18);
 
     const unipilotVaultDep = await ethers.getContractFactory(
       "UnipilotActiveVault",
@@ -139,11 +138,10 @@ export const unipilotActiveVaultFixture: Fixture<UNIPILOT_VAULT_FIXTURE> =
       unipilotFactory,
       DAI,
       USDT,
-      PILOT,
-      WETH9,
       SUSDC,
       UNI,
       USDC,
+      AAVE,
       uniStrategy,
       createVault: async (
         tokenA,
