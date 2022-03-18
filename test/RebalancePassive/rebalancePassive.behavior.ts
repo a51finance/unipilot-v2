@@ -152,7 +152,7 @@ export async function shouldBehaveLikeRebalancePassive(): Promise<void> {
         gasLimit: "3000000",
       },
     );
-    // await uniswapPool.increaseObservationCardinalityNext("80");
+    await uniswapPool.increaseObservationCardinalityNext("80");
   });
 
   it("Index fund account should recieve 10% of the pool fees earned.", async () => {

@@ -349,7 +349,7 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
             recipient
         );
 
-        _pulled == 2;
+        _pulled = 2;
     }
 
     /// @dev function to check unipilot position fees and reserves

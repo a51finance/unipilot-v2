@@ -346,7 +346,6 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
       positionDetails[0].lte(parseUnits("1000", "18")) &&
       positionDetails[0].gte(parseUnits("999", "18"));
 
-    console.log("position details", positionDetails);
     const reserve2 = positionDetails[0].gte(parseUnits("125", "18"));
 
     expect(reserve1 && reserve2).to.be.true;
