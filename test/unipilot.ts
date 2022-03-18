@@ -7,12 +7,13 @@ import { shouldBehaveLikeRebalancePassive } from "./RebalancePassive/rebalancePa
 import { shouldBehaveLikeRebalanceActive } from "./RebalanceActive/rebalanceActive.behavior";
 import { shouldBehaveLikeWithdrawPassive } from "./WithdrawPassive/withdrawPassive.behavior";
 import { shouldBehaveLikeWithdrawActive } from "./WithdrawActive/withdrawActive.behaviour";
+import { shouldBehaveLikeLive } from "./MainnetFork/mainnetFork.behavior";
 
 use(solidity);
 
-describe("Invokes Deposit Active Tests", async () => {
-  await shouldBehaveLikeDepositActive();
-});
+// describe("Invokes Deposit Active Tests", async () => {
+//   await shouldBehaveLikeDepositActive();
+// });
 
 // describe("Invokes Deposit Passive Tests", async () => {
 //   await shouldBehaveLikeDepositPassive();
@@ -33,3 +34,7 @@ describe("Invokes Deposit Active Tests", async () => {
 // describe("Withdraw Liquidity for Active", async () => {
 //   await shouldBehaveLikeWithdrawActive();
 // });
+
+describe("Invoke mainnet state", async () => {
+  await shouldBehaveLikeLive();
+});
