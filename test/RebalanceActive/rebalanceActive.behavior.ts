@@ -288,8 +288,6 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
 
     let positionDetails = await unipilotVault.callStatic.getPositionDetails();
 
-    console.log("positionDetails", positionDetails);
-
     await generateFeeThroughSwap(
       swapRouter,
       bob,
@@ -300,15 +298,11 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
 
     positionDetails = await unipilotVault.callStatic.getPositionDetails();
 
-    console.log("positionDetails", positionDetails);
-
     expect(positionDetails[1]).to.be.eq(0);
 
     await unipilotVault.readjustLiquidity();
 
     positionDetails = await unipilotVault.callStatic.getPositionDetails();
-
-    console.log("positionDetails", positionDetails);
 
     expect(positionDetails[0]).to.be.gt(0);
     expect(positionDetails[1]).to.be.gt(0);

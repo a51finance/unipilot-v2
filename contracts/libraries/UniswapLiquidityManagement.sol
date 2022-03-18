@@ -7,8 +7,6 @@ import "@uniswap/v3-periphery/contracts/libraries/PositionKey.sol";
 import "@uniswap/v3-periphery/contracts/libraries/LiquidityAmounts.sol";
 import "../interfaces/IUnipilotVault.sol";
 
-import "hardhat/console.sol";
-
 /// @title Liquidity and ticks functions
 /// @notice Provides functions for computing liquidity and ticks for token amounts and prices
 library UniswapLiquidityManagement {
@@ -381,13 +379,10 @@ library UniswapLiquidityManagement {
                     false
                 );
 
-            console.log("nextSqrtPrice1", nextSqrtPrice1);
-
             cache.tickLower = floor(
                 TickMath.getTickAtSqrtRatio(nextSqrtPrice1),
                 tickSpacing
             );
-            console.log("cache.tickLower", uint256(cache.tickLower));
         }
 
         checkRange(cache.tickLower, cache.tickUpper);
