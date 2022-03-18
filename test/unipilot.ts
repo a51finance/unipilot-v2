@@ -31,10 +31,10 @@ use(solidity);
 //   await shouldBehaveLikeWithdrawPassive();
 // });
 
-// describe("Withdraw Liquidity for Active", async () => {
-//   await shouldBehaveLikeWithdrawActive();
-// });
-
-describe("Invoke mainnet state", async () => {
-  await shouldBehaveLikeLive();
+describe("Withdraw Liquidity for Active", async () => {
+  await shouldBehaveLikeWithdrawActive();
 });
+
+// describe("Invoke mainnet state", async () => {
+//   await shouldBehaveLikeLive();
+// });

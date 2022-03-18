@@ -23,9 +23,11 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
   let unipilotFactory: Contract;
   let swapRouter: Contract;
   let vault: UnipilotActiveVault;
-  let DAI: Contract;
-  let USDT: Contract;
   let pool: UniswapV3Pool;
+  let AAVE: Contract;
+  let USDC: Contract;
+  let token0Instance: Contract;
+  let token1Instance: Contract;
 
   type ThenArg<T> = T extends PromiseLike<infer U> ? U : T;
   const [wallet, other] = waffle.provider.getWallets();
@@ -45,17 +47,17 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
       uniswapV3PositionManager,
       swapRouter,
       unipilotFactory,
-      DAI,
-      USDT,
+      AAVE,
+      USDC,
       uniStrategy,
       createVault,
     } = await loadFixture(unipilotActiveVaultFixture));
 
-    await uniswapV3Factory.createPool(USDT.address, DAI.address, 3000);
+    await uniswapV3Factory.createPool(USDC.address, AAVE.address, 3000);
 
     let poolAddress = await uniswapV3Factory.getPool(
-      DAI.address,
-      USDT.address,
+      AAVE.address,
+      USDC.address,
       3000,
     );
 
@@ -68,41 +70,57 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
     await uniStrategy.setBaseTicks([poolAddress], [1800]);
 
     vault = await createVault(
-      USDT.address,
-      DAI.address,
+      USDC.address,
+      AAVE.address,
       3000,
       encodePriceSqrt(1, 2),
-      "DAI-USDT UniLP",
+      "AAVE-USDC UniLP",
       "UniLP",
     );
 
-    await USDT._mint(wallet.address, parseUnits("1000", "18"));
-    await DAI._mint(wallet.address, parseUnits("1000", "18"));
+    await USDC._mint(wallet.address, parseUnits("1000", "18"));
+    await AAVE._mint(wallet.address, parseUnits("1000", "18"));
 
-    await USDT._mint(other.address, parseUnits("4000", "18"));
-    await DAI._mint(other.address, parseUnits("4000", "18"));
+    await USDC._mint(other.address, parseUnits("4000", "18"));
+    await AAVE._mint(other.address, parseUnits("4000", "18"));
 
-    await USDT.approve(vault.address, constants.MaxUint256);
-    await DAI.approve(vault.address, constants.MaxUint256);
+    await USDC.approve(vault.address, constants.MaxUint256);
+    await AAVE.approve(vault.address, constants.MaxUint256);
 
-    await DAI.connect(other).approve(vault.address, constants.MaxUint256);
-    await DAI.connect(other).approve(
+    await AAVE.connect(other).approve(vault.address, constants.MaxUint256);
+    await AAVE.connect(other).approve(
       uniswapV3PositionManager.address,
       constants.MaxUint256,
     );
-    await DAI.connect(other).approve(swapRouter.address, constants.MaxUint256);
+    await AAVE.connect(other).approve(swapRouter.address, constants.MaxUint256);
 
-    await USDT.connect(other).approve(vault.address, constants.MaxUint256);
-    await USDT.connect(other).approve(
+    await USDC.connect(other).approve(vault.address, constants.MaxUint256);
+    await USDC.connect(other).approve(
       uniswapV3PositionManager.address,
       constants.MaxUint256,
     );
-    await USDT.connect(other).approve(swapRouter.address, constants.MaxUint256);
+    await USDC.connect(other).approve(swapRouter.address, constants.MaxUint256);
+
+    const token0 =
+      USDC.address.toLowerCase() < AAVE.address.toLowerCase()
+        ? USDC.address.toLowerCase()
+        : AAVE.address.toLowerCase();
+
+    const token1 =
+      USDC.address.toLowerCase() > AAVE.address.toLowerCase()
+        ? USDC.address.toLowerCase()
+        : AAVE.address.toLowerCase();
+
+    token0Instance =
+      USDC.address.toLowerCase() < AAVE.address.toLowerCase() ? USDC : AAVE;
+
+    token1Instance =
+      USDC.address.toLowerCase() > AAVE.address.toLowerCase() ? USDC : AAVE;
 
     await uniswapV3PositionManager.connect(other).mint(
       {
-        token0: USDT.address,
-        token1: DAI.address,
+        token0: token0,
+        token1: token1,
         tickLower: getMinTick(60),
         tickUpper: getMaxTick(60),
         fee: 3000,
@@ -133,24 +151,24 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
     it("withdraw", async () => {
       const reserves = await vault.callStatic.getPositionDetails();
 
-      const unusedAmount0 = await USDT.balanceOf(vault.address);
-      const unusedAmount1 = await DAI.balanceOf(vault.address);
+      const unusedAmount0 = await token0Instance.balanceOf(vault.address);
+      const unusedAmount1 = await token1Instance.balanceOf(vault.address);
 
       await vault.withdraw(parseUnits("1000", "18"), wallet.address, false);
       const userLpBalance = await vault.balanceOf(wallet.address);
-      const userDaiBalance = await DAI.balanceOf(wallet.address);
-      const userUsdtBalance = await USDT.balanceOf(wallet.address);
+      const userToken0Balance = await token0Instance.balanceOf(wallet.address);
+      const userToken1Balance = await token1Instance.balanceOf(wallet.address);
 
       expect(userLpBalance).to.be.eq(0);
-      expect(userUsdtBalance).to.be.eq(reserves[0].add(unusedAmount0));
-      expect(userDaiBalance).to.be.eq(reserves[1]);
+      expect(userToken0Balance).to.be.eq(reserves[0].add(unusedAmount0));
+      expect(userToken1Balance).to.be.eq(reserves[1]);
     });
 
     it("emits an event", async () => {
       const liquidity = await vault.balanceOf(wallet.address);
       const reserves = await vault.callStatic.getPositionDetails();
 
-      const unusedAmount0 = await USDT.balanceOf(vault.address);
+      const unusedAmount0 = await token0Instance.balanceOf(vault.address);
 
       await expect(await vault.withdraw(liquidity, wallet.address, false))
         .to.emit(vault, "Withdraw")
@@ -187,15 +205,28 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
     });
 
     it("withdraw with fees earned", async () => {
-      await generateFeeThroughSwap(swapRouter, other, USDT, DAI, "1000");
-      await generateFeeThroughSwap(swapRouter, other, DAI, USDT, "1000");
+      await generateFeeThroughSwap(
+        swapRouter,
+        other,
+        token0Instance,
+        token1Instance,
+        "1000",
+      );
+      await generateFeeThroughSwap(
+        swapRouter,
+        other,
+        token1Instance,
+        token0Instance,
+        "1000",
+      );
 
       const fees = await vault.callStatic.getPositionDetails();
-      const unusedAmount0 = await USDT.balanceOf(vault.address);
+      const unusedAmount0 = await token0Instance.balanceOf(vault.address);
 
       await vault.withdraw(parseUnits("1000", "18"), wallet.address, false);
-      const userDaiBalance = await DAI.balanceOf(wallet.address);
-      const userUsdtBalance = await USDT.balanceOf(wallet.address);
+
+      const userToken0Balance = await token0Instance.balanceOf(wallet.address);
+      const userToken1Balance = await token1Instance.balanceOf(wallet.address);
 
       const details = await unipilotFactory.getUnipilotDetails();
 
@@ -205,8 +236,8 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
       const total0 = fees[0].add(fees[2]).add(unusedAmount0);
       const total1 = fees[1].add(fees[3]);
 
-      expect(userUsdtBalance).to.be.eq(total0.sub(amount0IndexFund));
-      expect(userDaiBalance).to.be.eq(total1.sub(amount1IndexFund));
+      expect(userToken0Balance).to.be.eq(total0.sub(amount0IndexFund));
+      expect(userToken1Balance).to.be.eq(total1.sub(amount1IndexFund));
     });
 
     it("fees compounding on withdraw", async () => {
@@ -221,10 +252,23 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
       const user0LP = await vault.balanceOf(wallet.address);
       const user1LP = await vault.balanceOf(other.address);
 
-      await generateFeeThroughSwap(swapRouter, other, USDT, DAI, "1000");
-      await generateFeeThroughSwap(swapRouter, other, DAI, USDT, "1000");
+      await generateFeeThroughSwap(
+        swapRouter,
+        other,
+        token0Instance,
+        token1Instance,
+        "1000",
+      );
+      await generateFeeThroughSwap(
+        swapRouter,
+        other,
+        token1Instance,
+        token0Instance,
+        "1000",
+      );
 
       const reservesBefore = await vault.callStatic.getPositionDetails();
+
       const amount0ToCompound = reservesBefore[0].add(reservesBefore[2]).div(2);
       const amount1ToCompound = reservesBefore[1].add(reservesBefore[3]).div(2);
 
@@ -243,19 +287,32 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
         amount1ToCompound.sub(amount1IndexFund),
       );
 
-      const unusedAmount0 = await USDT.balanceOf(vault.address);
+      const unusedAmount0 = await token0Instance.balanceOf(vault.address);
 
       await vault.withdraw(user0LP, wallet.address, false);
-      const userDaiBalance = await DAI.balanceOf(wallet.address);
-      const userUsdtBalance = await USDT.balanceOf(wallet.address);
 
-      expect(userUsdtBalance).to.be.eq(reservesAfter[0].add(unusedAmount0));
-      expect(userDaiBalance).to.be.eq(reservesAfter[1]);
+      const userToken0Balance = await token0Instance.balanceOf(wallet.address);
+      const userToken1Balance = await token1Instance.balanceOf(wallet.address);
+
+      expect(userToken0Balance).to.be.eq(reservesAfter[0].add(unusedAmount0));
+      expect(userToken1Balance).to.be.eq(reservesAfter[1]);
     });
 
     it("receive correct amounts of liquidity for unclaimed pool fees", async () => {
-      await generateFeeThroughSwap(swapRouter, other, USDT, DAI, "1000");
-      await generateFeeThroughSwap(swapRouter, other, DAI, USDT, "1000");
+      await generateFeeThroughSwap(
+        swapRouter,
+        other,
+        token0Instance,
+        token1Instance,
+        "1000",
+      );
+      await generateFeeThroughSwap(
+        swapRouter,
+        other,
+        token1Instance,
+        token0Instance,
+        "1000",
+      );
 
       const { amount0, amount1 } = await vault
         .connect(other)
@@ -273,17 +330,26 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
           other.address,
         );
 
-      const userDaiBalanceBfore = await DAI.balanceOf(other.address);
-      const userUsdtBalanceBfore = await USDT.balanceOf(other.address);
+      const userToken0BalanceBfore = await token0Instance.balanceOf(
+        other.address,
+      );
+      const userToken1BalanceBfore = await token1Instance.balanceOf(
+        other.address,
+      );
+
       const otherLP = await vault.balanceOf(other.address);
 
       await vault.connect(other).withdraw(otherLP, other.address, false);
 
-      const userDaiBalanceAfter = await DAI.balanceOf(other.address);
-      const userUsdtBalanceAfter = await USDT.balanceOf(other.address);
+      const userToken0BalanceAfter = await token0Instance.balanceOf(
+        other.address,
+      );
+      const userToken1BalanceAfter = await token1Instance.balanceOf(
+        other.address,
+      );
 
-      const t0 = userUsdtBalanceAfter.sub(userUsdtBalanceBfore);
-      const t1 = userDaiBalanceAfter.sub(userDaiBalanceBfore);
+      const t0 = userToken0BalanceAfter.sub(userToken0BalanceBfore);
+      const t1 = userToken1BalanceAfter.sub(userToken1BalanceBfore);
 
       expect(t0).to.be.lte(amount0);
       expect(t1).to.be.lte(amount1);
