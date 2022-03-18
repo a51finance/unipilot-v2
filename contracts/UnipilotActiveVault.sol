@@ -26,6 +26,7 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
     TicksData public ticksData;
     int24 private tickSpacing;
     uint8 private _unlocked = 1;
+    uint8 private _pulled = 1;
     uint24 private fee;
 
     mapping(address => bool) private _operatorApproved;
@@ -120,7 +121,7 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         pay(address(token0), sender, address(this), amount0);
         pay(address(token1), sender, address(this), amount1);
 
-        if (ticksData.baseTickLower != ticksData.baseTickUpper) {
+        if (_pulled == 1) {
             pool.mintLiquidity(
                 ticksData.baseTickLower,
                 ticksData.baseTickUpper,
@@ -129,6 +130,7 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
             );
         }
 
+        refundETH();
         _mint(recipient, lpShares);
         emit Deposit(sender, recipient, amount0, amount1, lpShares);
     }
@@ -147,13 +149,8 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         require(liquidity > 0);
         uint256 totalSupply = totalSupply();
 
-        (uint128 totalLiquidity, , ) = pool.getPositionLiquidity(
-            ticksData.baseTickLower,
-            ticksData.baseTickUpper
-        );
-
         /// @dev if liquidity has pulled in contract then calculate share accordingly
-        if (totalLiquidity > 0) {
+        if (_pulled == 1) {
             uint256 liquidityShare = FullMath.mulDiv(
                 liquidity,
                 1e18,
@@ -202,7 +199,7 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         _burn(msg.sender, liquidity);
         emit Withdraw(recipient, liquidity, amount0, amount1);
 
-        if (totalLiquidity > 0) {
+        if (_pulled == 1) {
             (uint256 c0, uint256 c1) = pool.mintLiquidity(
                 ticksData.baseTickLower,
                 ticksData.baseTickUpper,
@@ -221,7 +218,13 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         onlyOperator
         checkDeviation
     {
+        _pulled == 1;
         ReadjustVars memory a;
+
+        (uint128 totalLiquidity, , ) = pool.getPositionLiquidity(
+            ticksData.baseTickLower,
+            ticksData.baseTickUpper
+        );
 
         (a.amount0Desired, a.amount1Desired, a.fees0, a.fees1) = pool
             .burnLiquidity(
@@ -242,7 +245,7 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         );
 
         if (
-            (ticksData.baseTickLower != ticksData.baseTickUpper) &&
+            (totalLiquidity > 0) &&
             (a.amount0Desired == 0 || a.amount1Desired == 0)
         ) {
             bool zeroForOne = a.amount0Desired > 0 ? true : false;
@@ -346,7 +349,7 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
             recipient
         );
 
-        (ticksData.baseTickLower, ticksData.baseTickUpper) = (0, 0);
+        _pulled == 2;
     }
 
     /// @dev function to check unipilot position fees and reserves
@@ -488,6 +491,14 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
     function unwrapWETH9(uint256 balanceWETH9, address recipient) internal {
         IWETH9(WETH).withdraw(balanceWETH9);
         TransferHelper.safeTransferETH(recipient, balanceWETH9);
+    }
+
+    /// @notice Refunds any ETH balance held by this contract to the `msg.sender`
+    /// @dev Useful for bundling with mint or increase liquidity that uses ether, or exact output swaps
+    /// that use ether for the input amount
+    function refundETH() internal {
+        if (address(this).balance > 0)
+            TransferHelper.safeTransferETH(msg.sender, address(this).balance);
     }
 
     receive() external payable {}
