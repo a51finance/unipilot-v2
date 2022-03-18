@@ -515,4 +515,71 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
 
     expect(token1Balance).to.be.equal(0);
   });
+
+  it("should deposit after pull liquidity", async () => {
+    await unipilotVault.init();
+
+    await unipilotVault
+      .connect(wallet)
+      .deposit(
+        parseUnits("1000", "18"),
+        parseUnits("1000", "18"),
+        wallet.address,
+      );
+
+    const token0BalanceAfterDeposit: BigNumber = await token0Instance.balanceOf(
+      unipilotVault.address,
+    ); //dust
+    const token1BalanceAfterDeposit: BigNumber = await token1Instance.balanceOf(
+      unipilotVault.address,
+    ); //dust
+
+    let positionDetails = await unipilotVault.callStatic.getPositionDetails();
+
+    const token0VaultBalance = positionDetails[0]; //actual deposited
+    const token1VaultBalance = positionDetails[1]; //actual deposited
+
+    await unipilotVault.connect(wallet).pullLiquidity(unipilotVault.address);
+
+    positionDetails = await unipilotVault.callStatic.getPositionDetails();
+
+    expect(positionDetails[0]).to.be.equal(0);
+    expect(positionDetails[1]).to.be.equal(0);
+
+    let token0Balance: BigNumber = await token0Instance.balanceOf(
+      unipilotVault.address,
+    );
+    let token1Balance: BigNumber = await token1Instance.balanceOf(
+      unipilotVault.address,
+    );
+
+    expect(token0Balance.sub(token0BalanceAfterDeposit)).to.be.equal(
+      token0VaultBalance,
+    );
+    expect(token1Balance.sub(token1BalanceAfterDeposit)).to.be.equal(
+      token1VaultBalance,
+    );
+
+    await unipilotVault
+      .connect(wallet)
+      .deposit(
+        parseUnits("1000", "18"),
+        parseUnits("1000", "18"),
+        wallet.address,
+      );
+
+    positionDetails = await unipilotVault.callStatic.getPositionDetails();
+
+    expect(positionDetails[0]).to.be.equal(0);
+    expect(positionDetails[1]).to.be.equal(0);
+
+    let token0BalanceAfterSecondDeposit: BigNumber =
+      await token0Instance.balanceOf(unipilotVault.address);
+
+    let token1BalanceAfterSecondDeposit: BigNumber =
+      await token1Instance.balanceOf(unipilotVault.address);
+
+    expect(token0BalanceAfterSecondDeposit).to.be.gt(token0Balance);
+    expect(token1BalanceAfterSecondDeposit).to.be.gt(token1Balance);
+  });
 }
