@@ -135,6 +135,7 @@ task(
       indexFund: cliArgs.governance,
       WETH: "0xc778417e063141139fce010982780140aa0cd5ab",
       indexFundPercentage: 10,
+      swapPercentage: 10,
     };
 
     console.log("Network");
@@ -153,6 +154,7 @@ task(
         args.indexFund,
         args.WETH,
         args.indexFundPercentage,
+        args.swapPercentage,
       ],
     );
 
@@ -219,6 +221,7 @@ task("verify-active-vault", "Verify unipilot vault contract")
   .addParam("pool", "the uniswap pool address")
   .addParam("factory", "the unipilot factory address")
   .addParam("vault", "the hypervisor to verify")
+  .addParam("governance", "governer address")
   .addParam("name", "erc20 name")
   .addParam("symbol", "erc2 symbol")
   .setAction(async (cliArgs, { ethers, run, network }) => {
@@ -236,6 +239,7 @@ task("verify-active-vault", "Verify unipilot vault contract")
       pool: cliArgs.pool,
       factory: cliArgs.factory,
       WETH: "0xc778417e063141139fce010982780140aa0cd5ab",
+      governance: cliArgs.governance,
       name: cliArgs.name,
       symbol: cliArgs.symbol,
     };

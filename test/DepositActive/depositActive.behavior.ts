@@ -346,6 +346,7 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
       positionDetails[0].lte(parseUnits("1000", "18")) &&
       positionDetails[0].gte(parseUnits("999", "18"));
 
+    console.log("position details", positionDetails);
     const reserve2 = positionDetails[0].gte(parseUnits("125", "18"));
 
     expect(reserve1 && reserve2).to.be.true;
@@ -443,7 +444,7 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
     const token0VaultBalance = positionDetails[0];
     const token1VaultBalance = positionDetails[1];
 
-    await unipilotVault.connect(wallet).pullLiquidity();
+    await unipilotVault.connect(wallet).pullLiquidity(unipilotVault.address);
     positionDetails = await unipilotVault.callStatic.getPositionDetails();
 
     const token0Balance: BigNumber = await token0Instance.balanceOf(
@@ -486,7 +487,8 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
     const token0VaultBalance = positionDetails[0];
     const token1VaultBalance = positionDetails[1];
 
-    await unipilotVault.connect(wallet).pullLiquidity();
+    await unipilotVault.connect(wallet).pullLiquidity(unipilotVault.address);
+
     positionDetails = await unipilotVault.callStatic.getPositionDetails();
 
     let token0Balance: BigNumber = await token0Instance.balanceOf(

@@ -93,8 +93,6 @@ contract UnipilotPassiveVault is ERC20Permit, IUnipilotVault {
         pay(address(token0), sender, address(this), amount0);
         pay(address(token1), sender, address(this), amount1);
 
-        pool.increasePoolCardinality(); // should be remove for mainnet
-
         if (totalSupply == 0) {
             setPassivePositions(amount0, amount1);
         } else {

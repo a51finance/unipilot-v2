@@ -28,9 +28,16 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
     uint8 private _unlocked = 1;
     uint24 private fee;
 
+    mapping(address => bool) private _operatorApproved;
+
     modifier onlyGovernance() {
         (address governance, , , , ) = getProtocolDetails();
         require(msg.sender == governance);
+        _;
+    }
+
+    modifier onlyOperator() {
+        require(_operatorApproved[msg.sender]);
         _;
     }
 
@@ -51,6 +58,7 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         address _pool,
         address _unipilotFactory,
         address _WETH,
+        address governance,
         string memory _name,
         string memory _symbol
     ) ERC20Permit(_name) ERC20(_name, _symbol) {
@@ -61,6 +69,7 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         token1 = IERC20(pool.token1());
         fee = pool.fee();
         tickSpacing = pool.tickSpacing();
+        _operatorApproved[governance] = true;
     }
 
     function init() external onlyGovernance {
@@ -111,12 +120,19 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         pay(address(token0), sender, address(this), amount0);
         pay(address(token1), sender, address(this), amount1);
 
-        pool.mintLiquidity(
+        (uint128 totalLiquidity, , ) = pool.getPositionLiquidity(
             ticksData.baseTickLower,
-            ticksData.baseTickUpper,
-            amount0,
-            amount1
+            ticksData.baseTickUpper
         );
+
+        if (totalLiquidity > 0) {
+            pool.mintLiquidity(
+                ticksData.baseTickLower,
+                ticksData.baseTickUpper,
+                amount0,
+                amount1
+            );
+        }
 
         _mint(recipient, lpShares);
         emit Deposit(sender, recipient, amount0, amount1, lpShares);
@@ -207,7 +223,7 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         external
         override
         nonReentrant
-        onlyGovernance
+        onlyOperator
         checkDeviation
     {
         ReadjustVars memory a;
@@ -331,11 +347,13 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         else pay(address(token1), address(this), msg.sender, uint256(amount1));
     }
 
-    function pullLiquidity() external onlyGovernance {
+    function pullLiquidity(address recipient) external onlyOperator {
+        require(unipilotFactory.isWhitelist(recipient));
+
         pool.burnLiquidity(
             ticksData.baseTickLower,
             ticksData.baseTickUpper,
-            address(this)
+            recipient
         );
     }
 
@@ -352,6 +370,14 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         )
     {
         return pool.getTotalAmounts(true, ticksData);
+    }
+
+    function toggleOperator(address _operator) external onlyGovernance {
+        _operatorApproved[_operator] = !_operatorApproved[_operator];
+    }
+
+    function isOperator(address _operator) external view returns (bool) {
+        return _operatorApproved[_operator];
     }
 
     function getVaultInfo()
