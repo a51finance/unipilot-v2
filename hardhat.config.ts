@@ -36,6 +36,8 @@ if (!infuraApiKey) {
   throw new Error("Please set your INFURA_API_KEY in a .env file");
 }
 
+let alchemyapiKey = process.env.FORK;
+
 const etherscanApiKey = process.env.ETHERSCAN_API_KEY;
 
 function createTestnetConfig(
@@ -68,6 +70,10 @@ const config: HardhatUserConfig = {
         mnemonic,
       },
       chainId: chainIds.hardhat,
+      forking: {
+        url: `https://eth-mainnet.alchemyapi.io/v2/${alchemyapiKey}`,
+        blockNumber: 14409239,
+      },
     },
 
     goerli: createTestnetConfig("goerli"),
