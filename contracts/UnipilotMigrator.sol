@@ -114,16 +114,6 @@ contract UnipilotMigrator is
         );
     }
 
-    function _addLiquidityUnipilot(
-        address vault,
-        uint256 amount0,
-        uint256 amount1,
-        address recipient
-    ) private returns (uint256 despositedAmount0, uint256 despositedAmount1) {
-        (, despositedAmount0, despositedAmount1) = IUnipilotVault(vault)
-            .deposit(amount0, amount1, recipient);
-    }
-
     function migrateV2Liquidity(MigrateV2Params calldata params) external {
         require(
             params.percentageToMigrate > 0 && params.percentageToMigrate <= 100,
@@ -492,6 +482,16 @@ contract UnipilotMigrator is
                 (params.token1, 0, _msgSender());
             }
         }
+    }
+
+    function _addLiquidityUnipilot(
+        address vault,
+        uint256 amount0,
+        uint256 amount1,
+        address recipient
+    ) private returns (uint256 despositedAmount0, uint256 despositedAmount1) {
+        (, despositedAmount0, despositedAmount1) = IUnipilotVault(vault)
+            .deposit(amount0, amount1, recipient);
     }
 
     function _sortWethAmount(
