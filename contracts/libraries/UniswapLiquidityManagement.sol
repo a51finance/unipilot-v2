@@ -358,6 +358,7 @@ library UniswapLiquidityManagement {
             cache.amount0,
             cache.amount1
         );
+
         //Calc new tick(upper or lower) for imbalanced token
         if (zeroGreaterOne) {
             uint160 nextSqrtPrice0 = SqrtPriceMath
@@ -380,10 +381,13 @@ library UniswapLiquidityManagement {
                     false
                 );
 
+            console.log("nextSqrtPrice1", nextSqrtPrice1);
+
             cache.tickLower = floor(
                 TickMath.getTickAtSqrtRatio(nextSqrtPrice1),
                 tickSpacing
             );
+            console.log("cache.tickLower", uint256(cache.tickLower));
         }
 
         checkRange(cache.tickLower, cache.tickUpper);
