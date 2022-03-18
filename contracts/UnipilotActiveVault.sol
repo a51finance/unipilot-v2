@@ -143,7 +143,6 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         external
         override
         nonReentrant
-        checkDeviation
         returns (uint256 amount0, uint256 amount1)
     {
         require(liquidity > 0);
@@ -218,7 +217,7 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         onlyOperator
         checkDeviation
     {
-        _pulled == 1;
+        _pulled = 1;
         ReadjustVars memory a;
 
         (uint128 totalLiquidity, , ) = pool.getPositionLiquidity(
@@ -349,7 +348,7 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
             recipient
         );
 
-        _pulled == 2;
+        _pulled = 2;
     }
 
     /// @dev function to check unipilot position fees and reserves
