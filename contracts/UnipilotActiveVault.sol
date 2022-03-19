@@ -215,7 +215,7 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         override
         nonReentrant
         onlyOperator
-    // checkDeviation
+        checkDeviation
     {
         _pulled = 1;
         ReadjustVars memory a;
