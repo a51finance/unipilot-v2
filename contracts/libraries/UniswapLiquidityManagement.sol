@@ -7,8 +7,6 @@ import "@uniswap/v3-periphery/contracts/libraries/PositionKey.sol";
 import "@uniswap/v3-periphery/contracts/libraries/LiquidityAmounts.sol";
 import "../interfaces/IUnipilotVault.sol";
 
-import "hardhat/console.sol";
-
 /// @title Liquidity and ticks functions
 /// @notice Provides functions for computing liquidity and ticks for token amounts and prices
 library UniswapLiquidityManagement {
@@ -358,6 +356,7 @@ library UniswapLiquidityManagement {
             cache.amount0,
             cache.amount1
         );
+
         //Calc new tick(upper or lower) for imbalanced token
         if (zeroGreaterOne) {
             uint160 nextSqrtPrice0 = SqrtPriceMath
