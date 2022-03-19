@@ -2,10 +2,13 @@ import { deployContract } from "ethereum-waffle";
 import { Contract } from "ethers";
 import { UniswapV3Deployer } from "./UniswapV3Deployer";
 import WETH9Artifact from "uniswap-v3-deploy-plugin/src/util/WETH9.json";
-import UnipilotFactoryArtifact from "../artifacts/contracts/UnipilotPassiveFactory.sol/UnipilotPassiveFactory.json";
+import UnipilotPassiveFactoryArtifact from "../artifacts/contracts/UnipilotPassiveFactory.sol/UnipilotPassiveFactory.json";
+import UnipilotActiveFactoryArtifact from "../artifacts/contracts/UnipilotActiveFactory.sol/UnipilotActiveFactory.json";
 import UniStrategyArtifact from "../artifacts/contracts/UnipilotStrategy.sol/UnipilotStrategy.json";
 import VaultArtifact from "../artifacts/contracts/UnipilotPassiveVault.sol/UnipilotPassiveVault.json";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { ethers } from "hardhat";
+import { UnipilotActiveFactory, UnipilotPassiveFactory } from "../typechain";
 
 export async function deployWETH9(deployer: any): Promise<Contract> {
   let weth9: Contract = await deployContract(deployer, WETH9Artifact, [], {
@@ -29,7 +32,7 @@ export async function deployUnipilotFactory(
 ) {
   let unipilotFactory = await deployContract(
     deployer,
-    UnipilotFactoryArtifact,
+    UnipilotPassiveFactoryArtifact,
     [uniswapV3Factory, deployer.address, uniStrategy, indexFund],
     {
       gasPrice: 90000000000,
@@ -45,4 +48,54 @@ export async function deployStrategy(deployer: any): Promise<Contract> {
     [deployer.address],
   );
   return uniStrategy;
+}
+
+export async function deployPassiveFactory(
+  deployer: any,
+  uniswapFactory: any,
+  governance: any,
+  uniStrategy: any,
+  indexFund: any,
+  WETH9: any,
+  indexFundPercentage: any,
+  swapPercentage: any,
+): Promise<UnipilotPassiveFactory> {
+  let unipilotFactory = await deployContract(
+    deployer,
+    UnipilotPassiveFactoryArtifact,
+    [
+      uniswapFactory,
+      governance,
+      uniStrategy,
+      indexFund,
+      WETH9,
+      indexFundPercentage,
+      swapPercentage,
+    ],
+  );
+  return unipilotFactory as UnipilotPassiveFactory;
+}
+
+export async function deployActiveFactory(
+  deployer: any,
+  uniswapFactory: any,
+  governance: any,
+  uniStrategy: any,
+  indexFund: any,
+  WETH9: any,
+  indexFundPercentage: any,
+): Promise<UnipilotActiveFactory> {
+  let unipilotFactory = await deployContract(
+    deployer,
+    UnipilotActiveFactoryArtifact,
+    [
+      uniswapFactory,
+      governance,
+      uniStrategy,
+      indexFund,
+      WETH9,
+      indexFundPercentage,
+    ],
+  );
+  return unipilotFactory as UnipilotActiveFactory;
 }

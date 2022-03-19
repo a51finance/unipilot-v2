@@ -7,7 +7,8 @@ import { shouldBehaveLikeRebalancePassive } from "./RebalancePassive/rebalancePa
 import { shouldBehaveLikeRebalanceActive } from "./RebalanceActive/rebalanceActive.behavior";
 import { shouldBehaveLikeWithdrawPassive } from "./WithdrawPassive/withdrawPassive.behavior";
 import { shouldBehaveLikeWithdrawActive } from "./WithdrawActive/withdrawActive.behaviour";
-import { shouldBehaveLikeLive } from "./MainnetFork/mainnetFork.behavior";
+import { shouldBehaveLikePassiveLive } from "./MainnetFork/mainnetForkPassive.behavior";
+import { shouldBehaveLikeActiveLive } from "./MainnetFork/mainnetForkActive.behavior";
 
 use(solidity);
 
@@ -35,6 +36,10 @@ use(solidity);
 //   await shouldBehaveLikeWithdrawActive();
 // });
 
-describe("Invoke mainnet state", async () => {
-  await shouldBehaveLikeLive();
+// describe("Invoke mainnet state for passive", async () => {
+//   await shouldBehaveLikePassiveLive();
+// });
+
+describe("Invoke Mainnet State", async () => {
+  await shouldBehaveLikeActiveLive();
 });
