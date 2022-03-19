@@ -143,5 +143,25 @@ export async function shouldBehaveLikeActiveLive(): Promise<void> {
       });
     console.log("Tx hash", tx.hash);
   });
+  it("Should be readjust", async () => {
+    let tx = await unipilotVault.connect(owner).readjustLiquidity();
+    console.log("Tx hash", tx.hash);
+  });
+
+  it("Should be withdraw", async () => {
+    await unipilotVault
+      .connect(owner)
+      .deposit(parseUnits("2805", "18"), parseUnits("1", "18"), owner.address, {
+        value: parseUnits("1", "18"),
+      });
+    let liquidity = await unipilotVault.balanceOf(owner.address);
+    console.log(liquidity);
+
+    let tx = await unipilotVault
+      .connect(owner)
+      .withdraw(liquidity, owner.address, false);
+    console.log("Tx hash", tx.hash);
+  });
+
   // shouldBehaveLikePassiveLive();
 }
