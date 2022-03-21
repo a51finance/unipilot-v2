@@ -404,11 +404,7 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
 
     function getBaseThreshold() internal view returns (int24 baseThreshold) {
         (, address strategy, , , ) = getProtocolDetails();
-        return
-            IUnipilotStrategy(strategy).getBaseThreshold(
-                address(pool),
-                tickSpacing
-            );
+        return IUnipilotStrategy(strategy).getBaseThreshold(address(pool));
     }
 
     function getProtocolDetails()
@@ -446,6 +442,15 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
             _balance1(),
             totalSupply()
         );
+    }
+
+    /// should be remove
+    function getPoolDetails()
+        external
+        view
+        returns (uint160 sqrtRatioX96, int24 tick)
+    {
+        (sqrtRatioX96, tick, ) = pool.getSqrtRatioX96AndTick();
     }
 
     function transferFunds(
