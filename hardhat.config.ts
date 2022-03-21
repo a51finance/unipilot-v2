@@ -72,7 +72,7 @@ const config: HardhatUserConfig = {
       chainId: chainIds.hardhat,
       forking: {
         url: `https://eth-mainnet.alchemyapi.io/v2/${alchemyapiKey}`,
-        blockNumber: 14409239,
+        blockNumber: 14363807,
       },
     },
 
