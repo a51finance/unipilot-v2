@@ -31,6 +31,8 @@ contract UnipilotStrategy is IUnipilotStrategy {
     int24 public baseTicks;
     /// @dev rangeOrder is the range calculate the spread behind and ahead of the base range
     int24 private rangeOrder;
+    /// @dev baseMultiplier multiplier for base position for active pools
+    int24 public baseMultiplier;
     /// @dev readjustMultiplier is the percentage multiplier of raedjust threshold
     int24 private readjustMultiplier;
     /// @dev maxTwapDeviation is the max time weighted average deviation of price from the normal range in both directions
@@ -45,6 +47,7 @@ contract UnipilotStrategy is IUnipilotStrategy {
         rangeTicks = 1800;
         baseTicks = 1800;
         readjustMultiplier = 10;
+        baseMultiplier = 30;
     }
 
     /// @dev poolStrategy maintains the base,range multipliers and
@@ -95,7 +98,8 @@ contract UnipilotStrategy is IUnipilotStrategy {
                 rangeThreshold: _floor(rangeTicks, tickSpacing),
                 maxTwapDeviation: maxTwapDeviation,
                 readjustThreshold: (baseFloor * readjustMultiplier) / 100,
-                twapDuration: twapDuration
+                twapDuration: twapDuration,
+                baseMultiplier: baseMultiplier
             });
         }
         rangeOrder = poolStrategy[_pool].rangeThreshold;
@@ -137,15 +141,15 @@ contract UnipilotStrategy is IUnipilotStrategy {
 
     /**
      *   @notice This function updates the base range mutiplier
-     *   @param _baseTicks: a mutiplier value to decide the spread of base range
+     *   @param _baseMultiplier: a mutiplier value to decide the spread of base range
      **/
-    function setBaseTicks(address[] memory _pools, int24[] memory _baseTicks)
-        external
-        onlyGovernance
-    {
-        require(_pools.length == _baseTicks.length, "IVI");
+    function setBaseTicks(
+        address[] memory _pools,
+        int24[] memory _baseMultiplier
+    ) external onlyGovernance {
+        require(_pools.length == _baseMultiplier.length, "IVI");
         for (uint256 i = 0; i < _pools.length; i++) {
-            poolStrategy[_pools[i]].baseThreshold = _baseTicks[i];
+            poolStrategy[_pools[i]].baseMultiplier = _baseMultiplier[i];
         }
     }
 
@@ -202,7 +206,8 @@ contract UnipilotStrategy is IUnipilotStrategy {
                 rangeThreshold: params.rangeThreshold,
                 maxTwapDeviation: params.maxTwapDeviation,
                 readjustThreshold: params.readjustThreshold,
-                twapDuration: params.twapDuration
+                twapDuration: params.twapDuration,
+                baseMultiplier: params.baseMultiplier
             })
         );
     }
@@ -262,13 +267,13 @@ contract UnipilotStrategy is IUnipilotStrategy {
         return readjustThreshold;
     }
 
-    function getBaseThreshold(address _pool, int24 _tickSpacing)
+    function getBaseThreshold(address _pool)
         external
         view
         override
         returns (int24 baseThreshold)
     {
-        baseThreshold = _floor(poolStrategy[_pool].baseThreshold, _tickSpacing);
+        baseThreshold = poolStrategy[_pool].baseMultiplier;
     }
 
     /**

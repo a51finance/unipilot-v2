@@ -9,6 +9,7 @@ interface IUnipilotStrategy {
         int24 maxTwapDeviation;
         int24 readjustThreshold;
         uint32 twapDuration;
+        int24 baseMultiplier;
     }
 
     event GovernanceUpdated(address oldGovernance, address newGovernance);
@@ -37,7 +38,7 @@ interface IUnipilotStrategy {
         view
         returns (PoolStrategy memory strategy);
 
-    function getBaseThreshold(address _pool, int24 _tickSpacing)
+    function getBaseThreshold(address _pool)
         external
         view
         returns (int24 baseThreshold);
