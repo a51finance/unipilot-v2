@@ -17,17 +17,19 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
     using UniswapPoolActions for IUniswapV3Pool;
     using UniswapLiquidityManagement for IUniswapV3Pool;
 
-    IERC20 private token0;
-    IERC20 private token1;
+    IERC20 private immutable token0;
+    IERC20 private immutable token1;
+    uint24 private immutable fee;
+    int24 private immutable tickSpacing;
+
     IUniswapV3Pool private pool;
     IUnipilotFactory private unipilotFactory;
 
     address private WETH;
     TicksData public ticksData;
-    int24 private tickSpacing;
-    uint8 private _unlocked = 1;
-    uint8 private _pulled = 1;
-    uint24 private fee;
+    uint64 private _pulled = 1;
+    uint64 private _unlocked = 1;
+    uint128 private _initialized = 1;
 
     mapping(address => bool) private _operatorApproved;
 
@@ -44,7 +46,7 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
 
     modifier nonReentrant() {
         require(_unlocked == 1);
-        _unlocked = 0;
+        _unlocked = 2;
         _;
         _unlocked = 1;
     }
@@ -73,7 +75,13 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         _operatorApproved[governance] = true;
     }
 
+    receive() external payable {}
+
+    fallback() external payable {}
+
     function init() external onlyGovernance {
+        require(_initialized == 1);
+        _initialized = 2;
         int24 _tickSpacing = tickSpacing;
         int24 baseThreshold = _tickSpacing * getBaseThreshold();
         (, int24 currentTick, ) = pool.getSqrtRatioX96AndTick();
@@ -100,14 +108,16 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         external
         payable
         override
+        nonReentrant
         returns (
             uint256 lpShares,
             uint256 amount0,
             uint256 amount1
         )
     {
-        address sender = _msgSender();
+        require(amount0Desired > 0 && amount1Desired > 0);
 
+        address sender = _msgSender();
         (lpShares, amount0, amount1) = pool.computeLpShares(
             true,
             amount0Desired,
@@ -444,15 +454,6 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         );
     }
 
-    /// should be remove
-    function getPoolDetails()
-        external
-        view
-        returns (uint160 sqrtRatioX96, int24 tick)
-    {
-        (sqrtRatioX96, tick, ) = pool.getSqrtRatioX96AndTick();
-    }
-
     function transferFunds(
         bool refundAsETH,
         address recipient,
@@ -504,8 +505,4 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         if (address(this).balance > 0)
             TransferHelper.safeTransferETH(msg.sender, address(this).balance);
     }
-
-    receive() external payable {}
-
-    fallback() external payable {}
 }
