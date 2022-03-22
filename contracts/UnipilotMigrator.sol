@@ -501,7 +501,7 @@ contract UnipilotMigrator is
         uint256 _amount1
     )
         private
-        pure
+        view
         returns (
             address tokenAlt,
             uint256 altAmount,
