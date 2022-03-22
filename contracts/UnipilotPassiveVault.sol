@@ -17,16 +17,17 @@ contract UnipilotPassiveVault is ERC20Permit, IUnipilotVault {
     using UniswapPoolActions for IUniswapV3Pool;
     using UniswapLiquidityManagement for IUniswapV3Pool;
 
-    IERC20 private token0;
-    IERC20 private token1;
-    IUniswapV3Pool private pool;
-    IUnipilotFactory private unipilotFactory;
+    IERC20 private immutable token0;
+    IERC20 private immutable token1;
+    uint24 private immutable fee;
+    int24 private immutable tickSpacing;
 
     address private WETH;
     TicksData public ticksData;
-    int24 private tickSpacing;
-    uint8 private _unlocked = 1;
-    uint24 private fee;
+
+    IUniswapV3Pool private pool;
+    IUnipilotFactory private unipilotFactory;
+    uint128 private _unlocked = 1;
 
     modifier onlyGovernance() {
         (address governance, , , , ) = getProtocolDetails();
@@ -36,7 +37,7 @@ contract UnipilotPassiveVault is ERC20Permit, IUnipilotVault {
 
     modifier nonReentrant() {
         require(_unlocked == 1);
-        _unlocked = 0;
+        _unlocked = 2;
         _;
         _unlocked = 1;
     }
@@ -63,6 +64,10 @@ contract UnipilotPassiveVault is ERC20Permit, IUnipilotVault {
         tickSpacing = pool.tickSpacing();
     }
 
+    receive() external payable {}
+
+    fallback() external payable {}
+
     function deposit(
         uint256 amount0Desired,
         uint256 amount1Desired,
@@ -71,12 +76,15 @@ contract UnipilotPassiveVault is ERC20Permit, IUnipilotVault {
         external
         payable
         override
+        nonReentrant
         returns (
             uint256 lpShares,
             uint256 amount0,
             uint256 amount1
         )
     {
+        require(amount0Desired > 0 && amount1Desired > 0);
+
         address sender = _msgSender();
         uint256 totalSupply = totalSupply();
 
@@ -111,6 +119,7 @@ contract UnipilotPassiveVault is ERC20Permit, IUnipilotVault {
             );
         }
 
+        refundETH();
         _mint(recipient, lpShares);
         emit Deposit(sender, recipient, amount0, amount1, lpShares);
     }
@@ -499,7 +508,11 @@ contract UnipilotPassiveVault is ERC20Permit, IUnipilotVault {
         TransferHelper.safeTransferETH(recipient, balanceWETH9);
     }
 
-    receive() external payable {}
-
-    fallback() external payable {}
+    /// @notice Refunds any ETH balance held by this contract to the `msg.sender`
+    /// @dev Useful for bundling with mint or increase liquidity that uses ether, or exact output swaps
+    /// that use ether for the input amount
+    function refundETH() internal {
+        if (address(this).balance > 0)
+            TransferHelper.safeTransferETH(msg.sender, address(this).balance);
+    }
 }
