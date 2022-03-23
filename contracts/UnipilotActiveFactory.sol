@@ -112,7 +112,6 @@ contract UnipilotActiveFactory is IUnipilotFactory {
     }
 
     function toggleWhitelistAccount(address _address) external onlyGovernance {
-        require(_address != address(0));
         isWhitelist[_address] = !isWhitelist[_address];
     }
 
@@ -121,8 +120,6 @@ contract UnipilotActiveFactory is IUnipilotFactory {
         address _indexFund,
         uint8 _indexFundPercentage
     ) external onlyGovernance {
-        require(_strategy != address(0) && _indexFund != address(0));
-        require(_indexFundPercentage > 0 && _indexFundPercentage < 100);
         strategy = _strategy;
         indexFund = _indexFund;
         indexFundPercentage = _indexFundPercentage;
