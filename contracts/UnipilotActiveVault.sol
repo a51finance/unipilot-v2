@@ -22,14 +22,14 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
     uint24 private immutable fee;
     int24 private immutable tickSpacing;
 
+    TicksData public ticksData;
     IUniswapV3Pool private pool;
     IUnipilotFactory private unipilotFactory;
 
     address private WETH;
-    TicksData public ticksData;
-    uint64 private _pulled = 1;
-    uint64 private _unlocked = 1;
-    uint128 private _initialized = 1;
+    uint32 private _pulled = 1;
+    uint32 private _unlocked = 1;
+    uint32 private _initialized = 1;
 
     mapping(address => bool) private _operatorApproved;
 
@@ -140,7 +140,9 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
             );
         }
 
-        refundETH();
+        if (address(this).balance > 0)
+            TransferHelper.safeTransferETH(msg.sender, address(this).balance);
+
         _mint(recipient, lpShares);
         emit Deposit(sender, recipient, amount0, amount1, lpShares);
     }
@@ -220,13 +222,7 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         }
     }
 
-    function readjustLiquidity()
-        external
-        override
-        nonReentrant
-        onlyOperator
-        checkDeviation
-    {
+    function readjustLiquidity() external override onlyOperator checkDeviation {
         _pulled = 1;
         ReadjustVars memory a;
 
@@ -461,7 +457,8 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         uint256 amount
     ) internal {
         if (refundAsETH && token == WETH) {
-            unwrapWETH9(amount, recipient);
+            IWETH9(WETH).withdraw(amount);
+            TransferHelper.safeTransferETH(recipient, amount);
         } else {
             TransferHelper.safeTransfer(token, recipient, amount);
         }
@@ -488,21 +485,5 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
             // pull payment
             TransferHelper.safeTransferFrom(token, payer, recipient, value);
         }
-    }
-
-    /// @notice Unwraps the contract's WETH9 balance and sends it to recipient as ETH.
-    /// @param balanceWETH9 The amount of WETH9 to unwrap
-    /// @param recipient The address receiving ETH
-    function unwrapWETH9(uint256 balanceWETH9, address recipient) internal {
-        IWETH9(WETH).withdraw(balanceWETH9);
-        TransferHelper.safeTransferETH(recipient, balanceWETH9);
-    }
-
-    /// @notice Refunds any ETH balance held by this contract to the `msg.sender`
-    /// @dev Useful for bundling with mint or increase liquidity that uses ether, or exact output swaps
-    /// that use ether for the input amount
-    function refundETH() internal {
-        if (address(this).balance > 0)
-            TransferHelper.safeTransferETH(msg.sender, address(this).balance);
     }
 }

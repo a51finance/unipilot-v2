@@ -22,12 +22,12 @@ contract UnipilotPassiveVault is ERC20Permit, IUnipilotVault {
     uint24 private immutable fee;
     int24 private immutable tickSpacing;
 
-    address private WETH;
-    TicksData public ticksData;
+    address private immutable WETH;
+    IUnipilotFactory private immutable unipilotFactory;
 
+    TicksData public ticksData;
     IUniswapV3Pool private pool;
-    IUnipilotFactory private unipilotFactory;
-    uint128 private _unlocked = 1;
+    uint96 private _unlocked = 1;
 
     modifier onlyGovernance() {
         (address governance, , , , ) = getProtocolDetails();
