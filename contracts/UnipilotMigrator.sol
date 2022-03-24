@@ -85,6 +85,13 @@ contract UnipilotMigrator is
         _tokenApproval(params.token0, params.vault, amount0);
         _tokenApproval(params.token1, params.vault, amount1);
 
+        (params.token0, amount0, params.token1, amount1) = _sortTokenAmount(
+            params.token0,
+            params.token1,
+            amount0,
+            amount1
+        );
+
         (
             uint256 amount0Unipilot,
             uint256 amount1Unipilot
@@ -101,7 +108,7 @@ contract UnipilotMigrator is
                 amount1Recieved: amount1,
                 amount0ToMigrate: amount0,
                 amount1ToMigrate: amount1,
-                refundAsETH: false
+                refundAsETH: params.refundAsETH
             })
         );
 
@@ -149,7 +156,7 @@ contract UnipilotMigrator is
             params.vault,
             amount0ToMigrate,
             amount1ToMigrate,
-            msg.sender
+            _msgSender()
         );
 
         _refundRemainingLiquidiy(
@@ -231,7 +238,7 @@ contract UnipilotMigrator is
                 params.vault,
                 amount0V3,
                 amount1V3,
-                msg.sender
+                _msgSender()
             );
 
         _refundRemainingLiquidiy(
@@ -260,7 +267,7 @@ contract UnipilotMigrator is
         );
     }
 
-    function migrateVisorLiquidity(MigrateV2Params calldata params) external {
+    function migrateVisorLiquidity(MigrateV2Params memory params) external {
         require(
             params.percentageToMigrate > 0 && params.percentageToMigrate <= 100,
             "IPA"
@@ -293,11 +300,23 @@ contract UnipilotMigrator is
         _tokenApproval(params.token0, params.vault, amount0ToMigrate);
         _tokenApproval(params.token1, params.vault, amount1ToMigrate);
 
+        (
+            params.token0,
+            amount0ToMigrate,
+            params.token1,
+            amount1ToMigrate
+        ) = _sortTokenAmount(
+            params.token0,
+            params.token1,
+            amount0ToMigrate,
+            amount1ToMigrate
+        );
+
         (uint256 amount0V3, uint256 amount1V3) = _addLiquidityUnipilot(
             params.vault,
             amount0ToMigrate,
             amount1ToMigrate,
-            msg.sender
+            _msgSender()
         );
 
         _refundRemainingLiquidiy(
@@ -324,7 +343,7 @@ contract UnipilotMigrator is
         );
     }
 
-    function migrateLixirLiquidity(MigrateV2Params calldata params) external {
+    function migrateLixirLiquidity(MigrateV2Params memory params) external {
         require(
             params.percentageToMigrate > 0 && params.percentageToMigrate <= 100,
             "IPA"
@@ -362,14 +381,21 @@ contract UnipilotMigrator is
             100
         );
 
-        _tokenApproval(weth, params.vault, wethAmountToMigrate);
         _tokenApproval(alt, params.vault, altAmountToMigrate);
+        _tokenApproval(weth, params.vault, wethAmountToMigrate);
+
+        (params.token0, amount0V2, params.token1, amount1V2) = _sortTokenAmount(
+            alt,
+            weth,
+            altAmountReceived,
+            wethAmountReceived
+        );
 
         (uint256 amount0V3, uint256 amount1V3) = _addLiquidityUnipilot(
             params.vault,
-            wethAmountToMigrate,
-            altAmountToMigrate,
-            msg.sender
+            amount0V2,
+            amount1V2,
+            _msgSender()
         );
 
         _refundRemainingLiquidiy(
@@ -396,9 +422,7 @@ contract UnipilotMigrator is
         );
     }
 
-    function migratePopsicleLiquidity(MigrateV2Params calldata params)
-        external
-    {
+    function migratePopsicleLiquidity(MigrateV2Params memory params) external {
         require(
             params.percentageToMigrate > 0 && params.percentageToMigrate <= 100,
             "IPA"
@@ -428,11 +452,23 @@ contract UnipilotMigrator is
         _tokenApproval(params.token0, params.vault, amount0ToMigrate);
         _tokenApproval(params.token1, params.vault, amount1ToMigrate);
 
+        (
+            params.token0,
+            amount0ToMigrate,
+            params.token1,
+            amount1ToMigrate
+        ) = _sortTokenAmount(
+            params.token0,
+            params.token1,
+            amount0ToMigrate,
+            amount1ToMigrate
+        );
+
         (uint256 amount0V3, uint256 amount1V3) = _addLiquidityUnipilot(
             params.vault,
             amount0ToMigrate,
             amount1ToMigrate,
-            msg.sender
+            _msgSender()
         );
 
         _refundRemainingLiquidiy(
@@ -521,6 +557,26 @@ contract UnipilotMigrator is
         (tokenAlt, altAmount, tokenWeth, wethAmount) = tokenA == WETH
             ? (tokenB, amountB, tokenA, amountA)
             : (tokenA, amountA, tokenB, amountB);
+    }
+
+    function _sortTokenAmount(
+        address _token0,
+        address _token1,
+        uint256 _amount0,
+        uint256 _amount1
+    )
+        private
+        view
+        returns (
+            address tokenAlt1,
+            uint256 altAmount1,
+            address tokenAlt2,
+            uint256 altAmount2
+        )
+    {
+        (tokenAlt1, altAmount1, tokenAlt2, altAmount2) = _token0 < _token1
+            ? (_token0, _amount0, _token1, _amount1)
+            : (_token1, _amount1, _token0, _amount0);
     }
 
     function _tokenApproval(

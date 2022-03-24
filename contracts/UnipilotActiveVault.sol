@@ -33,17 +33,17 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
 
     modifier onlyGovernance() {
         (address governance, , , , ) = getProtocolDetails();
-        require(msg.sender == governance);
+        require(msg.sender == governance, "NA");
         _;
     }
 
     modifier onlyOperator() {
-        require(_operatorApproved[msg.sender]);
+        require(_operatorApproved[msg.sender], "NO");
         _;
     }
 
     modifier nonReentrant() {
-        require(_unlocked == 1);
+        require(_unlocked == 1, "Reentrancy");
         _unlocked = 0;
         _;
         _unlocked = 1;
@@ -145,7 +145,7 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         nonReentrant
         returns (uint256 amount0, uint256 amount1)
     {
-        require(liquidity > 0);
+        require(liquidity > 0, "AS");
         uint256 totalSupply = totalSupply();
 
         /// @dev if liquidity has pulled in contract then calculate share accordingly
@@ -213,9 +213,9 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
     function readjustLiquidity()
         external
         override
-        nonReentrant
+        // nonReentrant
         onlyOperator
-        checkDeviation
+    // checkDeviation
     {
         _pulled = 1;
         ReadjustVars memory a;
@@ -331,7 +331,7 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
     ) external override {
         _verifyCallback();
 
-        require(amount0 > 0 || amount1 > 0);
+        require(amount0 > 0 || amount1 > 0, "AS");
         bool zeroForOne = abi.decode(data, (bool));
 
         if (zeroForOne)
@@ -340,7 +340,7 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
     }
 
     function pullLiquidity(address recipient) external onlyOperator {
-        require(unipilotFactory.isWhitelist(recipient));
+        require(unipilotFactory.isWhitelist(recipient), "NW");
 
         pool.burnLiquidity(
             ticksData.baseTickLower,
@@ -399,7 +399,7 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
 
     /// @notice Verify that caller should be the address of a valid Uniswap V3 Pool
     function _verifyCallback() internal view {
-        require(msg.sender == address(pool));
+        require(msg.sender == address(pool), "NA");
     }
 
     function getBaseThreshold() internal view returns (int24 baseThreshold) {
