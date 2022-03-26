@@ -387,8 +387,9 @@ library UniswapLiquidityManagement {
 
         checkRange(cache.tickLower, cache.tickUpper);
 
-        tickLower = cache.tickLower;
-        tickUpper = cache.tickUpper;
+        /// floor the tick again because one tick is still not valid tick due to + - baseThreshold
+        tickLower = floor(cache.tickLower, tickSpacing);
+        tickUpper = floor(cache.tickUpper, tickSpacing);
     }
 
     /// @dev Gets amounts of token0 and token1 that can be stored in range of upper and lower ticks
