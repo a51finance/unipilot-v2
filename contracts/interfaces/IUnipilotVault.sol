@@ -64,6 +64,13 @@ interface IUnipilotVault {
         uint256 amount1
     );
 
+    event PullLiquidity(
+        uint256 reserves0,
+        uint256 reserves1,
+        uint256 fees0,
+        uint256 fees1
+    );
+
     event CompoundFees(uint256 amount0, uint256 amount1);
 
     function deposit(

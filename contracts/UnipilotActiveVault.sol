@@ -348,13 +348,19 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
     function pullLiquidity(address recipient) external onlyOperator {
         require(unipilotFactory.isWhitelist(recipient));
 
-        pool.burnLiquidity(
-            ticksData.baseTickLower,
-            ticksData.baseTickUpper,
-            recipient
-        );
+        (
+            uint256 reserves0,
+            uint256 reserves1,
+            uint256 fees0,
+            uint256 fees1
+        ) = pool.burnLiquidity(
+                ticksData.baseTickLower,
+                ticksData.baseTickUpper,
+                recipient
+            );
 
         _pulled = 2;
+        emit PullLiquidity(reserves0, reserves1, fees0, fees1);
     }
 
     /// @dev function to check unipilot position fees and reserves
