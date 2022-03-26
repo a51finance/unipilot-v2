@@ -580,5 +580,10 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
 
     expect(token0BalanceAfterSecondDeposit).to.be.gt(token0Balance);
     expect(token1BalanceAfterSecondDeposit).to.be.gt(token1Balance);
+
+    const lpToWithdraw = parseUnits("2", "18");
+    await unipilotVault.withdraw(lpToWithdraw, wallet.address, false);
+
+    await unipilotVault.readjustLiquidity();
   });
 }
