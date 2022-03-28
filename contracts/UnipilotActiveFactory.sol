@@ -96,7 +96,6 @@ contract UnipilotActiveFactory is IUnipilotFactory {
             }(pool, address(this), WETH, governance, _name, _symbol)
         );
 
-        isWhitelist[_vault] = true;
         vaults[token0][token1][_fee] = _vault;
         vaults[token1][token0][_fee] = _vault; // populate mapping in the reverse direction
         emit VaultCreated(token0, token1, _fee, _vault);
