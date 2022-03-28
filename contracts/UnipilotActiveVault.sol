@@ -240,7 +240,7 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
 
         transferFeesToIF(true, a.fees0, a.fees1);
 
-        int24 baseThreshold = getBaseThreshold();
+        int24 baseThreshold = _tickSpacing * getBaseThreshold();
         (, a.currentTick, ) = pool.getSqrtRatioX96AndTick();
 
         (a.tickLower, a.tickUpper) = UniswapLiquidityManagement.getBaseTicks(
