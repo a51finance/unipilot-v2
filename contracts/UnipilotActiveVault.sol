@@ -360,13 +360,8 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
             );
 
         if (recipient != address(this)) {
-            uint256 balance0 = token0.balanceOf(address(this));
-            uint256 balance1 = token1.balanceOf(address(this));
-
-            if (balance0 > 0)
-                pay(address(token0), address(this), recipient, balance0);
-            if (balance1 > 0)
-                pay(address(token1), address(this), recipient, balance1);
+            pay(address(token0), address(this), recipient, _balance0());
+            pay(address(token1), address(this), recipient, _balance1());
         }
 
         _pulled = 2;
