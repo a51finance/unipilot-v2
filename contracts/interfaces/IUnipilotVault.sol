@@ -48,14 +48,7 @@ interface IUnipilotVault {
         uint256 lpShares
     );
 
-    event FeesSnapshot(
-        bool isReadjustLiquidity,
-        uint256 fees0,
-        uint256 fees1,
-        uint256 balance0,
-        uint256 balance1,
-        uint256 totalSupply
-    );
+    event FeesSnapshot(bool isReadjustLiquidity, uint256 fees0, uint256 fees1);
 
     event Withdraw(
         address indexed recipient,
