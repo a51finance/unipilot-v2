@@ -160,4 +160,21 @@ library UniswapPoolActions {
             type(uint128).max
         );
     }
+
+    function rerangeLiquidity(
+        IUniswapV3Pool pool,
+        int24 baseThreshold,
+        int24 tickSpacing,
+        uint256 balance0,
+        uint256 balance1
+    ) internal returns (int24 tickLower, int24 tickUpper) {
+        (tickLower, tickUpper) = pool.getPositionTicks(
+            balance0,
+            balance1,
+            baseThreshold,
+            tickSpacing
+        );
+
+        mintLiquidity(pool, tickLower, tickUpper, balance0, balance1);
+    }
 }
