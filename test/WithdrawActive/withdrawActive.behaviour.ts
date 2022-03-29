@@ -67,7 +67,7 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
     )) as UniswapV3Pool;
 
     await pool.initialize(encodePriceSqrt(1, 2));
-    await uniStrategy.setBaseTicks([poolAddress], [1800]);
+    await uniStrategy.setBaseTicks([poolAddress], [100]);
 
     vault = await createVault(
       USDC.address,
@@ -78,11 +78,11 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
       "UniLP",
     );
 
-    await USDC._mint(wallet.address, parseUnits("1000", "18"));
-    await AAVE._mint(wallet.address, parseUnits("1000", "18"));
+    await USDC._mint(wallet.address, parseUnits("10000000", "18"));
+    await AAVE._mint(wallet.address, parseUnits("10000000", "18"));
 
-    await USDC._mint(other.address, parseUnits("4000", "18"));
-    await AAVE._mint(other.address, parseUnits("4000", "18"));
+    await USDC._mint(other.address, parseUnits("400000000", "18"));
+    await AAVE._mint(other.address, parseUnits("400000000", "18"));
 
     await USDC.approve(vault.address, constants.MaxUint256);
     await AAVE.approve(vault.address, constants.MaxUint256);
@@ -125,8 +125,8 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
         tickUpper: getMaxTick(60),
         fee: 3000,
         recipient: other.address,
-        amount0Desired: parseUnits("1500", "18"),
-        amount1Desired: parseUnits("1500", "18"),
+        amount0Desired: parseUnits("100000", "18"),
+        amount1Desired: parseUnits("100000", "18"),
         amount0Min: 0,
         amount1Min: 0,
         deadline: 2000000000,
@@ -135,6 +135,7 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
         gasLimit: "3000000",
       },
     );
+    await unipilotFactory.toggleWhitelistAccount(vault.address);
   });
 
   describe("#withdraw for active pools", () => {

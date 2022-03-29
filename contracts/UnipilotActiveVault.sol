@@ -17,10 +17,10 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
     using UniswapPoolActions for IUniswapV3Pool;
     using UniswapLiquidityManagement for IUniswapV3Pool;
 
-    IERC20 private immutable token0;
-    IERC20 private immutable token1;
-    uint24 private immutable fee;
-    int24 private immutable tickSpacing;
+    IERC20 private token0;
+    IERC20 private token1;
+    uint24 private fee;
+    int24 private tickSpacing;
 
     TicksData public ticksData;
     IUniswapV3Pool private pool;
@@ -240,7 +240,7 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
 
         transferFeesToIF(true, a.fees0, a.fees1);
 
-        int24 baseThreshold = getBaseThreshold();
+        int24 baseThreshold = tickSpacing * getBaseThreshold();
         (, a.currentTick, ) = pool.getSqrtRatioX96AndTick();
 
         (a.tickLower, a.tickUpper) = UniswapLiquidityManagement.getBaseTicks(
@@ -314,6 +314,26 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         );
     }
 
+    function rerange() external onlyOperator {
+        (, , uint256 fees0, uint256 fees1) = pool.burnLiquidity(
+            ticksData.baseTickLower,
+            ticksData.baseTickUpper,
+            address(this)
+        );
+
+        transferFeesToIF(true, fees0, fees1);
+
+        int24 baseThreshold = tickSpacing * getBaseThreshold();
+
+        (ticksData.baseTickLower, ticksData.baseTickUpper) = pool
+            .rerangeLiquidity(
+                baseThreshold,
+                tickSpacing,
+                _balance0(),
+                _balance1()
+            );
+    }
+
     /// @inheritdoc IUnipilotVault
     function uniswapV3MintCallback(
         uint256 amount0Owed,
@@ -358,6 +378,11 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
                 ticksData.baseTickUpper,
                 recipient
             );
+
+        if (recipient != address(this)) {
+            pay(address(token0), address(this), recipient, _balance0());
+            pay(address(token1), address(this), recipient, _balance1());
+        }
 
         _pulled = 2;
         emit PullLiquidity(reserves0, reserves1, fees0, fees1);
@@ -446,14 +471,7 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         if (fees1 > 0)
             token1.transfer(indexFund, FullMath.mulDiv(fees1, percentage, 100));
 
-        emit FeesSnapshot(
-            isReadjustLiquidity,
-            fees0,
-            fees1,
-            _balance0(),
-            _balance1(),
-            totalSupply()
-        );
+        emit FeesSnapshot(isReadjustLiquidity, fees0, fees1);
     }
 
     function transferFunds(
