@@ -32,7 +32,6 @@ contract UnipilotActiveFactory is IUnipilotFactory {
         indexFund = _indexFund;
         WETH = _WETH;
         indexFundPercentage = percentage;
-        isWhitelist[governance] = true;
     }
 
     mapping(address => bool) public override isWhitelist;
