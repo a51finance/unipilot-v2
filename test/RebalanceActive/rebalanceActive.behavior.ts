@@ -79,7 +79,7 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
 
     await uniswapPool.initialize(encodedPrice);
 
-    await uniStrategy.setBaseTicks([uniswapPoolAddress], [1800]);
+    await uniStrategy.setBaseTicks([uniswapPoolAddress], [100]);
 
     unipilotVault = await createVault(
       UNI.address,
@@ -280,11 +280,7 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
 
     await unipilotVault
       .connect(wallet)
-      .deposit(
-        parseUnits("1000", "18"),
-        parseUnits("1000", "18"),
-        wallet.address,
-      );
+      .deposit(parseUnits("50", "18"), parseUnits("50", "18"), wallet.address);
 
     let positionDetails = await unipilotVault.callStatic.getPositionDetails();
 
@@ -293,10 +289,12 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
       bob,
       token0Instance,
       token1Instance,
-      "420000000",
+      "705175",
     );
 
     positionDetails = await unipilotVault.callStatic.getPositionDetails();
+
+    console.log("positionDetails", positionDetails);
 
     expect(positionDetails[1]).to.be.eq(0);
 
