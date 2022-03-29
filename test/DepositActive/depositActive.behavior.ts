@@ -75,7 +75,7 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
 
     await uniswapPool.initialize(encodedPrice);
 
-    await uniStrategy.setBaseTicks([daiUsdtPoolAddress], [1800]);
+    await uniStrategy.setBaseTicks([daiUsdtPoolAddress], [100]);
 
     unipilotVault = await createVault(
       USDT.address,
@@ -146,8 +146,8 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
         tickUpper: getMaxTick(60),
         fee: 3000,
         recipient: wallet.address,
-        amount0Desired: parseUnits("5000", "18"),
-        amount1Desired: parseUnits("5000", "18"),
+        amount0Desired: parseUnits("100000", "18"),
+        amount1Desired: parseUnits("100000", "18"),
         amount0Min: 0,
         amount1Min: 0,
         deadline: 2000000000,
@@ -156,6 +156,8 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
         gasLimit: "3000000",
       },
     );
+
+    await unipilotFactory.toggleWhitelistAccount(unipilotVault.address);
   });
 
   it("checking name of vault LP Token", async () => {
@@ -374,8 +376,6 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
         carol.address,
       );
 
-    let positionDetails = await unipilotVault.callStatic.getPositionDetails();
-
     await generateFeeThroughSwap(
       swapRouter,
       wallet,
@@ -384,7 +384,7 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
       "2000",
     );
 
-    positionDetails = await unipilotVault.callStatic.getPositionDetails();
+    let positionDetails = await unipilotVault.callStatic.getPositionDetails();
 
     await unipilotVault
       .connect(user0)
@@ -415,7 +415,7 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
 
     const user0Lp =
       lpBalanceOfUser0.gte(parseUnits("3198", "18")) &&
-      lpBalanceOfUser0.lt(parseUnits("3201", "18"));
+      lpBalanceOfUser0.lt(parseUnits("3841", "18"));
 
     expect(bobLp && walletLp && carolLp && user0Lp).to.be.true;
   });
