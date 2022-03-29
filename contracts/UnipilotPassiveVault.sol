@@ -454,14 +454,7 @@ contract UnipilotPassiveVault is ERC20Permit, IUnipilotVault {
         if (fees1 > 0)
             token1.transfer(indexFund, FullMath.mulDiv(fees1, percentage, 100));
 
-        emit FeesSnapshot(
-            isReadjustLiquidity,
-            fees0,
-            fees1,
-            _balance0(),
-            _balance1(),
-            totalSupply()
-        );
+        emit FeesSnapshot(isReadjustLiquidity, fees0, fees1);
     }
 
     function transferFunds(
