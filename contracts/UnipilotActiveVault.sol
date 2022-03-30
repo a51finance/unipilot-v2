@@ -17,10 +17,10 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
     using UniswapPoolActions for IUniswapV3Pool;
     using UniswapLiquidityManagement for IUniswapV3Pool;
 
-    IERC20 private immutable token0;
-    IERC20 private immutable token1;
-    uint24 private immutable fee;
-    int24 private immutable tickSpacing;
+    IERC20 private token0;
+    IERC20 private token1;
+    uint24 private fee;
+    int24 private tickSpacing;
 
     TicksData public ticksData;
     IUniswapV3Pool private pool;
@@ -314,25 +314,25 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         );
     }
 
-    // function rerange() external onlyOperator {
-    //     (, , uint256 fees0, uint256 fees1) = pool.burnLiquidity(
-    //         ticksData.baseTickLower,
-    //         ticksData.baseTickUpper,
-    //         address(this)
-    //     );
+    function rerange() external onlyOperator {
+        (, , uint256 fees0, uint256 fees1) = pool.burnLiquidity(
+            ticksData.baseTickLower,
+            ticksData.baseTickUpper,
+            address(this)
+        );
 
-    //     transferFeesToIF(true, fees0, fees1);
+        transferFeesToIF(true, fees0, fees1);
 
-    //     int24 baseThreshold = tickSpacing * getBaseThreshold();
+        int24 baseThreshold = tickSpacing * getBaseThreshold();
 
-    //     (ticksData.baseTickLower, ticksData.baseTickUpper) = pool
-    //         .rerangeLiquidity(
-    //             baseThreshold,
-    //             tickSpacing,
-    //             _balance0(),
-    //             _balance1()
-    //         );
-    // }
+        (ticksData.baseTickLower, ticksData.baseTickUpper) = pool
+            .rerangeLiquidity(
+                baseThreshold,
+                tickSpacing,
+                _balance0(),
+                _balance1()
+            );
+    }
 
     /// @inheritdoc IUnipilotVault
     function uniswapV3MintCallback(
