@@ -101,9 +101,9 @@ contract UnipilotPassiveFactory is IUnipilotFactory {
         _name = string(
             abi.encodePacked(
                 "Unipilot ",
-                token0Instance.name(),
+                token0Instance.symbol(),
                 " ",
-                token1Instance.name(),
+                token1Instance.symbol(),
                 " Vault"
             )
         );
