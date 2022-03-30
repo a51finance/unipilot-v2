@@ -12,6 +12,12 @@ import "./libraries/UniswapPoolActions.sol";
 
 import "@openzeppelin/contracts/drafts/ERC20Permit.sol";
 
+/// @title Unipilot Active Vault
+/// @dev Active liquidity managment contract that handles user liquidity of any Uniswap V3 pool & earn fees for them
+/// @dev minimalist, and gas-optimized contract that ensures user liquidity is always
+/// in range and earns maximum amount of fees available at current liquidity utilization
+/// rate.
+/// @dev In order to minimize IL for users contract pulls liquidity to the vault (HODL) when necessary
 contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
     using LowGasSafeMath for uint256;
     using UniswapPoolActions for IUniswapV3Pool;
@@ -79,6 +85,7 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
 
     fallback() external payable {}
 
+    /// @dev sets initial position of the vault & can only called once by the governer
     function init() external onlyGovernance {
         require(_initialized == 1);
         _initialized = 2;
@@ -100,6 +107,7 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         );
     }
 
+    /// @inheritdoc IUnipilotVault
     function deposit(
         uint256 amount0Desired,
         uint256 amount1Desired,
@@ -147,6 +155,7 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         emit Deposit(sender, recipient, amount0, amount1, lpShares);
     }
 
+    /// @inheritdoc IUnipilotVault
     function withdraw(
         uint256 liquidity,
         address recipient,
@@ -222,6 +231,7 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         }
     }
 
+    /// @inheritdoc IUnipilotVault
     function readjustLiquidity() external override onlyOperator checkDeviation {
         _pulled = 1;
         ReadjustVars memory a;
@@ -314,7 +324,13 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         );
     }
 
+    /// @notice Updates Unipilot's position.
+    /// @dev Finds base position and limit position for imbalanced token
+    /// mints all amounts to this position(including earned fees)
+    /// @dev Must be called by the current governer or selected operators
     function rerange() external onlyOperator {
+        _pulled = 1;
+
         (, , uint256 fees0, uint256 fees1) = pool.burnLiquidity(
             ticksData.baseTickLower,
             ticksData.baseTickUpper,
@@ -365,6 +381,9 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         else pay(address(token1), address(this), msg.sender, uint256(amount1));
     }
 
+    /// @dev Burns all the Unipilot position and HODL in the vault to prevent users from huge IL
+    /// Only called by the governer or selected operators
+    /// @dev Users can also deposit/withdraw during HODL period.
     function pullLiquidity(address recipient) external onlyOperator {
         require(unipilotFactory.isWhitelist(recipient));
 
@@ -388,7 +407,16 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         emit PullLiquidity(reserves0, reserves1, fees0, fees1);
     }
 
-    /// @dev function to check unipilot position fees and reserves
+    /// @notice Calculates the vault's total holdings of TOKEN0 and TOKEN1 - in
+    /// other words, how much of each token the vault would hold if it withdrew
+    /// all its liquidity from Uniswap.
+    /// @dev Updates the position and return the updated reserves, fees & liquidity.
+    /// @return amount0 Amount of token0 in the unipilot vault
+    /// @return amount1 Amount of token1 in the unipilot vault
+    /// @return fees0 Total amount of fees collected by unipilot position in terms of token0
+    /// @return fees1 Total amount of fees collected by unipilot position in terms of token1
+    /// @return baseLiquidity The total liquidity of the base position
+    /// @return rangeLiquidity The total liquidity of the range position - N/A for active vault
     function getPositionDetails()
         external
         returns (
@@ -403,14 +431,23 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         return pool.getTotalAmounts(true, ticksData);
     }
 
+    /// @notice Updates the status of given account as operator
+    /// @dev Must be called by the current governance
+    /// @param _operator Account to update status
     function toggleOperator(address _operator) external onlyGovernance {
         _operatorApproved[_operator] = !_operatorApproved[_operator];
     }
 
+    /// @notice Returns the status for a given operator that can operate readjust & pull liquidity
     function isOperator(address _operator) external view returns (bool) {
         return _operatorApproved[_operator];
     }
 
+    /// @notice Returns unipilot vault details
+    /// @return The first of the two tokens of the pool, sorted by address
+    /// @return The second of the two tokens of the pool, sorted by address
+    /// @return The pool's fee in hundredths of a bip, i.e. 1e-6
+    /// @return The address of the Uniswap V3 Pool
     function getVaultInfo()
         external
         view

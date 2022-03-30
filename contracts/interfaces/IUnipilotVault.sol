@@ -66,6 +66,14 @@ interface IUnipilotVault {
 
     event CompoundFees(uint256 amount0, uint256 amount1);
 
+    /// @notice Deposits tokens in proportion to the Unipilot's current holdings & mints them
+    /// `Unipilot`s LP token.
+    /// @param token0 The first of the two tokens of the pool, sorted by address
+    /// @param token1 The second of the two tokens of the pool, sorted by address
+    /// @param recipient Recipient of shares
+    /// @return lpShares Number of shares minted
+    /// @return amount0 Amount of token0 deposited in vault
+    /// @return amount1 Amount of token1 deposited in vault
     function deposit(
         uint256 amount0Desired,
         uint256 amount1Desired,
@@ -79,6 +87,11 @@ interface IUnipilotVault {
             uint256 amount1
         );
 
+    /// @notice Withdraws the desired shares from the vault with accumulated user fees and transfers to recipient.
+    /// @param recipient Recipient of tokens
+    /// @param refundAsETH whether to recieve in WETH or ETH (only valid for WETH/ALT pairs)
+    /// @return amount0 Amount of token0 sent to recipient
+    /// @return amount1 Amount of token1 sent to recipient
     function withdraw(
         uint256 liquidity,
         address recipient,
@@ -107,5 +120,14 @@ interface IUnipilotVault {
         bytes calldata data
     ) external;
 
+    /// @notice Burns all position(s), collects any fees accrued and updates Unipilot's position(s)
+    /// @dev mints all amounts to this position(s) (including earned fees)
+    /// @dev For active vaults it can be called by the governance or operator,
+    /// swaps imbalanced token and add all liquidity in base position.
+    /// @dev For passive vaults it can be called by any user.
+    /// Two positions are placed - a base position and a limit position. The base
+    /// position is placed first with as much liquidity as possible. This position
+    /// should use up all of one token, leaving only the other one. This excess
+    /// amount is then placed as a single-sided bid or ask position.
     function readjustLiquidity() external;
 }

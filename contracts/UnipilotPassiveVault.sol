@@ -12,6 +12,13 @@ import "./libraries/UniswapPoolActions.sol";
 
 import "@openzeppelin/contracts/drafts/ERC20Permit.sol";
 
+/// @title Unipilot Passive Vault
+/// @notice Passive liquidity managment contract that handles liquidity of any Uniswap V3 pool & earn fees
+/// @dev UnipilotPassiveVault always maintains 2 range orders on Uniswap V3,
+/// base order: The main liquidity range -- where the majority of LP capital sits
+/// limit order: A single token range -- depending on which token it holds more of after the base order was placed.
+/// @dev The vault readjustment function can be called by anyone to ensure
+/// the liquidity of vault remains in the most optimum range
 contract UnipilotPassiveVault is ERC20Permit, IUnipilotVault {
     using LowGasSafeMath for uint256;
     using UniswapPoolActions for IUniswapV3Pool;
@@ -68,6 +75,7 @@ contract UnipilotPassiveVault is ERC20Permit, IUnipilotVault {
 
     fallback() external payable {}
 
+    /// @inheritdoc IUnipilotVault
     function deposit(
         uint256 amount0Desired,
         uint256 amount1Desired,
@@ -124,6 +132,7 @@ contract UnipilotPassiveVault is ERC20Permit, IUnipilotVault {
         emit Deposit(sender, recipient, amount0, amount1, lpShares);
     }
 
+    /// @inheritdoc IUnipilotVault
     function withdraw(
         uint256 liquidity,
         address recipient,
@@ -200,6 +209,7 @@ contract UnipilotPassiveVault is ERC20Permit, IUnipilotVault {
         emit CompoundFees(base0.add(range0), base1.add(range1));
     }
 
+    /// @inheritdoc IUnipilotVault
     function readjustLiquidity() external override nonReentrant checkDeviation {
         (
             uint256 baseAmount0,
@@ -282,7 +292,16 @@ contract UnipilotPassiveVault is ERC20Permit, IUnipilotVault {
         else pay(address(token1), address(this), msg.sender, uint256(amount1));
     }
 
-    /// @dev function to check unipilot position fees and reserves
+    /// @notice Calculates the vault's total holdings of TOKEN0 and TOKEN1 - in
+    /// other words, how much of each token the vault would hold if it withdrew
+    /// all its liquidity from Uniswap.
+    /// @dev Updates the position and return the updated reserves, fees & liquidity.
+    /// @return amount0 Amount of token0 in the unipilot vault
+    /// @return amount1 Amount of token1 in the unipilot vault
+    /// @return fees0 Total amount of fees collected by unipilot positions in terms of token0
+    /// @return fees1 Total amount of fees collected by unipilot positions in terms of token1
+    /// @return baseLiquidity The total liquidity of the base position
+    /// @return rangeLiquidity The total liquidity of the range position
     function getPositionDetails()
         external
         returns (
@@ -297,6 +316,11 @@ contract UnipilotPassiveVault is ERC20Permit, IUnipilotVault {
         return pool.getTotalAmounts(false, ticksData);
     }
 
+    /// @notice Returns unipilot vault details
+    /// @return The first of the two tokens of the pool, sorted by address
+    /// @return The second of the two tokens of the pool, sorted by address
+    /// @return The pool's fee in hundredths of a bip, i.e. 1e-6
+    /// @return The address of the Uniswap V3 Pool
     function getVaultInfo()
         external
         view
@@ -404,6 +428,9 @@ contract UnipilotPassiveVault is ERC20Permit, IUnipilotVault {
         }
     }
 
+    /// @dev Burn all the liquidity of unipilot positions, collects up to a
+    /// maximum amount of fees owed to position to the vault address &
+    /// tranfer fees percentage to index fund.
     function burnAndCollect(
         int24 tickLower,
         int24 tickUpper,

@@ -7,8 +7,10 @@ import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-/// @title Unipilot factory
-/// @notice Deploys Unipilot vaults and manages ownership and control over active and passive vaults
+/// @title Unipilot Passive Factory
+/// @notice Deploys Unipilot vaults for any uniswap v3 pair by any user.
+/// passive liquidity managament strategy will be used in these vaults
+/// all passive vaults can be managed by any user
 contract UnipilotPassiveFactory is IUnipilotFactory {
     address private WETH;
     address private governance;
@@ -37,12 +39,13 @@ contract UnipilotPassiveFactory is IUnipilotFactory {
         swapPercentage = _swapPercentage;
     }
 
+    /// @inheritdoc IUnipilotFactory
     mapping(address => bool) public override isWhitelist;
 
-    /// @notice Used to give address of vaults
-    /// @return vault address
+    /// @inheritdoc IUnipilotFactory
     mapping(address => mapping(address => mapping(uint24 => address)))
-        public vaults;
+        public
+        override vaults;
 
     modifier onlyGovernance() {
         require(msg.sender == governance);
@@ -125,15 +128,21 @@ contract UnipilotPassiveFactory is IUnipilotFactory {
         emit VaultCreated(token0, token1, _fee, _vault);
     }
 
-    /// @notice Updates the governance of the Unipilot factory
+    /// @notice Updates the governance of all Unipilot passive vaults
     /// @dev Must be called by the current governance
-    /// @param _newGovernance The new governance of the Unipilot factory
+    /// @param _newGovernance The new governance of the Unipilot passive factory
     function setGovernance(address _newGovernance) external onlyGovernance {
         require(_newGovernance != address(0));
         emit GovernanceChanged(governance, _newGovernance);
         governance = _newGovernance;
     }
 
+    /// @notice Updates all the necessary Unipilot details used in passive vaults
+    /// @dev Must be called by the current governance
+    /// @param _strategy Unipilot strategy address
+    /// @param _indexFund Unipilot index fund account
+    /// @param _swapPercentage Percentage of swap during readjust liquidity
+    /// @param _indexFundPercentage Percentage of fees for index fund
     function setUnipilotDetails(
         address _strategy,
         address _indexFund,
