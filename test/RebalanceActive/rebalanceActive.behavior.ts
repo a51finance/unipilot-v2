@@ -294,8 +294,6 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
 
     positionDetails = await unipilotVault.callStatic.getPositionDetails();
 
-    console.log("positionDetails", positionDetails);
-
     expect(positionDetails[1]).to.be.eq(0);
 
     await unipilotVault.readjustLiquidity();

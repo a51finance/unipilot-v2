@@ -151,15 +151,14 @@ export async function shouldBehaveLikeDepositPassive(): Promise<void> {
 
     const tokenName =
       SHIB.address.toLowerCase() < WETH9.address.toLowerCase()
-        ? "Unipilot Shiba Inu Wrapped Ether Vault"
-        : "Unipilot Wrapped Ether Shiba Inu Vault";
+        ? "Unipilot SHIB WETH Vault"
+        : "Unipilot WETH SHIB Vault";
 
     expect(vaultName).to.be.equal(tokenName);
   });
 
   it("checking symbol of vault LP Token", async () => {
-    const vaultSymbol = (await unipilotVault.symbol()).toString();
-
+    const vaultSymbol = await unipilotVault.symbol();
     const tokenSymbol =
       SHIB.address.toLowerCase() < WETH9.address.toLowerCase()
         ? "ULP-SHIB-WETH"

@@ -349,6 +349,7 @@ library UniswapLiquidityManagement {
             cache.tickLower,
             cache.tickUpper
         );
+
         // //Get imbalanced token
         bool zeroGreaterOne = amountsDirection(
             cache.amount0Desired,
@@ -378,7 +379,6 @@ library UniswapLiquidityManagement {
                     cache.amount1Desired,
                     false
                 );
-
             cache.tickLower = floor(
                 TickMath.getTickAtSqrtRatio(nextSqrtPrice1),
                 tickSpacing
