@@ -68,8 +68,8 @@ interface IUnipilotVault {
 
     /// @notice Deposits tokens in proportion to the Unipilot's current holdings & mints them
     /// `Unipilot`s LP token.
-    /// @param token0 The first of the two tokens of the pool, sorted by address
-    /// @param token1 The second of the two tokens of the pool, sorted by address
+    /// @param amount0Desired Max amount of token0 to deposit
+    /// @param amount1Desired Max amount of token1 to deposit
     /// @param recipient Recipient of shares
     /// @return lpShares Number of shares minted
     /// @return amount0 Amount of token0 deposited in vault
