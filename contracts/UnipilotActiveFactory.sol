@@ -7,10 +7,8 @@ import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-/// @title Unipilot Active Factory
-/// @notice Deploys Unipilot active vaults and manages ownership and control over all active vaults
-/// active liquidity managament strategy will be used in these vaults
-/// all active vaults will be managed by Unipilot Captains
+/// @title Unipilot factory
+/// @notice Deploys Unipilot vaults and manages ownership and control over active and passive vaults
 contract UnipilotActiveFactory is IUnipilotFactory {
     address private governance;
     address private strategy;
@@ -36,10 +34,10 @@ contract UnipilotActiveFactory is IUnipilotFactory {
         indexFundPercentage = percentage;
     }
 
-    /// @inheritdoc IUnipilotFactory
     mapping(address => bool) public override isWhitelist;
 
-    /// @inheritdoc IUnipilotFactory
+    /// @notice Used to give address of vaults
+    /// @return vault address
     mapping(address => mapping(address => mapping(uint24 => address)))
         public
         override vaults;
@@ -112,18 +110,10 @@ contract UnipilotActiveFactory is IUnipilotFactory {
         governance = _newGovernance;
     }
 
-    /// @notice Updates the whitelist status of given account
-    /// @dev Must be called by the current governance
-    /// @param _address Account to update status
     function toggleWhitelistAccount(address _address) external onlyGovernance {
         isWhitelist[_address] = !isWhitelist[_address];
     }
 
-    /// @notice Updates all the necessary Unipilot details used in active vaults
-    /// @dev Must be called by the current governance
-    /// @param _strategy Unipilot strategy address
-    /// @param _indexFund Unipilot index fund account
-    /// @param _indexFundPercentage Percentage of fees for index fund
     function setUnipilotDetails(
         address _strategy,
         address _indexFund,

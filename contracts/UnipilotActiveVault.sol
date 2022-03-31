@@ -24,8 +24,8 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
     using UniswapLiquidityManagement for IUniswapV3Pool;
 
     IERC20 private token0;
-    IERC20 private token1;
     uint24 private fee;
+    IERC20 private token1;
     int24 private tickSpacing;
 
     TicksData public ticksData;

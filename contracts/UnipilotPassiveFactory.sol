@@ -102,8 +102,9 @@ contract UnipilotPassiveFactory is IUnipilotFactory {
             abi.encodePacked(
                 "Unipilot ",
                 token0Instance.symbol(),
-                " ",
+                "/",
                 token1Instance.symbol(),
+                " Passive"
                 " Vault"
             )
         );
@@ -113,8 +114,10 @@ contract UnipilotPassiveFactory is IUnipilotFactory {
                 "ULP",
                 "-",
                 token0Instance.symbol(),
+                "/",
+                token1Instance.symbol(),
                 "-",
-                token1Instance.symbol()
+                "PV"
             )
         );
 
