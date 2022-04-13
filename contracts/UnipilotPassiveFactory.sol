@@ -8,6 +8,7 @@ import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 /// @title Unipilot Passive Factory
+/// @author 0xMudassir & 721Orbit
 /// @notice Deploys Unipilot vaults for any uniswap v3 pair by any user.
 /// passive liquidity managament strategy will be used in these vaults
 /// all passive vaults can be managed by any user
@@ -102,8 +103,9 @@ contract UnipilotPassiveFactory is IUnipilotFactory {
             abi.encodePacked(
                 "Unipilot ",
                 token0Instance.symbol(),
-                " ",
+                "/",
                 token1Instance.symbol(),
+                " Passive"
                 " Vault"
             )
         );
@@ -113,8 +115,10 @@ contract UnipilotPassiveFactory is IUnipilotFactory {
                 "ULP",
                 "-",
                 token0Instance.symbol(),
+                "/",
+                token1Instance.symbol(),
                 "-",
-                token1Instance.symbol()
+                "PV"
             )
         );
 

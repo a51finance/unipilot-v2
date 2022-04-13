@@ -13,6 +13,7 @@ import "./libraries/UniswapPoolActions.sol";
 import "@openzeppelin/contracts/drafts/ERC20Permit.sol";
 
 /// @title Unipilot Active Vault
+/// @author 0xMudassir & 721Orbit
 /// @dev Active liquidity managment contract that handles user liquidity of any Uniswap V3 pool & earn fees for them
 /// @dev minimalist, and gas-optimized contract that ensures user liquidity is always
 /// in range and earns maximum amount of fees available at current liquidity utilization
@@ -504,9 +505,18 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         (, , address indexFund, uint8 percentage, ) = getProtocolDetails();
 
         if (fees0 > 0)
-            token0.transfer(indexFund, FullMath.mulDiv(fees0, percentage, 100));
+            TransferHelper.safeTransfer(
+                address(token0),
+                indexFund,
+                FullMath.mulDiv(fees0, percentage, 100)
+            );
+
         if (fees1 > 0)
-            token1.transfer(indexFund, FullMath.mulDiv(fees1, percentage, 100));
+            TransferHelper.safeTransfer(
+                address(token1),
+                indexFund,
+                FullMath.mulDiv(fees1, percentage, 100)
+            );
 
         emit FeesSnapshot(isReadjustLiquidity, fees0, fees1);
     }

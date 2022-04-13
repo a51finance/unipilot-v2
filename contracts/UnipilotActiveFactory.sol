@@ -8,6 +8,7 @@ import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 /// @title Unipilot Active Factory
+/// @author 0xMudassir & 721Orbit
 /// @notice Deploys Unipilot active vaults and manages ownership and control over all active vaults
 /// active liquidity managament strategy will be used in these vaults
 /// all active vaults will be managed by Unipilot Captains
