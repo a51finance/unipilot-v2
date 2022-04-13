@@ -36,6 +36,8 @@ const TKN1_TOKEN_ADDRESS = "0x6df730f6e52c57be77db98a65116d2c38ec2be2b"; // DST
 const TKN2_TOKEN_ADDRESS = "0xdf98809bbaee8d72ba88a80bc99308e30e04e4ab";
 const TTC33 = "0xB6118140b5Ad8A1449D1FeF850dA49eE4677D77A";
 const TTC99 = "0xEc025986c17b4476dB7D3F3A6065f757C56f9CAe";
+const USDT = "0xD6CEccdc53063352a21644203A7380Ef44Fe1Ef1";
+
 const pool = "0x2c028E572c5e8708aA6264a0E87396e36E477DD0"; // TTCC99 & TKN5
 
 async function updateStateVariables(): Promise<void> {
@@ -140,11 +142,11 @@ const main = async () => {
   await updateStateVariables2();
   // await deployUnipilotFactory();
   //await deployUnipilotStrategy();
+  await getERC20Approval(USDT, "0x018712664Ae35f03f7F8337e727E35159A8d3333");
   await getERC20Approval(
-    TKN2_TOKEN_ADDRESS,
-    "0xF235D7de97C9D9665cc3F7B519Cc46D9BEBb1a08",
+    WETH_TOKEN_ADDRESS,
+    "0x018712664Ae35f03f7F8337e727E35159A8d3333",
   );
-  await getERC20Approval(TTC99, "0xF235D7de97C9D9665cc3F7B519Cc46D9BEBb1a08");
   // await checkGovernance("0xcE8f9628aD97D45ee6B7088ccd316D11B37cce71");
 };
 
