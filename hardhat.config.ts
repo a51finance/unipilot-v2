@@ -2,6 +2,7 @@ import "@nomiclabs/hardhat-waffle";
 import "@nomiclabs/hardhat-etherscan";
 import "@typechain/hardhat";
 import "hardhat-gas-reporter";
+import "hardhat-contract-sizer";
 import "solidity-coverage";
 
 import "./tasks/accounts";
@@ -35,22 +36,30 @@ if (!infuraApiKey) {
   throw new Error("Please set your INFURA_API_KEY in a .env file");
 }
 
+let alchemyapiKey = process.env.FORK;
+
 const etherscanApiKey = process.env.ETHERSCAN_API_KEY;
 
-function createTestnetConfig(network: keyof typeof chainIds): NetworkUserConfig {
+function createTestnetConfig(
+  network: keyof typeof chainIds,
+): NetworkUserConfig {
   const url: string = "https://" + network + ".infura.io/v3/" + infuraApiKey;
   return {
     accounts: [`${process.env.PK1}`, `${process.env.PK2}`],
     chainId: chainIds[network],
     url,
-    gasPrice: 120000000000,
+    gas: 2100000,
+    gasPrice: 48000000000,
   };
 }
+const coinMarketCapKey = process.env.COIN_MARKETCAP;
 
 const config: HardhatUserConfig = {
   defaultNetwork: "hardhat",
   gasReporter: {
     currency: "USD",
+    coinmarketcap: coinMarketCapKey,
+    gasPrice: 48,
     enabled: process.env.REPORT_GAS ? true : false,
     excludeContracts: [],
     src: "./contracts",
@@ -81,7 +90,7 @@ const config: HardhatUserConfig = {
   solidity: {
     compilers: [
       {
-        version: "0.8.4",
+        version: "0.7.6",
         settings: {
           metadata: {
             // Not including the metadata hash
@@ -92,12 +101,9 @@ const config: HardhatUserConfig = {
           // https://hardhat.org/hardhat-network/#solidity-optimizer-support
           optimizer: {
             enabled: true,
-            runs: 800,
+            runs: 10,
           },
         },
-      },
-      {
-        version: "0.7.5",
       },
     ],
   },
@@ -107,6 +113,11 @@ const config: HardhatUserConfig = {
   },
   etherscan: {
     apiKey: etherscanApiKey,
+  },
+  contractSizer: {
+    alphaSort: true,
+    runOnCompile: true,
+    disambiguatePaths: false,
   },
 };
 
