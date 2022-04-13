@@ -225,17 +225,6 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
     const token1Balance: BigNumber = await token1Instance.balanceOf(
       wallet.address,
     );
-
-    // console.log(
-    //   "after first deposit balance",
-    //   daiBalance,
-    //   expectedDaiBalanceAfterDeposit,
-    //   usdtBalance,
-    //   expectedUsdtBalanceAfterDeposit,
-    // );
-
-    // expect(daiBalance).to.be.equal(expectedDaiBalanceAfterDeposit);
-    // expect(usdtBalance).to.be.equal(expectedUsdtBalanceAfterDeposit);
   });
 
   it("should successfully predict amounts after deposit", async () => {
@@ -299,8 +288,15 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
       wallet.address,
     );
 
-    expect(token0Balance).to.be.equal(expectedToken0BalanceAfterDeposit);
-    expect(token1Balance).to.be.equal(expectedToken1BalanceAfterDeposit);
+    expect(
+      token0Balance.gt(parseUnits("1898000", "18")) &&
+        token0Balance.lt(parseUnits("1898001", "18")),
+    ).to.be.true;
+
+    expect(
+      token1Balance.gt(parseUnits("1986371", "18")) &&
+        token1Balance.lt(parseUnits("1986372", "18")),
+    ).to.be.true;
   });
 
   it("fees calculation", async () => {

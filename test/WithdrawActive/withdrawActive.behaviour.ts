@@ -384,7 +384,7 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
 
       expect(user1LP).to.be.eq(0);
       expect(deposit[1]).to.be.eq(amount0.add(1));
-      expect(deposit[2]).to.be.eq(amount1.add(1));
+      expect(deposit[2]).to.be.eq(amount1);
     });
 
     it("before pulling liquidity should withdraw correctly", async () => {
@@ -415,24 +415,16 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
 
       expect(user1LP).to.be.eq(0);
       expect(deposit[1]).to.be.eq(amount0.add(1));
-      expect(deposit[2]).to.be.eq(amount1.add(1));
+      expect(deposit[2]).to.be.eq(amount1);
     });
 
-    it("after pulling liquidity should withdraw correctly", async () => {
-      console.log("ticks ", await vault.ticksData());
+    it("after rerrange should withdraw correctly", async () => {
       await vault.pullLiquidity(vault.address);
 
       const unusedAmount0 = await token0Instance.balanceOf(vault.address);
       const unusedAmount1 = await token1Instance.balanceOf(vault.address);
 
       var reserves = await vault.callStatic.getPositionDetails();
-      console.log(
-        "res before-> ",
-        reserves,
-        unusedAmount0,
-        unusedAmount1,
-        await vault.ticksData(),
-      );
 
       await vault
         .connect(other)
@@ -456,13 +448,6 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
       const unusedAmount1After = await token1Instance.balanceOf(vault.address);
 
       reserves = await vault.callStatic.getPositionDetails();
-      console.log(
-        "res after-> ",
-        reserves,
-        unusedAmount0After,
-        unusedAmount1After,
-        await vault.ticksData(),
-      );
     });
   });
 }
