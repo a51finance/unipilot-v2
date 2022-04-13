@@ -13,6 +13,7 @@ import "./libraries/UniswapPoolActions.sol";
 import "@openzeppelin/contracts/drafts/ERC20Permit.sol";
 
 /// @title Unipilot Passive Vault
+/// @author 0xMudassir & 721Orbit
 /// @notice Passive liquidity managment contract that handles liquidity of any Uniswap V3 pool & earn fees
 /// @dev UnipilotPassiveVault always maintains 2 range orders on Uniswap V3,
 /// base order: The main liquidity range -- where the majority of LP capital sits
@@ -35,12 +36,6 @@ contract UnipilotPassiveVault is ERC20Permit, IUnipilotVault {
     TicksData public ticksData;
     IUniswapV3Pool private pool;
     uint96 private _unlocked = 1;
-
-    modifier onlyGovernance() {
-        (address governance, , , , ) = getProtocolDetails();
-        require(msg.sender == governance);
-        _;
-    }
 
     modifier nonReentrant() {
         require(_unlocked == 1);
@@ -477,9 +472,18 @@ contract UnipilotPassiveVault is ERC20Permit, IUnipilotVault {
         (, , address indexFund, uint8 percentage, ) = getProtocolDetails();
 
         if (fees0 > 0)
-            token0.transfer(indexFund, FullMath.mulDiv(fees0, percentage, 100));
+            TransferHelper.safeTransfer(
+                address(token0),
+                indexFund,
+                FullMath.mulDiv(fees0, percentage, 100)
+            );
+
         if (fees1 > 0)
-            token1.transfer(indexFund, FullMath.mulDiv(fees1, percentage, 100));
+            TransferHelper.safeTransfer(
+                address(token1),
+                indexFund,
+                FullMath.mulDiv(fees1, percentage, 100)
+            );
 
         emit FeesSnapshot(isReadjustLiquidity, fees0, fees1);
     }
