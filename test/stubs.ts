@@ -4,8 +4,10 @@ import { UniswapV3Deployer } from "./UniswapV3Deployer";
 import WETH9Artifact from "uniswap-v3-deploy-plugin/src/util/WETH9.json";
 import UnipilotFactoryArtifact from "../artifacts/contracts/UnipilotPassiveFactory.sol/UnipilotPassiveFactory.json";
 import UniStrategyArtifact from "../artifacts/contracts/UnipilotStrategy.sol/UnipilotStrategy.json";
+import UnipilotRouterArtifact from "../artifacts/contracts/UnipilotRouter.sol/UnipilotRouter.json";
 import VaultArtifact from "../artifacts/contracts/UnipilotPassiveVault.sol/UnipilotPassiveVault.json";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { UnipilotRouter } from "../typechain";
 
 export async function deployWETH9(deployer: any): Promise<Contract> {
   let weth9: Contract = await deployContract(deployer, WETH9Artifact, [], {
@@ -45,4 +47,16 @@ export async function deployStrategy(deployer: any): Promise<Contract> {
     [deployer.address],
   );
   return uniStrategy;
+}
+
+export async function deployRouter(
+  deployer: any,
+  unipilotFactory: any,
+): Promise<Contract> {
+  let router: Contract = await deployContract(
+    deployer,
+    UnipilotRouterArtifact,
+    [unipilotFactory],
+  );
+  return router;
 }

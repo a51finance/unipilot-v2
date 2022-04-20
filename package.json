@@ -79,6 +79,7 @@
     "deploy-factory-active": "hardhat deploy-unipilotFactory-active --network",
     "deploy-factory-passive": "hardhat deploy-unipilotFactory-passive --network",
     "deploy-migrator": "hardhat deploy-migrator --network",
+    "deploy-router": "hardhat deploy-router --network",
     "verify-vault-active": "hardhat verify-active-vault --network",
     "verify-vault-passive": "hardhat verify-passive-vault --network",
     "lint": "yarn lint:sol && yarn lint:ts && yarn prettier:check",

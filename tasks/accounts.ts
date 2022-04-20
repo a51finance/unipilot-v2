@@ -299,6 +299,42 @@ task("verify-passive-vault", "Verify unipilot vault contract")
     });
   });
 
+task("deploy-router", "Deploy Unipilot Router Contract").setAction(
+  async (cliArgs, { ethers, run, network }) => {
+    await run("compile");
+
+    const signer = (await ethers.getSigners())[1];
+    console.log("Signer");
+    console.log("  at", signer.address);
+    console.log("  ETH", formatEther(await signer.getBalance()));
+
+    const args = {
+      factory: "0x6B931ceD5F52651BBc4A9C4e1F7c0797c53Ece60",
+    };
+
+    console.log("Network");
+    console.log("   ", network.name);
+    console.log("Task Args");
+    console.log(args);
+
+    const unipilotRouter = await deployContract(
+      "UnipilotRouter",
+      await ethers.getContractFactory("UnipilotRouter"),
+      signer,
+      [args.factory],
+    );
+
+    await unipilotRouter.deployTransaction.wait(5);
+
+    delay(60000);
+
+    await run("verify:verify", {
+      address: unipilotRouter.address,
+      constructorArguments: [args.factory],
+    });
+  },
+);
+
 task("deploy-strategy", "Deploy unipilot strategy contract")
   .addParam("governance", "governer address")
   .setAction(async (cliArgs, { ethers, run, network }) => {
