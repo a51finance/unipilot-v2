@@ -132,7 +132,11 @@ export const unipilotActiveVaultFixture: Fixture<UNIPILOT_VAULT_FIXTURE> =
       BigNumber.from(10),
     );
 
-    let unipilotRouter = await deployRouter(wallet, unipilotFactory.address);
+    let unipilotRouter = await deployRouter(
+      wallet,
+      unipilotFactory.address,
+      uniStrategy.address,
+    );
 
     const DAI = await deployToken(wallet, "Dai Stablecoin", "DAI", 18);
     const USDT = await deployToken(wallet, "Tether Stable", "USDT", 18);

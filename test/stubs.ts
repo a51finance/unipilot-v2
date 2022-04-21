@@ -52,11 +52,15 @@ export async function deployStrategy(deployer: any): Promise<Contract> {
 export async function deployRouter(
   deployer: any,
   unipilotFactory: any,
+  uniStrategy: any,
 ): Promise<Contract> {
   let router: Contract = await deployContract(
     deployer,
     UnipilotRouterArtifact,
-    [unipilotFactory],
+    [
+      //unipilotFactory,
+      uniStrategy,
+    ],
   );
   return router;
 }

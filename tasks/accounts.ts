@@ -309,7 +309,7 @@ task("deploy-router", "Deploy Unipilot Router Contract").setAction(
     console.log("  ETH", formatEther(await signer.getBalance()));
 
     const args = {
-      factory: "0x6B931ceD5F52651BBc4A9C4e1F7c0797c53Ece60",
+      strategy: "0x2976D74c1BBBB36D624Bc57075A5403AD48f0800",
     };
 
     console.log("Network");
@@ -321,7 +321,7 @@ task("deploy-router", "Deploy Unipilot Router Contract").setAction(
       "UnipilotRouter",
       await ethers.getContractFactory("UnipilotRouter"),
       signer,
-      [args.factory],
+      [args.strategy],
     );
 
     await unipilotRouter.deployTransaction.wait(5);
@@ -330,7 +330,7 @@ task("deploy-router", "Deploy Unipilot Router Contract").setAction(
 
     await run("verify:verify", {
       address: unipilotRouter.address,
-      constructorArguments: [args.factory],
+      constructorArguments: [args.strategy],
     });
   },
 );

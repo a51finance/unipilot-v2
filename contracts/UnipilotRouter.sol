@@ -2,7 +2,6 @@
 pragma solidity 0.7.6;
 pragma abicoder v2;
 
-import "./interfaces/IUnipilotFactory.sol";
 import "./interfaces/IUnipilotStrategy.sol";
 import "./interfaces/IUnipilotVault.sol";
 import "./libraries/TransferHelper.sol";
@@ -13,15 +12,15 @@ import "./interfaces/external/IWETH9.sol";
 contract UnipilotRouter {
     using UniswapPoolActions for IUniswapV3Pool;
     using UniswapLiquidityManagement for IUniswapV3Pool;
-    IUnipilotFactory private unipilotFactory;
+    // IUnipilotFactory private unipilotFactory;
+    address public strategy;
     address public WETH = 0xc778417E063141139Fce010982780140Aa0cD5Ab;
 
-    constructor(address _unipilotFactory) {
-        unipilotFactory = IUnipilotFactory(_unipilotFactory);
+    constructor(address _strategy) {
+        strategy = _strategy;
     }
 
     modifier checkDeviation(address pool, address vault) {
-        (, address strategy, , , ) = getProtocolDetails();
         IUnipilotStrategy(strategy).checkDeviation(address(pool));
         _;
     }
@@ -63,20 +62,6 @@ contract UnipilotRouter {
             amount1Desired,
             recipient
         );
-    }
-
-    function getProtocolDetails()
-        internal
-        view
-        returns (
-            address governance,
-            address strategy,
-            address indexFund,
-            uint8 indexFundPercentage,
-            uint8 swapPercentage
-        )
-    {
-        return unipilotFactory.getUnipilotDetails();
     }
 
     function pay(
