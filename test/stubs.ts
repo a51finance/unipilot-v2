@@ -51,8 +51,8 @@ export async function deployStrategy(deployer: any): Promise<Contract> {
 
 export async function deployRouter(
   deployer: any,
-  unipilotFactory: any,
   uniStrategy: any,
+  weth: any,
 ): Promise<Contract> {
   let router: Contract = await deployContract(
     deployer,
@@ -60,6 +60,7 @@ export async function deployRouter(
     [
       //unipilotFactory,
       uniStrategy,
+      weth,
     ],
   );
   return router;

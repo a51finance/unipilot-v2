@@ -134,8 +134,8 @@ export const unipilotActiveVaultFixture: Fixture<UNIPILOT_VAULT_FIXTURE> =
 
     let unipilotRouter = await deployRouter(
       wallet,
-      unipilotFactory.address,
       uniStrategy.address,
+      WETH9.address,
     );
 
     const DAI = await deployToken(wallet, "Dai Stablecoin", "DAI", 18);

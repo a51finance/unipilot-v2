@@ -12,12 +12,26 @@ import "./interfaces/external/IWETH9.sol";
 contract UnipilotRouter {
     using UniswapPoolActions for IUniswapV3Pool;
     using UniswapLiquidityManagement for IUniswapV3Pool;
-    // IUnipilotFactory private unipilotFactory;
-    address public strategy;
-    address public WETH = 0xc778417E063141139Fce010982780140Aa0cD5Ab;
 
-    constructor(address _strategy) {
+    struct RefundLiquidityParams {
+        address vault;
+        address token0;
+        address token1;
+        uint256 amount0Unipilot;
+        uint256 amount1Unipilot;
+        uint256 amount0Recieved;
+        uint256 amount1Recieved;
+        uint256 amount0ToMigrate;
+        uint256 amount1ToMigrate;
+        bool refundAsETH;
+    }
+
+    address public strategy;
+    address public WETH;
+
+    constructor(address _strategy, address _weth) {
         strategy = _strategy;
+        WETH = _weth;
     }
 
     modifier checkDeviation(address pool, address vault) {
@@ -27,13 +41,14 @@ contract UnipilotRouter {
 
     function deposit(
         address _pool,
-        address vault,
-        uint256 amount0Desired,
-        uint256 amount1Desired,
-        address recipient
+        address _vault,
+        uint256 _amount0Desired,
+        uint256 _amount1Desired,
+        address _recipient
     )
         external
-        checkDeviation(_pool, vault)
+        payable
+        checkDeviation(_pool, _vault)
         returns (
             uint256 lpShares,
             uint256 amount0,
@@ -41,27 +56,59 @@ contract UnipilotRouter {
         )
     {
         IUniswapV3Pool pool = IUniswapV3Pool(_pool);
+        address caller = msg.sender;
         address token0 = address(IERC20(pool.token0()));
         address token1 = address(IERC20(pool.token1()));
 
-        (, amount0Desired, , amount1Desired) = _sortTokenAmount(
+        pay(address(token0), caller, address(this), _amount0Desired);
+        pay(address(token1), caller, address(this), _amount1Desired);
+
+        _tokenApproval(token0, _vault, _amount0Desired);
+        _tokenApproval(token1, _vault, _amount1Desired);
+
+        (lpShares, amount0, amount1) = IUnipilotVault(_vault).deposit(
+            _amount0Desired,
+            _amount1Desired,
+            _recipient
+        );
+
+        RefundLiquidityParams memory params = RefundLiquidityParams(
+            _vault,
             token0,
             token1,
-            amount0Desired,
-            amount1Desired
+            amount0,
+            amount1,
+            _amount0Desired,
+            _amount1Desired,
+            _amount0Desired,
+            _amount1Desired,
+            true
         );
 
-        pay(address(token0), msg.sender, address(this), amount0Desired);
-        pay(address(token1), msg.sender, address(this), amount1Desired);
+        _refundRemainingLiquidiy(params, caller);
+    }
 
-        IERC20(token0).approve(vault, amount0Desired);
-        IERC20(token1).approve(vault, amount1Desired);
-
-        (lpShares, amount0, amount1) = IUnipilotVault(vault).deposit(
-            amount0Desired,
-            amount1Desired,
-            recipient
-        );
+    function _refundRemainingLiquidiy(
+        RefundLiquidityParams memory params,
+        address _msgSender
+    ) private {
+        if (params.amount0Unipilot < params.amount0Recieved) {
+            if (params.refundAsETH && params.token0 == WETH) {
+                unwrapWETH9(0, _msgSender);
+            } else {
+                sweepToken(params.token0, 0, _msgSender);
+            }
+        }
+        if (params.amount1Unipilot < params.amount1Recieved) {
+            if (params.amount1Unipilot < params.amount1ToMigrate) {
+                TransferHelper.safeApprove(params.token1, params.vault, 0);
+            }
+            if (params.refundAsETH && params.token1 == WETH) {
+                unwrapWETH9(0, _msgSender);
+            } else {
+                (params.token1, 0, _msgSender);
+            }
+        }
     }
 
     function pay(
@@ -83,23 +130,33 @@ contract UnipilotRouter {
         }
     }
 
-    function _sortTokenAmount(
-        address _token0,
-        address _token1,
-        uint256 _amount0,
-        uint256 _amount1
-    )
-        private
-        view
-        returns (
-            address tokenAlt1,
-            uint256 altAmount1,
-            address tokenAlt2,
-            uint256 altAmount2
-        )
-    {
-        (tokenAlt1, altAmount1, tokenAlt2, altAmount2) = _token0 < _token1
-            ? (_token0, _amount0, _token1, _amount1)
-            : (_token1, _amount1, _token0, _amount0);
+    function unwrapWETH9(uint256 amountMinimum, address recipient) internal {
+        uint256 balanceWETH9 = IWETH9(WETH).balanceOf(address(this));
+        require(balanceWETH9 >= amountMinimum, "IW");
+
+        if (balanceWETH9 > 0) {
+            IWETH9(WETH).withdraw(balanceWETH9);
+            TransferHelper.safeTransferETH(recipient, balanceWETH9);
+        }
+    }
+
+    function sweepToken(
+        address token,
+        uint256 amountMinimum,
+        address recipient
+    ) internal {
+        uint256 balanceToken = IERC20(token).balanceOf(address(this));
+        require(balanceToken >= amountMinimum, "IT");
+        if (balanceToken > 0) {
+            TransferHelper.safeTransfer(token, recipient, balanceToken);
+        }
+    }
+
+    function _tokenApproval(
+        address _token,
+        address _vault,
+        uint256 _amount
+    ) private {
+        TransferHelper.safeApprove(_token, _vault, _amount);
     }
 }
