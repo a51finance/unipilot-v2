@@ -635,7 +635,7 @@ export async function shouldBehaveLikeRouterDeposit(): Promise<void> {
   //   await unipilotVault.readjustLiquidity();
   // });
 
-  it("Price inflation", async () => {
+  it("Price Inflation", async () => {
     await unipilotVault.init();
     await unipilotRouter
       .connect(wallet)

@@ -72,7 +72,7 @@ task("deploy-unipilotFactory-active", "Deploy unipilot active factory contract")
   .setAction(async (cliArgs, { ethers, run, network }) => {
     await run("compile");
 
-    const signer = (await ethers.getSigners())[0];
+    const signer = (await ethers.getSigners())[1];
     console.log("Signer");
     console.log("  at", signer.address);
     console.log("  ETH", formatEther(await signer.getBalance()));
