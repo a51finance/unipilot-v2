@@ -635,7 +635,7 @@ export async function shouldBehaveLikeRouterDeposit(): Promise<void> {
   //   await unipilotVault.readjustLiquidity();
   // });
 
-  it("Deposit low liquidity then swap ", async () => {
+  it("Price inflation", async () => {
     await unipilotVault.init();
     await unipilotRouter
       .connect(wallet)
@@ -643,33 +643,43 @@ export async function shouldBehaveLikeRouterDeposit(): Promise<void> {
         uniswapPool.address,
         unipilotVault.address,
         parseUnits("100", "18"),
-        parseUnits("1", "18"),
+        parseUnits("100", "18"),
         wallet.address,
       );
 
     let positionDetails = await unipilotVault.callStatic.getPositionDetails();
-    console.log("before positionDetails", positionDetails);
+    // console.log("before positionDetails", positionDetails);
+
+    console.log(
+      "Tick Before Swap",
+      await unipilotVault.callStatic.currentTick(),
+    );
 
     await generateFeeThroughSwap(
       swapRouter,
       alice,
       token0Instance,
       token1Instance,
-      "100",
+      "150",
       3000,
     );
 
     positionDetails = await unipilotVault.callStatic.getPositionDetails();
-    console.log("after positionDetails", positionDetails);
+    // console.log("after positionDetails", positionDetails);
 
     await unipilotRouter
       .connect(wallet)
       .deposit(
         uniswapPool.address,
         unipilotVault.address,
-        parseUnits("100", "18"),
+        parseUnits("50", "18"),
         parseUnits("1", "18"),
         wallet.address,
       );
+
+    console.log(
+      "Tick After Swap",
+      await unipilotVault.callStatic.currentTick(),
+    );
   });
 }

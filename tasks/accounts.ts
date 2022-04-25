@@ -82,7 +82,7 @@ task("deploy-unipilotFactory-active", "Deploy unipilot active factory contract")
       governance: cliArgs.governance,
       uniStrategy: "0xB7f7c5cea2b8b6138Ea3f669B2094B27dE2ec8d4",
       indexFund: "0x95477F96F78EC38916B5457030387D844E886ab3",
-      WETH: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+      WETH: "0xc778417E063141139Fce010982780140Aa0cD5Ab",
       indexFundPercentage: 10,
     };
 
@@ -178,7 +178,7 @@ task("deploy-vault", "Deploy unipilot vault via the factory")
   .setAction(async (cliArgs, { ethers, run, network }) => {
     await run("compile");
 
-    const signer = (await ethers.getSigners())[0];
+    const signer = (await ethers.getSigners())[1];
     console.log("Signer");
     console.log("  at", signer.address);
     console.log("  ETH", formatEther(await signer.getBalance()));

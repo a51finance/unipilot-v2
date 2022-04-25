@@ -93,6 +93,9 @@ contract UnipilotRouter {
         address _msgSender
     ) private {
         if (params.amount0Unipilot < params.amount0Recieved) {
+            if (params.amount0Unipilot < params.amount0ToMigrate) {
+                TransferHelper.safeApprove(params.token0, params.vault, 0);
+            }
             if (params.refundAsETH && params.token0 == WETH) {
                 unwrapWETH9(0, _msgSender);
             } else {
@@ -106,7 +109,7 @@ contract UnipilotRouter {
             if (params.refundAsETH && params.token1 == WETH) {
                 unwrapWETH9(0, _msgSender);
             } else {
-                (params.token1, 0, _msgSender);
+                sweepToken(params.token1, 0, _msgSender);
             }
         }
     }
