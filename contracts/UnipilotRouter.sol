@@ -5,14 +5,15 @@ pragma abicoder v2;
 import "./interfaces/IUnipilotStrategy.sol";
 import "./interfaces/IUnipilotVault.sol";
 import "./libraries/TransferHelper.sol";
+import "./interfaces/external/IWETH9.sol";
+import "./interfaces/IUnipilotFactory.sol";
+
 import "./libraries/UniswapLiquidityManagement.sol";
 import "./libraries/UniswapPoolActions.sol";
-import "./interfaces/external/IWETH9.sol";
 
 contract UnipilotRouter {
     using UniswapPoolActions for IUniswapV3Pool;
-    using UniswapLiquidityManagement for IUniswapV3Pool;
-
+    // using UniswapLiquidityManagement for IUniswapV3Pool;
     struct RefundLiquidityParams {
         address vault;
         address token0;
@@ -21,21 +22,31 @@ contract UnipilotRouter {
         uint256 amount1Unipilot;
         uint256 amount0Recieved;
         uint256 amount1Recieved;
-        uint256 amount0ToMigrate;
-        uint256 amount1ToMigrate;
         bool refundAsETH;
     }
 
-    address public strategy;
     address public WETH;
+    address public unipilotActiveFactory;
+    address public unipilotPassiveFactory;
 
-    constructor(address _strategy, address _weth) {
-        strategy = _strategy;
+    constructor(
+        address _unipilotActiveFactory,
+        address _unipilotPassiveFactory,
+        address _weth
+    ) {
+        unipilotActiveFactory = _unipilotActiveFactory;
+        unipilotPassiveFactory = _unipilotPassiveFactory;
         WETH = _weth;
     }
 
-    modifier checkDeviation(address pool, address vault) {
-        IUnipilotStrategy(strategy).checkDeviation(address(pool));
+    modifier checkDeviation(address pool, bool isActive) {
+        if (isActive) {
+            IUnipilotStrategy(getProtocolDetails(unipilotActiveFactory))
+                .checkDeviation(address(pool));
+        } else if (!isActive) {
+            IUnipilotStrategy(getProtocolDetails(unipilotPassiveFactory))
+                .checkDeviation(address(pool));
+        }
         _;
     }
 
@@ -44,58 +55,51 @@ contract UnipilotRouter {
         address _vault,
         uint256 _amount0Desired,
         uint256 _amount1Desired,
-        address _recipient
+        address _recipient,
+        bool _isActiveVault
     )
         external
         payable
-        checkDeviation(_pool, _vault)
-        returns (
-            uint256 lpShares,
-            uint256 amount0,
-            uint256 amount1
-        )
+        checkDeviation(_pool, _isActiveVault)
+        returns (uint256 amount0, uint256 amount1)
     {
         IUniswapV3Pool pool = IUniswapV3Pool(_pool);
         address caller = msg.sender;
-        address token0 = address(IERC20(pool.token0()));
-        address token1 = address(IERC20(pool.token1()));
+        address token0 = pool.token0();
+        address token1 = pool.token1();
 
-        pay(address(token0), caller, address(this), _amount0Desired);
-        pay(address(token1), caller, address(this), _amount1Desired);
+        pay(token0, caller, address(this), _amount0Desired);
+        pay(token1, caller, address(this), _amount1Desired);
 
         _tokenApproval(token0, _vault, _amount0Desired);
         _tokenApproval(token1, _vault, _amount1Desired);
 
-        (lpShares, amount0, amount1) = IUnipilotVault(_vault).deposit(
+        (, amount0, amount1) = IUnipilotVault(_vault).deposit(
             _amount0Desired,
             _amount1Desired,
             _recipient
         );
 
-        RefundLiquidityParams memory params = RefundLiquidityParams(
-            _vault,
-            token0,
-            token1,
-            amount0,
-            amount1,
-            _amount0Desired,
-            _amount1Desired,
-            _amount0Desired,
-            _amount1Desired,
-            true
+        _refundRemainingLiquidity(
+            RefundLiquidityParams(
+                _vault,
+                token0,
+                token1,
+                amount0,
+                amount1,
+                _amount0Desired,
+                _amount1Desired,
+                true
+            ),
+            caller
         );
-
-        _refundRemainingLiquidiy(params, caller);
     }
 
-    function _refundRemainingLiquidiy(
+    function _refundRemainingLiquidity(
         RefundLiquidityParams memory params,
         address _msgSender
-    ) private {
+    ) internal {
         if (params.amount0Unipilot < params.amount0Recieved) {
-            if (params.amount0Unipilot < params.amount0ToMigrate) {
-                TransferHelper.safeApprove(params.token0, params.vault, 0);
-            }
             if (params.refundAsETH && params.token0 == WETH) {
                 unwrapWETH9(0, _msgSender);
             } else {
@@ -103,15 +107,19 @@ contract UnipilotRouter {
             }
         }
         if (params.amount1Unipilot < params.amount1Recieved) {
-            if (params.amount1Unipilot < params.amount1ToMigrate) {
-                TransferHelper.safeApprove(params.token1, params.vault, 0);
-            }
             if (params.refundAsETH && params.token1 == WETH) {
                 unwrapWETH9(0, _msgSender);
             } else {
                 sweepToken(params.token1, 0, _msgSender);
             }
         }
+    }
+
+    function getProtocolDetails(address factory)
+        internal
+        returns (address strategy)
+    {
+        (, strategy, , , ) = IUnipilotFactory(factory).getUnipilotDetails();
     }
 
     function pay(
@@ -159,7 +167,7 @@ contract UnipilotRouter {
         address _token,
         address _vault,
         uint256 _amount
-    ) private {
+    ) internal {
         TransferHelper.safeApprove(_token, _vault, _amount);
     }
 }

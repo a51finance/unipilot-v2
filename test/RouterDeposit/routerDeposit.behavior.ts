@@ -14,8 +14,7 @@ import {
   NonfungiblePositionManager,
   UnipilotActiveVault,
 } from "../../typechain";
-// import { generateFeeThroughSwap } from "../utils/SwapFunction/swap";
-import { generateFeeThroughSwap } from "../utils/SwapFunction/swap2";
+import { generateFeeThroughSwap } from "../utils/SwapFunction/swap";
 
 export async function shouldBehaveLikeRouterDeposit(): Promise<void> {
   const createFixtureLoader = waffle.createFixtureLoader;
@@ -241,6 +240,7 @@ export async function shouldBehaveLikeRouterDeposit(): Promise<void> {
         parseUnits("1000", "18"),
         parseUnits("1000", "18"),
         wallet.address,
+        true,
       );
 
     const token0Balance: BigNumber = await token0Instance.balanceOf(
@@ -645,14 +645,23 @@ export async function shouldBehaveLikeRouterDeposit(): Promise<void> {
         parseUnits("100", "18"),
         parseUnits("100", "18"),
         wallet.address,
+        true,
       );
 
     let positionDetails = await unipilotVault.callStatic.getPositionDetails();
     // console.log("before positionDetails", positionDetails);
 
-    console.log(
-      "Tick Before Swap",
-      await unipilotVault.callStatic.currentTick(),
+    // console.log(
+    //   "Tick Before Swap",
+    //   await unipilotVault.callStatic.currentTick(),
+    // );
+
+    await generateFeeThroughSwap(
+      swapRouter,
+      alice,
+      token0Instance,
+      token1Instance,
+      "150",
     );
 
     await generateFeeThroughSwap(
@@ -661,7 +670,14 @@ export async function shouldBehaveLikeRouterDeposit(): Promise<void> {
       token0Instance,
       token1Instance,
       "150",
-      3000,
+    );
+
+    await generateFeeThroughSwap(
+      swapRouter,
+      alice,
+      token0Instance,
+      token1Instance,
+      "150",
     );
 
     positionDetails = await unipilotVault.callStatic.getPositionDetails();
@@ -672,14 +688,15 @@ export async function shouldBehaveLikeRouterDeposit(): Promise<void> {
       .deposit(
         uniswapPool.address,
         unipilotVault.address,
-        parseUnits("50", "18"),
         parseUnits("1", "18"),
+        parseUnits("10000", "18"),
         wallet.address,
+        true,
       );
 
-    console.log(
-      "Tick After Swap",
-      await unipilotVault.callStatic.currentTick(),
-    );
+    // console.log(
+    //   "Tick After Swap",
+    //   await unipilotVault.callStatic.currentTick(),
+    // );
   });
 }

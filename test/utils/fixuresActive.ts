@@ -134,7 +134,8 @@ export const unipilotActiveVaultFixture: Fixture<UNIPILOT_VAULT_FIXTURE> =
 
     let unipilotRouter = await deployRouter(
       wallet,
-      uniStrategy.address,
+      unipilotFactory.address,
+      unipilotFactory.address,
       WETH9.address,
     );
 

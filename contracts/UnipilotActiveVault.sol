@@ -13,7 +13,6 @@ import "./libraries/UniswapPoolActions.sol";
 import "@openzeppelin/contracts/drafts/ERC20Permit.sol";
 
 /// @title Unipilot Active Vault
-/// @author 0xMudassir & 721Orbit
 /// @dev Active liquidity managment contract that handles user liquidity of any Uniswap V3 pool & earn fees for them
 /// @dev minimalist, and gas-optimized contract that ensures user liquidity is always
 /// in range and earns maximum amount of fees available at current liquidity utilization
@@ -169,7 +168,6 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
     {
         require(liquidity > 0);
         uint256 totalSupply = totalSupply();
-
         /// @dev if liquidity has pulled in contract then calculate share accordingly
         if (_pulled == 1) {
             uint256 liquidityShare = FullMath.mulDiv(
@@ -177,49 +175,39 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
                 1e18,
                 totalSupply
             );
-
             (amount0, amount1) = pool.burnUserLiquidity(
                 ticksData.baseTickLower,
                 ticksData.baseTickUpper,
                 liquidityShare,
                 address(this)
             );
-
             (uint256 fees0, uint256 fees1) = pool.collectPendingFees(
                 address(this),
                 ticksData.baseTickLower,
                 ticksData.baseTickUpper
             );
-
             transferFeesToIF(false, fees0, fees1);
         }
-
         uint256 unusedAmount0 = FullMath.mulDiv(
             _balance0().sub(amount0),
             liquidity,
             totalSupply
         );
-
         uint256 unusedAmount1 = FullMath.mulDiv(
             _balance1().sub(amount1),
             liquidity,
             totalSupply
         );
-
         amount0 = amount0.add(unusedAmount0);
         amount1 = amount1.add(unusedAmount1);
-
         if (amount0 > 0) {
             transferFunds(refundAsETH, recipient, address(token0), amount0);
         }
-
         if (amount1 > 0) {
             transferFunds(refundAsETH, recipient, address(token1), amount1);
         }
-
         _burn(msg.sender, liquidity);
         emit Withdraw(recipient, liquidity, amount0, amount1);
-
         if (_pulled == 1) {
             (uint256 c0, uint256 c1) = pool.mintLiquidity(
                 ticksData.baseTickLower,
@@ -227,7 +215,6 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
                 _balance0(),
                 _balance1()
             );
-
             emit CompoundFees(c0, c1);
         }
     }
@@ -510,13 +497,14 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
                 indexFund,
                 FullMath.mulDiv(fees0, percentage, 100)
             );
-
+        // token0.transfer(indexFund, FullMath.mulDiv(fees0, percentage, 100));
         if (fees1 > 0)
             TransferHelper.safeTransfer(
                 address(token1),
                 indexFund,
                 FullMath.mulDiv(fees1, percentage, 100)
             );
+        // token1.transfer(indexFund, FullMath.mulDiv(fees1, percentage, 100));
 
         emit FeesSnapshot(isReadjustLiquidity, fees0, fees1);
     }
@@ -556,10 +544,5 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
             // pull payment
             TransferHelper.safeTransferFrom(token, payer, recipient, value);
         }
-    }
-
-    //test
-    function currentTick() external view returns (int24 tick) {
-        (, tick, ) = UniswapLiquidityManagement.getSqrtRatioX96AndTick(pool);
     }
 }
