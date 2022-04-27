@@ -53,12 +53,11 @@ export async function deployRouter(
   deployer: any,
   unipilotActiveFactory: any,
   unipilotPassiveFactory: any,
-  weth: any,
 ): Promise<Contract> {
   let router: Contract = await deployContract(
     deployer,
     UnipilotRouterArtifact,
-    [unipilotActiveFactory, unipilotPassiveFactory, weth],
+    [unipilotActiveFactory, unipilotPassiveFactory],
   );
   return router;
 }

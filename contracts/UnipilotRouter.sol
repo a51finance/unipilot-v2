@@ -10,8 +10,9 @@ import "./interfaces/IUnipilotFactory.sol";
 
 import "./libraries/UniswapLiquidityManagement.sol";
 import "./libraries/UniswapPoolActions.sol";
+import "./base/PeripheryPayments.sol";
 
-contract UnipilotRouter {
+contract UnipilotRouter is PeripheryPayments {
     using UniswapPoolActions for IUniswapV3Pool;
     // using UniswapLiquidityManagement for IUniswapV3Pool;
     struct RefundLiquidityParams {
@@ -25,74 +26,93 @@ contract UnipilotRouter {
         bool refundAsETH;
     }
 
-    address public WETH;
+    address public governance;
     address public unipilotActiveFactory;
     address public unipilotPassiveFactory;
 
-    constructor(
-        address _unipilotActiveFactory,
-        address _unipilotPassiveFactory,
-        address _weth
-    ) {
+    constructor(address _unipilotActiveFactory, address _unipilotPassiveFactory)
+    {
+        governance = msg.sender;
         unipilotActiveFactory = _unipilotActiveFactory;
         unipilotPassiveFactory = _unipilotPassiveFactory;
-        WETH = _weth;
     }
 
     modifier checkDeviation(address pool, bool isActive) {
         if (isActive) {
-            IUnipilotStrategy(getProtocolDetails(unipilotActiveFactory))
+            IUnipilotStrategy(_getProtocolDetails(unipilotActiveFactory))
                 .checkDeviation(address(pool));
         } else if (!isActive) {
-            IUnipilotStrategy(getProtocolDetails(unipilotPassiveFactory))
+            IUnipilotStrategy(_getProtocolDetails(unipilotPassiveFactory))
                 .checkDeviation(address(pool));
         }
         _;
     }
 
+    modifier onlyGovernance() {
+        require(msg.sender == governance, "NA");
+        _;
+    }
+
     function deposit(
-        address _pool,
-        address _vault,
-        uint256 _amount0Desired,
-        uint256 _amount1Desired,
-        address _recipient,
-        bool _isActiveVault
+        address pool,
+        address vault,
+        uint256 amount0Desired,
+        uint256 amount1Desired,
+        address recipient,
+        bool isActiveVault
     )
         external
         payable
-        checkDeviation(_pool, _isActiveVault)
+        checkDeviation(pool, isActiveVault)
         returns (uint256 amount0, uint256 amount1)
     {
-        IUniswapV3Pool pool = IUniswapV3Pool(_pool);
+        IUniswapV3Pool pool = IUniswapV3Pool(pool);
         address caller = msg.sender;
         address token0 = pool.token0();
         address token1 = pool.token1();
 
-        pay(token0, caller, address(this), _amount0Desired);
-        pay(token1, caller, address(this), _amount1Desired);
+        pay(token0, caller, address(this), amount0Desired);
+        pay(token1, caller, address(this), amount1Desired);
 
-        _tokenApproval(token0, _vault, _amount0Desired);
-        _tokenApproval(token1, _vault, _amount1Desired);
+        _tokenApproval(token0, vault, amount0Desired);
+        _tokenApproval(token1, vault, amount1Desired);
 
-        (, amount0, amount1) = IUnipilotVault(_vault).deposit(
-            _amount0Desired,
-            _amount1Desired,
-            _recipient
+        (, amount0, amount1) = IUnipilotVault(vault).deposit(
+            amount0Desired,
+            amount1Desired,
+            recipient
         );
+
+        refundETH();
 
         _refundRemainingLiquidity(
             RefundLiquidityParams(
-                _vault,
+                vault,
                 token0,
                 token1,
                 amount0,
                 amount1,
-                _amount0Desired,
-                _amount1Desired,
+                amount0Desired,
+                amount1Desired,
                 true
             ),
             caller
         );
+    }
+
+    function updateFactory(address newFactory, bool isActive)
+        external
+        onlyGovernance
+    {
+        if (isActive) {
+            unipilotActiveFactory = newFactory;
+        } else {
+            unipilotPassiveFactory = newFactory;
+        }
+    }
+
+    function updateGovernance(address newGovernance) external onlyGovernance {
+        governance = newGovernance;
     }
 
     function _refundRemainingLiquidity(
@@ -115,52 +135,11 @@ contract UnipilotRouter {
         }
     }
 
-    function getProtocolDetails(address factory)
+    function _getProtocolDetails(address factory)
         internal
         returns (address strategy)
     {
         (, strategy, , , ) = IUnipilotFactory(factory).getUnipilotDetails();
-    }
-
-    function pay(
-        address token,
-        address payer,
-        address recipient,
-        uint256 value
-    ) internal {
-        if (token == WETH && address(this).balance >= value) {
-            // pay with WETH9
-            IWETH9(WETH).deposit{ value: value }(); // wrap only what is needed to pay
-            IWETH9(WETH).transfer(recipient, value);
-        } else if (payer == address(this)) {
-            // pay with tokens already in the contract (for the exact input multihop case)
-            TransferHelper.safeTransfer(token, recipient, value);
-        } else {
-            // pull payment
-            TransferHelper.safeTransferFrom(token, payer, recipient, value);
-        }
-    }
-
-    function unwrapWETH9(uint256 amountMinimum, address recipient) internal {
-        uint256 balanceWETH9 = IWETH9(WETH).balanceOf(address(this));
-        require(balanceWETH9 >= amountMinimum, "IW");
-
-        if (balanceWETH9 > 0) {
-            IWETH9(WETH).withdraw(balanceWETH9);
-            TransferHelper.safeTransferETH(recipient, balanceWETH9);
-        }
-    }
-
-    function sweepToken(
-        address token,
-        uint256 amountMinimum,
-        address recipient
-    ) internal {
-        uint256 balanceToken = IERC20(token).balanceOf(address(this));
-        require(balanceToken >= amountMinimum, "IT");
-        if (balanceToken > 0) {
-            TransferHelper.safeTransfer(token, recipient, balanceToken);
-        }
     }
 
     function _tokenApproval(

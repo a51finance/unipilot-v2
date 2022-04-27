@@ -136,7 +136,6 @@ export const unipilotActiveVaultFixture: Fixture<UNIPILOT_VAULT_FIXTURE> =
       wallet,
       unipilotFactory.address,
       unipilotFactory.address,
-      WETH9.address,
     );
 
     const DAI = await deployToken(wallet, "Dai Stablecoin", "DAI", 18);

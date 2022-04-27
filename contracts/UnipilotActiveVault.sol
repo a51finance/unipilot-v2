@@ -545,4 +545,9 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
             TransferHelper.safeTransferFrom(token, payer, recipient, value);
         }
     }
+
+    //test
+    function currentTick() external view returns (int24 tick) {
+        (, tick, ) = UniswapLiquidityManagement.getSqrtRatioX96AndTick(pool);
+    }
 }

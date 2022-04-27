@@ -167,8 +167,8 @@ export async function shouldBehaveLikeRouterDeposit(): Promise<void> {
         tickUpper: getMaxTick(60),
         fee: 3000,
         recipient: wallet.address,
-        amount0Desired: parseUnits("100", "18"),
-        amount1Desired: parseUnits("100", "18"),
+        amount0Desired: parseUnits("500", "18"),
+        amount1Desired: parseUnits("5000", "18"),
         amount0Min: 0,
         amount1Min: 0,
         deadline: 2000000000,
@@ -642,8 +642,8 @@ export async function shouldBehaveLikeRouterDeposit(): Promise<void> {
       .deposit(
         uniswapPool.address,
         unipilotVault.address,
-        parseUnits("100", "18"),
-        parseUnits("100", "18"),
+        parseUnits("1000", "18"),
+        parseUnits("1000", "18"),
         wallet.address,
         true,
       );
@@ -651,17 +651,9 @@ export async function shouldBehaveLikeRouterDeposit(): Promise<void> {
     let positionDetails = await unipilotVault.callStatic.getPositionDetails();
     // console.log("before positionDetails", positionDetails);
 
-    // console.log(
-    //   "Tick Before Swap",
-    //   await unipilotVault.callStatic.currentTick(),
-    // );
-
-    await generateFeeThroughSwap(
-      swapRouter,
-      alice,
-      token0Instance,
-      token1Instance,
-      "150",
+    console.log(
+      "Tick Before Swap",
+      await unipilotVault.callStatic.currentTick(),
     );
 
     await generateFeeThroughSwap(
@@ -669,7 +661,7 @@ export async function shouldBehaveLikeRouterDeposit(): Promise<void> {
       alice,
       token0Instance,
       token1Instance,
-      "150",
+      "1000",
     );
 
     await generateFeeThroughSwap(
@@ -677,7 +669,15 @@ export async function shouldBehaveLikeRouterDeposit(): Promise<void> {
       alice,
       token0Instance,
       token1Instance,
-      "150",
+      "500",
+    );
+
+    await generateFeeThroughSwap(
+      swapRouter,
+      wallet,
+      token0Instance,
+      token1Instance,
+      "4000",
     );
 
     positionDetails = await unipilotVault.callStatic.getPositionDetails();
@@ -688,15 +688,15 @@ export async function shouldBehaveLikeRouterDeposit(): Promise<void> {
       .deposit(
         uniswapPool.address,
         unipilotVault.address,
+        parseUnits("1000", "18"),
         parseUnits("1", "18"),
-        parseUnits("10000", "18"),
         wallet.address,
         true,
       );
 
-    // console.log(
-    //   "Tick After Swap",
-    //   await unipilotVault.callStatic.currentTick(),
-    // );
+    console.log(
+      "Tick After Swap",
+      await unipilotVault.callStatic.currentTick(),
+    );
   });
 }
