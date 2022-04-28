@@ -26,6 +26,17 @@ contract UnipilotRouter is PeripheryPayments {
         bool refundAsETH;
     }
 
+    struct DepositParams {
+        address pool;
+        address vault;
+        uint256 amount0Desired;
+        uint256 amount1Desired;
+        address recipient;
+        uint256 amount0Min;
+        uint256 amount1Min;
+        bool isActiveVault;
+    }
+
     address public governance;
     address public unipilotActiveFactory;
     address public unipilotPassiveFactory;
@@ -53,50 +64,48 @@ contract UnipilotRouter is PeripheryPayments {
         _;
     }
 
-    function deposit(
-        address pool,
-        address vault,
-        uint256 amount0Desired,
-        uint256 amount1Desired,
-        address recipient,
-        bool isActiveVault
-    )
+    function deposit(DepositParams memory params)
         external
         payable
-        checkDeviation(pool, isActiveVault)
+        checkDeviation(params.pool, params.isActiveVault)
         returns (uint256 amount0, uint256 amount1)
     {
-        IUniswapV3Pool pool = IUniswapV3Pool(pool);
+        IUniswapV3Pool pool = IUniswapV3Pool(params.pool);
         address caller = msg.sender;
         address token0 = pool.token0();
         address token1 = pool.token1();
 
-        pay(token0, caller, address(this), amount0Desired);
-        pay(token1, caller, address(this), amount1Desired);
+        pay(token0, caller, address(this), params.amount0Desired);
+        pay(token1, caller, address(this), params.amount1Desired);
 
-        _tokenApproval(token0, vault, amount0Desired);
-        _tokenApproval(token1, vault, amount1Desired);
+        _tokenApproval(token0, params.vault, params.amount0Desired);
+        _tokenApproval(token1, params.vault, params.amount1Desired);
 
-        (, amount0, amount1) = IUnipilotVault(vault).deposit(
-            amount0Desired,
-            amount1Desired,
-            recipient
+        (, amount0, amount1) = IUnipilotVault(params.vault).deposit(
+            params.amount0Desired,
+            params.amount1Desired,
+            params.recipient
         );
 
         refundETH();
 
         _refundRemainingLiquidity(
             RefundLiquidityParams(
-                vault,
+                params.vault,
                 token0,
                 token1,
                 amount0,
                 amount1,
-                amount0Desired,
-                amount1Desired,
+                params.amount0Desired,
+                params.amount1Desired,
                 true
             ),
             caller
+        );
+
+        require(
+            amount0 >= params.amount0Min && amount1 >= params.amount1Min,
+            "Price slippage check"
         );
     }
 

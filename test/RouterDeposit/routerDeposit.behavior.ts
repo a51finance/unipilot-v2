@@ -167,8 +167,8 @@ export async function shouldBehaveLikeRouterDeposit(): Promise<void> {
         tickUpper: getMaxTick(60),
         fee: 3000,
         recipient: wallet.address,
-        amount0Desired: parseUnits("500", "18"),
-        amount1Desired: parseUnits("5000", "18"),
+        amount0Desired: parseUnits("5", "18"),
+        amount1Desired: parseUnits("50000", "18"),
         amount0Min: 0,
         amount1Min: 0,
         deadline: 2000000000,
@@ -232,16 +232,29 @@ export async function shouldBehaveLikeRouterDeposit(): Promise<void> {
       expectedDaiBalanceBeforeDeposit.sub(token1ToBeDesposited); //1994875
 
     await unipilotVault.init();
+    // await unipilotRouter
+    //   .connect(wallet)
+    //   .deposit(
+    //     uniswapPool.address,
+    //     unipilotVault.address,
+    //     parseUnits("1000", "18"),
+    //     parseUnits("1000", "18"),
+    //     wallet.address,
+    //     true,
+    //   );
+
     await unipilotRouter
       .connect(wallet)
-      .deposit(
+      .deposit([
         uniswapPool.address,
         unipilotVault.address,
         parseUnits("1000", "18"),
         parseUnits("1000", "18"),
         wallet.address,
+        parseUnits("1", "18"),
+        parseUnits("1", "18"),
         true,
-      );
+      ]);
 
     const token0Balance: BigNumber = await token0Instance.balanceOf(
       wallet.address,
@@ -261,6 +274,7 @@ export async function shouldBehaveLikeRouterDeposit(): Promise<void> {
   //       parseUnits("1000", "18"),
   //       parseUnits("1000", "18"),
   //       wallet.address,
+  //       true
   //     );
 
   //   await unipilotVault.readjustLiquidity();
@@ -273,6 +287,7 @@ export async function shouldBehaveLikeRouterDeposit(): Promise<void> {
   //       parseUnits("1000", "18"),
   //       parseUnits("1000", "18"),
   //       wallet.address,
+  //       true
   //     );
 
   //   const token0MintedOnWallet0 = parseUnits("2000000", "18");
@@ -338,6 +353,7 @@ export async function shouldBehaveLikeRouterDeposit(): Promise<void> {
   //       parseUnits("10000", "18"),
   //       parseUnits("80000", "18"),
   //       wallet.address,
+  //       true
   //     );
 
   //   await generateFeeThroughSwap(
@@ -368,6 +384,7 @@ export async function shouldBehaveLikeRouterDeposit(): Promise<void> {
   //       parseUnits("1000", "18"),
   //       parseUnits("1000", "18"),
   //       wallet.address,
+  //       true
   //     );
 
   //   const positionDetails = await unipilotVault.callStatic.getPositionDetails();
@@ -392,6 +409,7 @@ export async function shouldBehaveLikeRouterDeposit(): Promise<void> {
   //       parseUnits("1000", "18"),
   //       parseUnits("1000", "18"),
   //       wallet.address,
+  //       true
   //     );
 
   //   await unipilotRouter
@@ -402,6 +420,7 @@ export async function shouldBehaveLikeRouterDeposit(): Promise<void> {
   //       parseUnits("1000", "18"),
   //       parseUnits("1000", "18"),
   //       bob.address,
+  //       true
   //     );
 
   //   await unipilotRouter
@@ -412,6 +431,7 @@ export async function shouldBehaveLikeRouterDeposit(): Promise<void> {
   //       parseUnits("1000", "18"),
   //       parseUnits("1000", "18"),
   //       carol.address,
+  //       true
   //     );
 
   //   await generateFeeThroughSwap(
@@ -432,6 +452,7 @@ export async function shouldBehaveLikeRouterDeposit(): Promise<void> {
   //       parseUnits("4000", "18"),
   //       parseUnits("4000", "18"),
   //       user0.address,
+  //       true
   //     );
 
   //   positionDetails = await unipilotVault.callStatic.getPositionDetails();
@@ -471,6 +492,7 @@ export async function shouldBehaveLikeRouterDeposit(): Promise<void> {
   //       parseUnits("1000", "18"),
   //       parseUnits("1000", "18"),
   //       wallet.address,
+  //       true
   //     );
 
   //   const token0BalanceAfterDeposit: BigNumber = await token0Instance.balanceOf(
@@ -516,6 +538,7 @@ export async function shouldBehaveLikeRouterDeposit(): Promise<void> {
   //       parseUnits("1000", "18"),
   //       parseUnits("1000", "18"),
   //       wallet.address,
+  //       true
   //     );
 
   //   const token0BalanceAfterDeposit: BigNumber = await token0Instance.balanceOf(
@@ -570,6 +593,7 @@ export async function shouldBehaveLikeRouterDeposit(): Promise<void> {
   //       parseUnits("1000", "18"),
   //       parseUnits("1000", "18"),
   //       wallet.address,
+  //       true
   //     );
 
   //   const token0BalanceAfterDeposit: BigNumber = await token0Instance.balanceOf(
@@ -613,6 +637,7 @@ export async function shouldBehaveLikeRouterDeposit(): Promise<void> {
   //       parseUnits("1000", "18"),
   //       parseUnits("1000", "18"),
   //       wallet.address,
+  //       true
   //     );
 
   //   positionDetails = await unipilotVault.callStatic.getPositionDetails();
@@ -637,16 +662,29 @@ export async function shouldBehaveLikeRouterDeposit(): Promise<void> {
 
   it("Price Inflation", async () => {
     await unipilotVault.init();
+    // await unipilotRouter
+    //   .connect(wallet)
+    //   .deposit(
+    //     uniswapPool.address,
+    //     unipilotVault.address,
+    //     parseUnits("1000", "18"),
+    //     parseUnits("1000", "18"),
+    //     wallet.address,
+    //     true,
+    //   );
+
     await unipilotRouter
       .connect(wallet)
-      .deposit(
+      .deposit([
         uniswapPool.address,
         unipilotVault.address,
         parseUnits("1000", "18"),
         parseUnits("1000", "18"),
         wallet.address,
+        parseUnits("1", "18"),
+        parseUnits("1", "18"),
         true,
-      );
+      ]);
 
     let positionDetails = await unipilotVault.callStatic.getPositionDetails();
     // console.log("before positionDetails", positionDetails);
@@ -683,16 +721,29 @@ export async function shouldBehaveLikeRouterDeposit(): Promise<void> {
     positionDetails = await unipilotVault.callStatic.getPositionDetails();
     // console.log("after positionDetails", positionDetails);
 
+    // await unipilotRouter
+    //   .connect(wallet)
+    //   .deposit(
+    //     uniswapPool.address,
+    //     unipilotVault.address,
+    //     parseUnits("1000", "18"),
+    //     parseUnits("1", "18"),
+    //     wallet.address,
+    //     true,
+    //   );
+
     await unipilotRouter
       .connect(wallet)
-      .deposit(
+      .deposit([
         uniswapPool.address,
         unipilotVault.address,
         parseUnits("1000", "18"),
-        parseUnits("1", "18"),
+        parseUnits("1000", "18"),
         wallet.address,
+        parseUnits("100", "18"),
+        parseUnits("100", "18"),
         true,
-      );
+      ]);
 
     console.log(
       "Tick After Swap",
