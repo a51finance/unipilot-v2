@@ -8,7 +8,6 @@ import "./base/oracle/libraries/OracleLibrary.sol";
 
 import "@uniswap/v3-core/contracts/libraries/TickMath.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
-import "hardhat/console.sol";
 
 /**
  *
@@ -242,8 +241,6 @@ contract UnipilotStrategy is IUnipilotStrategy {
         int24 twap = calculateTwap(pool);
         (int24 tick, ) = getCurrentTick(pool);
         int24 deviation = tick > twap ? tick - twap : twap - tick;
-        console.log("deviation", uint256(deviation));
-        console.log("maxTwapDeviation", uint256(maxTwapDeviation));
         require(deviation <= maxTwapDeviation, "MTF");
     }
 
