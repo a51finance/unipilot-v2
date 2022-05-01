@@ -2,13 +2,14 @@
 pragma solidity 0.7.6;
 pragma abicoder v2;
 
-import "./interfaces/IUnipilotStrategy.sol";
+import "./base/PeripheryPayments.sol";
+
 import "./interfaces/IUnipilotVault.sol";
-import "./libraries/TransferHelper.sol";
 import "./interfaces/external/IWETH9.sol";
 import "./interfaces/IUnipilotFactory.sol";
-import "./libraries/UniswapPoolActions.sol";
-import "./base/PeripheryPayments.sol";
+import "./interfaces/IUnipilotStrategy.sol";
+
+import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 
 contract UnipilotRouter is PeripheryPayments {
     struct RefundLiquidityParams {
@@ -32,7 +33,8 @@ contract UnipilotRouter is PeripheryPayments {
     }
 
     modifier checkDeviation(address pool, bool isActive) {
-        _getStrategy(pool, isActive);
+        address strategy = _getStrategy(isActive);
+        IUnipilotStrategy(strategy).checkDeviation(pool);
         _;
     }
 
@@ -50,12 +52,11 @@ contract UnipilotRouter is PeripheryPayments {
         returns (uint256 amount0, uint256 amount1)
     {
         IUniswapV3Pool pool = IUniswapV3Pool(pool);
-        address caller = msg.sender;
         address token0 = pool.token0();
         address token1 = pool.token1();
 
-        pay(token0, caller, address(this), amount0Desired);
-        pay(token1, caller, address(this), amount1Desired);
+        pay(token0, msg.sender, address(this), amount0Desired);
+        pay(token1, msg.sender, address(this), amount1Desired);
 
         _tokenApproval(token0, vault, amount0Desired);
         _tokenApproval(token1, vault, amount1Desired);
@@ -79,7 +80,7 @@ contract UnipilotRouter is PeripheryPayments {
                 amount1Desired,
                 true
             ),
-            caller
+            msg.sender
         );
     }
 
@@ -103,25 +104,19 @@ contract UnipilotRouter is PeripheryPayments {
         }
     }
 
-    function _getStrategy(address pool, bool isActive)
-        internal
-        returns (address strategy)
-    {
+    function _getStrategy(bool isActive) internal returns (address strategy) {
         if (isActive) {
-            (, strategy) = _getProtocolDetails(unipilotActiveFactory);
-            IUnipilotStrategy(strategy).checkDeviation(address(pool));
+            strategy = _getProtocolDetails(unipilotActiveFactory);
         } else {
-            (, strategy) = _getProtocolDetails(unipilotPassiveFactory);
-            IUnipilotStrategy(strategy).checkDeviation(address(pool));
+            strategy = _getProtocolDetails(unipilotPassiveFactory);
         }
     }
 
-    function _getProtocolDetails(address _factory)
+    function _getProtocolDetails(address factory)
         internal
-        returns (address _governance, address _strategy)
+        returns (address strategy)
     {
-        (_governance, _strategy, , , ) = IUnipilotFactory(_factory)
-            .getUnipilotDetails();
+        (, strategy, , , ) = IUnipilotFactory(factory).getUnipilotDetails();
     }
 
     function _tokenApproval(
