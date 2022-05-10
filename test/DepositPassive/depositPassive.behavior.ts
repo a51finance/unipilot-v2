@@ -173,6 +173,7 @@ export async function shouldBehaveLikeDepositPassive(): Promise<void> {
     await unipilotVault
       .connect(wallet)
       .deposit(
+        wallet.address,
         parseUnits("1000", "18"),
         parseUnits("1000", "18"),
         wallet.address,

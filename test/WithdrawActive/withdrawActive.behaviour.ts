@@ -142,6 +142,7 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
     beforeEach("Add liquidity in vault and whiteliste vault", async () => {
       await vault.init();
       await vault.deposit(
+        wallet.address,
         parseUnits("1000", "18"),
         parseUnits("1000", "18"),
         wallet.address,
@@ -245,6 +246,7 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
       await vault
         .connect(other)
         .deposit(
+          other.address,
           parseUnits("1000", "18"),
           parseUnits("1000", "18"),
           other.address,
@@ -318,6 +320,7 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
       const { amount0, amount1 } = await vault
         .connect(other)
         .callStatic.deposit(
+          other.address,
           parseUnits("1000", "18"),
           parseUnits("1000", "18"),
           other.address,
@@ -326,6 +329,7 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
       await vault
         .connect(other)
         .deposit(
+          other.address,
           parseUnits("1000", "18"),
           parseUnits("1000", "18"),
           other.address,
@@ -360,6 +364,7 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
       const deposit = await vault
         .connect(other)
         .callStatic.deposit(
+          other.address,
           parseUnits("1000", "18"),
           parseUnits("1000", "18"),
           other.address,
@@ -368,6 +373,7 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
       await vault
         .connect(other)
         .deposit(
+          other.address,
           parseUnits("1000", "18"),
           parseUnits("1000", "18"),
           other.address,
@@ -393,6 +399,7 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
       const deposit = await vault
         .connect(other)
         .callStatic.deposit(
+          other.address,
           parseUnits("1000", "18"),
           parseUnits("1000", "18"),
           other.address,
@@ -401,6 +408,7 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
       await vault
         .connect(other)
         .deposit(
+          other.address,
           parseUnits("1000", "18"),
           parseUnits("1000", "18"),
           other.address,
@@ -429,6 +437,7 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
       await vault
         .connect(other)
         .deposit(
+          other.address,
           parseUnits("1000", "18"),
           parseUnits("1000", "18"),
           other.address,
@@ -439,6 +448,7 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
       await vault
         .connect(other)
         .deposit(
+          other.address,
           parseUnits("1000", "18"),
           parseUnits("1000", "18"),
           other.address,

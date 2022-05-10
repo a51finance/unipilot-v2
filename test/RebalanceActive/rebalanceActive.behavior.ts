@@ -168,6 +168,7 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
     await unipilotVault
       .connect(wallet)
       .deposit(
+        wallet.address,
         parseUnits("5000", "18"),
         parseUnits("5000", "18"),
         wallet.address,
@@ -181,6 +182,7 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
     await unipilotVault
       .connect(wallet)
       .deposit(
+        wallet.address,
         parseUnits("5000", "18"),
         parseUnits("5000", "18"),
         wallet.address,
@@ -224,6 +226,7 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
     await unipilotVault
       .connect(wallet)
       .deposit(
+        wallet.address,
         parseUnits("5000", "18"),
         parseUnits("5000", "18"),
         wallet.address,
@@ -303,6 +306,7 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
     await unipilotVault
       .connect(wallet)
       .deposit(
+        wallet.address,
         parseUnits("5000", "18"),
         parseUnits("5000", "18"),
         wallet.address,

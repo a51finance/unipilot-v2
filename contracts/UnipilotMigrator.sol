@@ -491,7 +491,7 @@ contract UnipilotMigrator is
         address recipient
     ) private returns (uint256 despositedAmount0, uint256 despositedAmount1) {
         (, despositedAmount0, despositedAmount1) = IUnipilotVault(vault)
-            .deposit(amount0, amount1, recipient);
+            .deposit(address(this), amount0, amount1, recipient);
     }
 
     function _sortWethAmount(
@@ -501,7 +501,7 @@ contract UnipilotMigrator is
         uint256 _amount1
     )
         private
-        view
+        pure
         returns (
             address tokenAlt,
             uint256 altAmount,
