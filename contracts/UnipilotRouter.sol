@@ -62,6 +62,7 @@ contract UnipilotRouter is PeripheryPayments {
         _tokenApproval(token1, vault, amount1Desired);
 
         (, amount0, amount1) = IUnipilotVault(vault).deposit(
+            address(this),
             amount0Desired,
             amount1Desired,
             recipient
@@ -82,27 +83,6 @@ contract UnipilotRouter is PeripheryPayments {
             ),
             msg.sender
         );
-    }
-
-    function withdraw(
-        address pool,
-        address vault,
-        uint256 liquidity,
-        address recipient,
-        bool refundAsETH,
-        bool isActiveVault
-    )
-        external
-        checkDeviation(pool, isActiveVault)
-        returns (uint256 amount0, uint256 amount1)
-    {
-        pay(vault, msg.sender, address(this), liquidity);
-        (amount0, amount1) = IUnipilotVault(vault).withdraw(
-            liquidity,
-            recipient,
-            refundAsETH
-        );
-        require(amount0 > 0 || amount1 > 0);
     }
 
     function _refundRemainingLiquidity(
