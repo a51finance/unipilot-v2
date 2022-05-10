@@ -68,6 +68,7 @@ interface IUnipilotVault {
 
     /// @notice Deposits tokens in proportion to the Unipilot's current holdings & mints them
     /// `Unipilot`s LP token.
+    /// @param payer Address which is responsible to pay the liquidity
     /// @param amount0Desired Max amount of token0 to deposit
     /// @param amount1Desired Max amount of token1 to deposit
     /// @param recipient Recipient of shares
@@ -75,6 +76,7 @@ interface IUnipilotVault {
     /// @return amount0 Amount of token0 deposited in vault
     /// @return amount1 Amount of token1 deposited in vault
     function deposit(
+        address payer,
         uint256 amount0Desired,
         uint256 amount1Desired,
         address recipient

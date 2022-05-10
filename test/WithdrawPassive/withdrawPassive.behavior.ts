@@ -143,6 +143,7 @@ export async function shouldBehaveLikeWithdrawPassive(): Promise<void> {
   describe("#withdraw for passive pools", () => {
     beforeEach("Deposit in unipilot vault", async () => {
       await vault.deposit(
+        wallet.address,
         parseUnits("1000", "18"),
         parseUnits("1000", "18"),
         wallet.address,
@@ -209,6 +210,7 @@ export async function shouldBehaveLikeWithdrawPassive(): Promise<void> {
       await vault
         .connect(other)
         .deposit(
+          other.address,
           parseUnits("1000", "18"),
           parseUnits("1000", "18"),
           other.address,
