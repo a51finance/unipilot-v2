@@ -214,7 +214,6 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
     await unipilotVault
       .connect(wallet)
       .deposit(
-        wallet.address,
         parseUnits("1000", "18"),
         parseUnits("1000", "18"),
         wallet.address,
@@ -233,7 +232,6 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
     await unipilotVault
       .connect(wallet)
       .deposit(
-        wallet.address,
         parseUnits("1000", "18"),
         parseUnits("1000", "18"),
         wallet.address,
@@ -244,7 +242,6 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
     await unipilotVault
       .connect(wallet)
       .deposit(
-        wallet.address,
         parseUnits("1000", "18"),
         parseUnits("1000", "18"),
         wallet.address,
@@ -308,7 +305,6 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
     await unipilotVault
       .connect(wallet)
       .deposit(
-        wallet.address,
         parseUnits("10000", "18"),
         parseUnits("80000", "18"),
         wallet.address,
@@ -337,7 +333,6 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
     await unipilotVault
       .connect(wallet)
       .deposit(
-        wallet.address,
         parseUnits("1000", "18"),
         parseUnits("1000", "18"),
         wallet.address,
@@ -360,7 +355,6 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
     await unipilotVault
       .connect(wallet)
       .deposit(
-        wallet.address,
         parseUnits("1000", "18"),
         parseUnits("1000", "18"),
         wallet.address,
@@ -368,17 +362,11 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
 
     await unipilotVault
       .connect(bob)
-      .deposit(
-        wallet.address,
-        parseUnits("1000", "18"),
-        parseUnits("1000", "18"),
-        bob.address,
-      );
+      .deposit(parseUnits("1000", "18"), parseUnits("1000", "18"), bob.address);
 
     await unipilotVault
       .connect(carol)
       .deposit(
-        wallet.address,
         parseUnits("1000", "18"),
         parseUnits("1000", "18"),
         carol.address,
@@ -397,7 +385,6 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
     await unipilotVault
       .connect(user0)
       .deposit(
-        wallet.address,
         parseUnits("4000", "18"),
         parseUnits("4000", "18"),
         user0.address,
@@ -435,7 +422,6 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
     await unipilotVault
       .connect(wallet)
       .deposit(
-        wallet.address,
         parseUnits("1000", "18"),
         parseUnits("1000", "18"),
         wallet.address,
@@ -479,7 +465,6 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
     await unipilotVault
       .connect(wallet)
       .deposit(
-        wallet.address,
         parseUnits("1000", "18"),
         parseUnits("1000", "18"),
         wallet.address,
@@ -532,7 +517,6 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
     await unipilotVault
       .connect(wallet)
       .deposit(
-        wallet.address,
         parseUnits("1000", "18"),
         parseUnits("1000", "18"),
         wallet.address,
@@ -574,7 +558,6 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
     await unipilotVault
       .connect(wallet)
       .deposit(
-        wallet.address,
         parseUnits("1000", "18"),
         parseUnits("1000", "18"),
         wallet.address,

@@ -110,7 +110,6 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
 
     /// @inheritdoc IUnipilotVault
     function deposit(
-        address payer,
         uint256 amount0Desired,
         uint256 amount1Desired,
         address recipient
@@ -127,6 +126,7 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
     {
         require(amount0Desired > 0 && amount1Desired > 0);
 
+        address sender = _msgSender();
         (lpShares, amount0, amount1) = pool.computeLpShares(
             true,
             amount0Desired,
@@ -137,8 +137,8 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
             ticksData
         );
 
-        pay(address(token0), payer, address(this), amount0);
-        pay(address(token1), payer, address(this), amount1);
+        pay(address(token0), sender, address(this), amount0);
+        pay(address(token1), sender, address(this), amount1);
 
         if (_pulled == 1) {
             pool.mintLiquidity(
@@ -150,10 +150,10 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         }
 
         if (address(this).balance > 0)
-            TransferHelper.safeTransferETH(payer, address(this).balance);
+            TransferHelper.safeTransferETH(msg.sender, address(this).balance);
 
         _mint(recipient, lpShares);
-        emit Deposit(payer, recipient, amount0, amount1, lpShares);
+        emit Deposit(sender, recipient, amount0, amount1, lpShares);
     }
 
     /// @inheritdoc IUnipilotVault
