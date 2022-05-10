@@ -8,7 +8,7 @@ import { shouldBehaveLikeRebalanceActive } from "./RebalanceActive/rebalanceActi
 import { shouldBehaveLikeWithdrawPassive } from "./WithdrawPassive/withdrawPassive.behavior";
 import { shouldBehaveLikeWithdrawActive } from "./WithdrawActive/withdrawActive.behaviour";
 import { shouldBehaveLikeLive } from "./MainnetFork/mainnetFork.behavior";
-import { shouldBehaveLikeRouterDeposit } from "./RouterDeposit/routerDeposit.behavior";
+import { shouldBehaveLikeRouterDeposit } from "./RouterTest/router.behavior";
 
 use(solidity);
 
