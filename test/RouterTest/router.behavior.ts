@@ -232,18 +232,6 @@ export async function shouldBehaveLikeRouterDeposit(): Promise<void> {
       expectedDaiBalanceBeforeDeposit.sub(token1ToBeDesposited); //1994875
 
     await unipilotVault.init();
-    // await DAI.connect(wallet).approve(unipilotVault.address, MaxUint256);
-
-    // await USDT.connect(wallet).approve(unipilotVault.address, MaxUint256);
-
-    // await unipilotVault
-    //   .connect(wallet)
-    //   .deposit(
-    //     wallet.address,
-    //     parseUnits("1000", "18"),
-    //     parseUnits("1000", "18"),
-    //     wallet.address,
-    //   );
 
     await unipilotRouter
       .connect(wallet)
