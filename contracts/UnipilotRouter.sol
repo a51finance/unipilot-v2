@@ -62,7 +62,6 @@ contract UnipilotRouter is PeripheryPayments {
         _tokenApproval(token1, vault, amount1Desired);
 
         (, amount0, amount1) = IUnipilotVault(vault).deposit(
-            address(this),
             amount0Desired,
             amount1Desired,
             recipient
