@@ -49,7 +49,7 @@ function createTestnetConfig(
     chainId: chainIds[network],
     url,
     gas: 2100000,
-    gasPrice: 48000000000,
+    gasPrice: 15000000000,
   };
 }
 const coinMarketCapKey = process.env.COIN_MARKETCAP;
@@ -59,7 +59,7 @@ const config: HardhatUserConfig = {
   gasReporter: {
     currency: "USD",
     coinmarketcap: coinMarketCapKey,
-    gasPrice: 48,
+    gasPrice: 15,
     enabled: process.env.REPORT_GAS ? true : false,
     excludeContracts: [],
     src: "./contracts",

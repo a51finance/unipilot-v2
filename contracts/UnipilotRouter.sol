@@ -11,7 +11,10 @@ import "./interfaces/IUnipilotStrategy.sol";
 
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 
+import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
+
 contract UnipilotRouter is PeripheryPayments {
+    using SafeERC20 for IERC20;
     struct RefundLiquidityParams {
         address vault;
         address token0;
