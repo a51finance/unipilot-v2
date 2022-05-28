@@ -49,7 +49,7 @@ function createTestnetConfig(
     chainId: chainIds[network],
     url,
     gas: 2100000,
-    gasPrice: 15000000000,
+    gasPrice: 12000000000,
   };
 }
 const coinMarketCapKey = process.env.COIN_MARKETCAP;
@@ -59,7 +59,7 @@ const config: HardhatUserConfig = {
   gasReporter: {
     currency: "USD",
     coinmarketcap: coinMarketCapKey,
-    gasPrice: 15,
+    gasPrice: 12,
     enabled: process.env.REPORT_GAS ? true : false,
     excludeContracts: [],
     src: "./contracts",
@@ -89,6 +89,9 @@ const config: HardhatUserConfig = {
   },
   solidity: {
     compilers: [
+      {
+        version: "0.4.17",
+      },
       {
         version: "0.7.6",
         settings: {

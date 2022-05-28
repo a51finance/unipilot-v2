@@ -11,10 +11,7 @@ import "./interfaces/IUnipilotStrategy.sol";
 
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 
-import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
-
 contract UnipilotRouter is PeripheryPayments {
-    using SafeERC20 for IERC20;
     struct RefundLiquidityParams {
         address vault;
         address token0;
@@ -25,6 +22,15 @@ contract UnipilotRouter is PeripheryPayments {
         uint256 amount1Recieved;
         bool refundAsETH;
     }
+
+    event Deposited(
+        address recipient,
+        address vault,
+        uint256 lpshare,
+        uint256 amount0,
+        uint256 amount1,
+        bool isActiveVault
+    );
 
     address public unipilotActiveFactory;
     address public unipilotPassiveFactory;
@@ -64,11 +70,14 @@ contract UnipilotRouter is PeripheryPayments {
         _tokenApproval(token0, vault, amount0Desired);
         _tokenApproval(token1, vault, amount1Desired);
 
-        (, amount0, amount1) = IUnipilotVault(vault).deposit(
+        (amount0Desired, amount0, amount1) = IUnipilotVault(vault).deposit(
             amount0Desired,
             amount1Desired,
             recipient
         );
+
+        _tokenApproval(token0, vault, 0);
+        _tokenApproval(token1, vault, 0);
 
         refundETH();
 
@@ -84,6 +93,15 @@ contract UnipilotRouter is PeripheryPayments {
                 true
             ),
             msg.sender
+        );
+
+        emit Deposited(
+            recipient,
+            vault,
+            amount0Desired,
+            amount0,
+            amount1,
+            isActiveVault
         );
     }
 

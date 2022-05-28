@@ -303,22 +303,22 @@ task("deploy-router", "Deploy Unipilot Router Contract").setAction(
   async (cliArgs, { ethers, run, network }) => {
     await run("compile");
 
-    const signer = (await ethers.getSigners())[1];
+    const signer = (await ethers.getSigners())[0];
     console.log("Signer");
     console.log("  at", signer.address);
     console.log("  ETH", formatEther(await signer.getBalance()));
 
     //rinkeby
-    const args = {
-      activeFactory: "0x9e28cA2A20606a76609FD2108ec92d33355fF491",
-      passiveFactory: "0x2C47F55C6d6D8257521d26e000874c05A1907470",
-    };
-
-    // mainnet
     // const args = {
-    //   activeFactory: "0x4b8e58D252ba251e044ec63125E83172ECa5118f",
-    //   passiveFactory: "0x06c2AE330C57a6320b2de720971ebD09003C7a01",
+    //   activeFactory: "0x9e28cA2A20606a76609FD2108ec92d33355fF491",
+    //   passiveFactory: "0x422E3A41dACCb921d0493c81447e48e5cBf392bc",
     // };
+
+    // mainnet;
+    const args = {
+      activeFactory: "0x4b8e58D252ba251e044ec63125E83172ECa5118f",
+      passiveFactory: "0x06c2AE330C57a6320b2de720971ebD09003C7a01",
+    };
 
     console.log("Network");
     console.log("   ", network.name);
