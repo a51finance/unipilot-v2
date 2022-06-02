@@ -272,10 +272,15 @@ contract UnipilotMigrator is
             params.liquidityToMigrate
         );
 
+        // Initializing array with defaults value
+        // minimum amount 0,1 returned for shares of liq
+        uint256[4] memory minAmounts;
+
         (uint256 amount0V2, uint256 amount1V2) = IVault(params.pair).withdraw(
             params.liquidityToMigrate,
             address(this),
-            address(this)
+            address(this),
+            minAmounts
         );
 
         uint256 amount0ToMigrate = FullMath.mulDiv(

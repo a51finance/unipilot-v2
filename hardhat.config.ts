@@ -23,6 +23,7 @@ const chainIds = {
   mainnet: 1,
   rinkeby: 4,
   ropsten: 3,
+  mumbai: 80001,
 };
 
 // Ensure that we have all the environment variables we need.
@@ -43,7 +44,10 @@ const etherscanApiKey = process.env.ETHERSCAN_API_KEY;
 function createTestnetConfig(
   network: keyof typeof chainIds,
 ): NetworkUserConfig {
-  const url: string = "https://" + network + ".infura.io/v3/" + infuraApiKey;
+  const url: string =
+    network == "mumbai"
+      ? "https://speedy-nodes-nyc.moralis.io/127149d18dffd833851dc9f2/polygon/mumbai"
+      : "https://" + network + ".infura.io/v3/" + infuraApiKey;
   return {
     accounts: [`${process.env.PK1}`, `${process.env.PK2}`],
     chainId: chainIds[network],
@@ -77,6 +81,7 @@ const config: HardhatUserConfig = {
     rinkeby: createTestnetConfig("rinkeby"),
     ropsten: createTestnetConfig("ropsten"),
     mainnet: createTestnetConfig("mainnet"),
+    mumbai: createTestnetConfig("mumbai"),
   },
   mocha: {
     timeout: 50000,

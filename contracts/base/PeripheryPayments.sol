@@ -5,7 +5,7 @@ import "../interfaces/external/IWETH9.sol";
 import "../libraries/TransferHelper.sol";
 
 abstract contract PeripheryPayments {
-    address internal constant WETH = 0xc778417E063141139Fce010982780140Aa0cD5Ab;
+    address internal constant WETH = 0x9c3C9283D3e44854697Cd22D3Faa240Cfb032889;
 
     receive() external payable {}
 

@@ -80,9 +80,9 @@ task("deploy-unipilotFactory-active", "Deploy unipilot active factory contract")
     const args = {
       uniswapFactory: "0x1F98431c8aD98523631AE4a59f267346ea31F984",
       governance: cliArgs.governance,
-      uniStrategy: "0xB7f7c5cea2b8b6138Ea3f669B2094B27dE2ec8d4",
-      indexFund: "0x95477F96F78EC38916B5457030387D844E886ab3",
-      WETH: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+      uniStrategy: "0x16521C7f91e850fa9dACB700231737A25Da1053A",
+      indexFund: "0x96A4BEd8e08e5d8bb91214Bada1f146842692dd6",
+      WETH: "0x9c3C9283D3e44854697Cd22D3Faa240Cfb032889",
       indexFundPercentage: 10,
     };
 
@@ -131,9 +131,9 @@ task(
     const args = {
       uniswapFactory: "0x1f98431c8ad98523631ae4a59f267346ea31f984",
       governance: cliArgs.governance,
-      uniStrategy: "0xB7f7c5cea2b8b6138Ea3f669B2094B27dE2ec8d4",
-      indexFund: "0x95477F96F78EC38916B5457030387D844E886ab3",
-      WETH: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+      uniStrategy: "0x16521C7f91e850fa9dACB700231737A25Da1053A",
+      indexFund: "0x96A4BEd8e08e5d8bb91214Bada1f146842692dd6",
+      WETH: "0x9c3C9283D3e44854697Cd22D3Faa240Cfb032889",
       indexFundPercentage: 10,
       swapPercentage: 2,
     };
@@ -238,7 +238,7 @@ task("verify-active-vault", "Verify unipilot vault contract")
     const args = {
       pool: cliArgs.pool,
       factory: cliArgs.factory,
-      WETH: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+      WETH: "0x9c3C9283D3e44854697Cd22D3Faa240Cfb032889",
       governance: cliArgs.governance,
       name: cliArgs.name,
       symbol: cliArgs.symbol,
@@ -279,7 +279,7 @@ task("verify-passive-vault", "Verify unipilot vault contract")
     const args = {
       pool: cliArgs.pool,
       factory: cliArgs.factory,
-      WETH: "0xc778417e063141139fce010982780140aa0cd5ab",
+      WETH: "0xc778417E063141139Fce010982780140Aa0cD5Ab",
       name: cliArgs.name,
       symbol: cliArgs.symbol,
     };
@@ -343,7 +343,7 @@ task("deploy-migrator", "Deploy Unipilot Migrator contract")
   // .addParam("ulm", "address of ulm")
   .setAction(async (cliArgs, { ethers, run, network }) => {
     await run("compile");
-    const signer = (await ethers.getSigners())[1];
+    const signer = (await ethers.getSigners())[0];
     console.log("Signer");
     console.log("  at", signer.address);
     console.log("  ETH", formatEther(await signer.getBalance()));
@@ -357,8 +357,8 @@ task("deploy-migrator", "Deploy Unipilot Migrator contract")
     // };
     const args = {
       positionManager: "0xC36442b4a4522E871399CD717aBDD847Ab11FE88",
-      unipilot: "0x7c0C2de74929Fb8cAc9E42dF3594B727b39549Fb",
-      ulm: "0x1d85374b386CaBf80cabA0AD58e01B5319149840",
+      unipilot: "0x0000000000000000000000000000000000000000",
+      ulm: "0x0000000000000000000000000000000000000000",
     };
 
     console.log("Network");
@@ -368,11 +368,11 @@ task("deploy-migrator", "Deploy Unipilot Migrator contract")
 
     const unipilotMigrator = await deployContract(
       "UnipilotMigrator",
-      await await ethers.getContractFactory("UnipilotMigrator"),
+      await ethers.getContractFactory("UnipilotMigrator"),
       signer,
       [args.positionManager, args.unipilot, args.ulm],
     );
-
+    await unipilotMigrator.deployTransaction.wait(5);
     delay(60000);
 
     await run("verify:verify", {
