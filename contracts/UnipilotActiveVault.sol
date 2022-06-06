@@ -118,6 +118,7 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         payable
         override
         nonReentrant
+        checkDeviation
         returns (
             uint256 lpShares,
             uint256 amount0,
