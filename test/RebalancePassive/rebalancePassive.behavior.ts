@@ -177,7 +177,7 @@ export async function shouldBehaveLikeRebalancePassive(): Promise<void> {
 
     let positionDetails = await unipilotVault.callStatic.getPositionDetails();
 
-    await unipilotVault.connect(wallet).readjustLiquidity();
+    await unipilotVault.connect(wallet).readjustLiquidity(50);
 
     const fees0 = positionDetails[2];
     const fees1 = positionDetails[3];
@@ -230,7 +230,7 @@ export async function shouldBehaveLikeRebalancePassive(): Promise<void> {
 
     expect(positionDetails[2]).to.be.gt(parseUnits("0", "18"));
 
-    await unipilotVault.readjustLiquidity();
+    await unipilotVault.readjustLiquidity(50);
 
     let positionDetailsAferReadjust =
       await unipilotVault.callStatic.getPositionDetails();

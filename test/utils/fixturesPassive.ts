@@ -158,6 +158,7 @@ export const unipilotPassiveVaultFixture: Fixture<UNIPILOT_VAULT_FIXTURE> =
           tokenA,
           tokenB,
           fee,
+          0,
           sqrtPrice,
           tokenName,
           tokenSymbol,

@@ -146,7 +146,7 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
         parseUnits("1000", "18"),
         wallet.address,
       );
-      await vault.readjustLiquidity();
+      await vault.readjustLiquidity(50);
     });
 
     it("withdraw", async () => {
@@ -449,5 +449,159 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
 
       reserves = await vault.callStatic.getPositionDetails();
     });
+
+    // it("test rerrange for liquidity utilization", async () => {
+
+    //   console.log(
+    //     "details -> ",
+    //     await (await vault.callStatic.getPositionDetails())[0], await (await vault.callStatic.getPositionDetails())[1],
+    //     await token0Instance.balanceOf(vault.address),
+    //     await token1Instance.balanceOf(vault.address),
+    //     await (await vault.getCurrentPrice())[1],
+    //     await (await vault.ticksData())[0], await (await vault.ticksData())[1]
+    //   );
+
+    //   await generateFeeThroughSwap(
+    //     swapRouter,
+    //     other,
+    //     token1Instance,
+    //     token0Instance,
+    //     "4800",
+    //   );
+
+    //   console.log(
+    //     "details -> ",
+    //     await (await vault.callStatic.getPositionDetails())[0], await (await vault.callStatic.getPositionDetails())[1],
+    //     await token0Instance.balanceOf(vault.address),
+    //     await token1Instance.balanceOf(vault.address),
+    //     await (await vault.getCurrentPrice())[1],
+    //   );
+
+    //   vault.rerange();
+
+    //   console.log(
+    //     "details -> ",
+    //     await (await vault.callStatic.getPositionDetails())[0], await (await vault.callStatic.getPositionDetails())[1],
+    //     await token0Instance.balanceOf(vault.address),
+    //     await token1Instance.balanceOf(vault.address),
+    //     await (await vault.getCurrentPrice())[1],
+    //     await (await vault.ticksData())[0], await (await vault.ticksData())[1]
+    //   );
+    // });
+
+    // it("test readjust with cutom swap", async () => {
+    //   console.log(
+    //     "details -> ",
+    //     await (
+    //       await vault.callStatic.getPositionDetails()
+    //     )[0],
+    //     await (
+    //       await vault.callStatic.getPositionDetails()
+    //     )[1],
+    //     await token0Instance.balanceOf(vault.address),
+    //     await token1Instance.balanceOf(vault.address),
+    //     await (
+    //       await vault.getCurrentPrice()
+    //     )[1],
+    //     await (
+    //       await vault.ticksData()
+    //     )[0],
+    //     await (
+    //       await vault.ticksData()
+    //     )[1],
+    //   );
+
+    //   await generateFeeThroughSwap(
+    //     swapRouter,
+    //     other,
+    //     token1Instance,
+    //     token0Instance,
+    //     "6000",
+    //   );
+
+    //   console.log(
+    //     "details -> ",
+    //     await (
+    //       await vault.callStatic.getPositionDetails()
+    //     )[0],
+    //     await (
+    //       await vault.callStatic.getPositionDetails()
+    //     )[1],
+    //     await token0Instance.balanceOf(vault.address),
+    //     await token1Instance.balanceOf(vault.address),
+    //     await (
+    //       await vault.getCurrentPrice()
+    //     )[1],
+    //   );
+
+    //   vault.readjustLiquidity(10);
+
+    //   console.log(
+    //     "details -> ",
+    //     await (
+    //       await vault.callStatic.getPositionDetails()
+    //     )[0],
+    //     await (
+    //       await vault.callStatic.getPositionDetails()
+    //     )[1],
+    //     await token0Instance.balanceOf(vault.address),
+    //     await token1Instance.balanceOf(vault.address),
+    //     await (
+    //       await vault.getCurrentPrice()
+    //     )[1],
+    //     await (
+    //       await vault.ticksData()
+    //     )[0],
+    //     await (
+    //       await vault.ticksData()
+    //     )[1],
+    //   );
+
+    // });
+
+    // it("test readjust with cutom swap", async () => {
+    //   console.log(
+    //     "details -> ",
+    //     await (await vault.callStatic.getPositionDetails())[0], await (await vault.callStatic.getPositionDetails())[1],
+    //     await token0Instance.balanceOf(vault.address),
+    //     await token1Instance.balanceOf(vault.address),
+    //     await (await vault.getCurrentPrice())[1],
+    //     await (await vault.ticksData())[0], await (await vault.ticksData())[1]
+    //   );
+
+    //   await generateFeeThroughSwap(
+    //     swapRouter,
+    //     other,
+    //     token1Instance,
+    //     token0Instance,
+    //     "4800",
+    //   );
+
+    //   console.log(
+    //     "details -> ",
+    //     await (
+    //       await vault.callStatic.getPositionDetails()
+    //     )[0],
+    //     await (
+    //       await vault.callStatic.getPositionDetails()
+    //     )[1],
+    //     await token0Instance.balanceOf(vault.address),
+    //     await token1Instance.balanceOf(vault.address),
+    //     await (
+    //       await vault.getCurrentPrice()
+    //     )[1],
+    //   );
+
+    //   await vault.rebalance(parseUnits("200", "18"), true, getMinTick(60), getMaxTick(60));
+
+    //   console.log(
+    //     "details -> ",
+    //     await (await vault.callStatic.getPositionDetails())[0], await (await vault.callStatic.getPositionDetails())[1],
+    //     await token0Instance.balanceOf(vault.address),
+    //     await token1Instance.balanceOf(vault.address),
+    //     await (await vault.getCurrentPrice())[1],
+    //     await (await vault.ticksData())[0], await (await vault.ticksData())[1]
+    //   );
+    // });
   });
 }

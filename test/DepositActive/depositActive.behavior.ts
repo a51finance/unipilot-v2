@@ -237,7 +237,7 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
         wallet.address,
       );
 
-    await unipilotVault.readjustLiquidity();
+    await unipilotVault.readjustLiquidity(50);
 
     await unipilotVault
       .connect(wallet)
@@ -503,7 +503,7 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
       token1VaultBalance,
     );
 
-    await unipilotVault.readjustLiquidity();
+    await unipilotVault.readjustLiquidity(50);
 
     token0Balance = await token0Instance.balanceOf(unipilotVault.address);
     token1Balance = await token1Instance.balanceOf(unipilotVault.address);
@@ -580,6 +580,6 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
     const lpToWithdraw = parseUnits("2", "18");
     await unipilotVault.withdraw(lpToWithdraw, wallet.address, false);
 
-    await unipilotVault.readjustLiquidity();
+    await unipilotVault.readjustLiquidity(50);
   });
 }
