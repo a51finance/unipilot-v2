@@ -205,7 +205,12 @@ contract UnipilotPassiveVault is ERC20Permit, IUnipilotVault {
     }
 
     /// @inheritdoc IUnipilotVault
-    function readjustLiquidity() external override nonReentrant checkDeviation {
+    function readjustLiquidity(uint8 swapBP)
+        external
+        override
+        nonReentrant
+        checkDeviation
+    {
         (
             uint256 baseAmount0,
             uint256 baseAmount1,

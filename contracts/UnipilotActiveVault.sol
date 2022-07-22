@@ -104,7 +104,8 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
 
         UniswapLiquidityManagement.checkRange(
             ticksData.baseTickLower,
-            ticksData.baseTickUpper
+            ticksData.baseTickUpper,
+            tickSpacing
         );
     }
 
@@ -235,7 +236,12 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
     }
 
     /// @inheritdoc IUnipilotVault
-    function readjustLiquidity() external override onlyOperator checkDeviation {
+    function readjustLiquidity(uint8 swapBP)
+        external
+        override
+        onlyOperator
+        checkDeviation
+    {
         _pulled = 1;
         ReadjustVars memory a;
 
@@ -269,8 +275,8 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
             bool zeroForOne = a.amount0Desired > 0 ? true : false;
 
             int256 amountSpecified = zeroForOne
-                ? int256(FullMath.mulDiv(a.amount0Desired, 50, 100))
-                : int256(FullMath.mulDiv(a.amount1Desired, 50, 100));
+                ? int256(FullMath.mulDiv(a.amount0Desired, swapBP, 100))
+                : int256(FullMath.mulDiv(a.amount1Desired, swapBP, 100));
 
             pool.swapToken(address(this), zeroForOne, amountSpecified);
         } else {
@@ -299,10 +305,18 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
 
             a.amountSpecified = a.zeroForOne
                 ? int256(
-                    FullMath.mulDiv(a.amount0Desired.sub(a.amount0), 50, 100)
+                    FullMath.mulDiv(
+                        a.amount0Desired.sub(a.amount0),
+                        swapBP,
+                        100
+                    )
                 )
                 : int256(
-                    FullMath.mulDiv(a.amount1Desired.sub(a.amount1), 50, 100)
+                    FullMath.mulDiv(
+                        a.amount1Desired.sub(a.amount1),
+                        swapBP,
+                        100
+                    )
                 );
 
             pool.swapToken(address(this), a.zeroForOne, a.amountSpecified);
