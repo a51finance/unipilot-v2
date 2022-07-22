@@ -377,7 +377,7 @@ library UniswapLiquidityManagement {
             );
         }
 
-        checkRange(cache.tickLower, cache.tickUpper);
+        checkRange(cache.tickLower, cache.tickUpper, tickSpacing);
 
         /// floor the tick again because one tick is still not valid tick due to + - baseThreshold
         tickLower = floor(cache.tickLower, tickSpacing);
@@ -418,7 +418,12 @@ library UniswapLiquidityManagement {
     /// @dev Common checks for valid tick inputs.
     /// @param tickLower The lower tick of the range
     /// @param tickUpper The upper tick of the range
-    function checkRange(int24 tickLower, int24 tickUpper) internal pure {
+    /// @param tickSpacing The pool tick spacing
+    function checkRange(
+        int24 tickLower,
+        int24 tickUpper,
+        int24 tickSpacing
+    ) internal pure {
         require(tickLower < tickUpper, "TLU");
         require(tickLower >= TickMath.MIN_TICK, "TLM");
         require(tickUpper <= TickMath.MAX_TICK, "TUM");
