@@ -80,9 +80,9 @@ task("deploy-unipilotFactory-active", "Deploy unipilot active factory contract")
     const args = {
       uniswapFactory: "0x1F98431c8aD98523631AE4a59f267346ea31F984",
       governance: cliArgs.governance,
-      uniStrategy: "0x16521C7f91e850fa9dACB700231737A25Da1053A",
-      indexFund: "0x96A4BEd8e08e5d8bb91214Bada1f146842692dd6",
-      WETH: "0x9c3C9283D3e44854697Cd22D3Faa240Cfb032889",
+      uniStrategy: "0x28004C7ed703261b9071d4AF7F63B32E1D69f966",
+      indexFund: "0x97038758FE599050C76ea8AB4fB2F05180D60cb5",
+      WETH: "0x7ceb23fd6bc0add59e62ac25578270cff1b9f619",
       indexFundPercentage: 10,
     };
 
@@ -238,7 +238,7 @@ task("verify-active-vault", "Verify unipilot vault contract")
     const args = {
       pool: cliArgs.pool,
       factory: cliArgs.factory,
-      WETH: "0x9c3C9283D3e44854697Cd22D3Faa240Cfb032889",
+      WETH: "0x7ceb23fd6bc0add59e62ac25578270cff1b9f619",
       governance: cliArgs.governance,
       name: cliArgs.name,
       symbol: cliArgs.symbol,
@@ -373,7 +373,7 @@ task("deploy-migrator", "Deploy Unipilot Migrator contract")
       [args.positionManager, args.unipilot, args.ulm],
     );
     await unipilotMigrator.deployTransaction.wait(5);
-    delay(60000);
+    await delay(60000);
 
     await run("verify:verify", {
       address: unipilotMigrator.address,
