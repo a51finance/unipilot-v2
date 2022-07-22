@@ -43,10 +43,8 @@ contract UnipilotPassiveFactory is IUnipilotFactory {
     /// @inheritdoc IUnipilotFactory
     mapping(address => bool) public override isWhitelist;
 
-    /// @inheritdoc IUnipilotFactory
     mapping(address => mapping(address => mapping(uint24 => address)))
-        public
-        override vaults;
+        public vaults;
 
     modifier onlyGovernance() {
         require(msg.sender == governance);
@@ -80,6 +78,7 @@ contract UnipilotPassiveFactory is IUnipilotFactory {
         address _tokenA,
         address _tokenB,
         uint24 _fee,
+        uint16 _vaultStrategy,
         uint160 _sqrtPriceX96,
         string memory _name,
         string memory _symbol

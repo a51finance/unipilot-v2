@@ -40,10 +40,8 @@ contract UnipilotActiveFactory is IUnipilotFactory {
     /// @inheritdoc IUnipilotFactory
     mapping(address => bool) public override isWhitelist;
 
-    /// @inheritdoc IUnipilotFactory
-    mapping(address => mapping(address => mapping(uint24 => address)))
-        public
-        override vaults;
+    mapping(address => mapping(address => mapping(uint24 => mapping(uint16 => address))))
+        public vaults;
 
     modifier onlyGovernance() {
         require(msg.sender == governance);
@@ -77,6 +75,7 @@ contract UnipilotActiveFactory is IUnipilotFactory {
         address _tokenA,
         address _tokenB,
         uint24 _fee,
+        uint16 _vaultStrategy,
         uint160 _sqrtPriceX96,
         string memory _name,
         string memory _symbol
@@ -85,7 +84,7 @@ contract UnipilotActiveFactory is IUnipilotFactory {
         (address token0, address token1) = _tokenA < _tokenB
             ? (_tokenA, _tokenB)
             : (_tokenB, _tokenA);
-        require(vaults[token0][token1][_fee] == address(0));
+        require(vaults[token0][token1][_fee][_vaultStrategy] == address(0));
         address pool = uniswapFactory.getPool(token0, token1, _fee);
 
         if (pool == address(0)) {
@@ -99,8 +98,8 @@ contract UnipilotActiveFactory is IUnipilotFactory {
             }(pool, address(this), WETH, governance, _name, _symbol)
         );
 
-        vaults[token0][token1][_fee] = _vault;
-        vaults[token1][token0][_fee] = _vault; // populate mapping in the reverse direction
+        vaults[token0][token1][_fee][_vaultStrategy] = _vault;
+        vaults[token1][token0][_fee][_vaultStrategy] = _vault; // populate mapping in the reverse direction
         emit VaultCreated(token0, token1, _fee, _vault);
     }
 
