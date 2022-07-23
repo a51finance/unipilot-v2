@@ -54,6 +54,8 @@ contract UnipilotStrategy is IUnipilotStrategy {
     ///  twap variations for each pool
     mapping(address => PoolStrategy) internal poolStrategy;
 
+    mapping(address => mapping(uint16 => int24)) internal activePoolStrategy;
+
     modifier onlyGovernance() {
         require(msg.sender == governance, "NG");
         _;
@@ -145,11 +147,17 @@ contract UnipilotStrategy is IUnipilotStrategy {
      **/
     function setBaseTicks(
         address[] memory _pools,
+        uint16[] memory _strategyType,
         int24[] memory _baseMultiplier
     ) external onlyGovernance {
-        require(_pools.length == _baseMultiplier.length, "IVI");
+        require(_pools.length == _baseMultiplier.length);
+        require(_pools.length == _strategyType.length);
+        require(_baseMultiplier.length == _strategyType.length);
+
         for (uint256 i = 0; i < _pools.length; i++) {
-            poolStrategy[_pools[i]].baseMultiplier = _baseMultiplier[i];
+            activePoolStrategy[_pools[i]][_strategyType[i]] = _baseMultiplier[
+                i
+            ];
         }
     }
 
@@ -267,13 +275,13 @@ contract UnipilotStrategy is IUnipilotStrategy {
         return readjustThreshold;
     }
 
-    function getBaseThreshold(address _pool)
+    function getBaseThreshold(address _pool, uint16 _strategyType)
         external
         view
         override
         returns (int24 baseThreshold)
     {
-        baseThreshold = poolStrategy[_pool].baseMultiplier;
+        baseThreshold = activePoolStrategy[_pool][_strategyType];
     }
 
     /**
