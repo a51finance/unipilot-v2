@@ -46,7 +46,7 @@ function createTestnetConfig(
 ): NetworkUserConfig {
   const url: string =
     network == "mumbai"
-      ? "https://speedy-nodes-nyc.moralis.io/127149d18dffd833851dc9f2/polygon/mumbai"
+      ? "https://polygon-mumbai.g.alchemy.com/v2/gEMZWZWwC1VXZdezkoirsfxeRNTH_Qf_"
       : "https://" + network + ".infura.io/v3/" + infuraApiKey;
   return {
     accounts: [`${process.env.PK1}`, `${process.env.PK2}`],

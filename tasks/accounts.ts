@@ -80,9 +80,9 @@ task("deploy-unipilotFactory-active", "Deploy unipilot active factory contract")
     const args = {
       uniswapFactory: "0x1F98431c8aD98523631AE4a59f267346ea31F984",
       governance: cliArgs.governance,
-      uniStrategy: "0x28004C7ed703261b9071d4AF7F63B32E1D69f966",
-      indexFund: "0x97038758FE599050C76ea8AB4fB2F05180D60cb5",
-      WETH: "0x7ceb23fd6bc0add59e62ac25578270cff1b9f619",
+      uniStrategy: "0xd5C6F438350E325B6A8b83F9e28d6cb7f669fdAF",
+      indexFund: "0xa0e9E6B79a3e1AB87FeB209567eF3E0373210a89",
+      WETH: "0xA6FA4fB5f76172d178d61B04b0ecd319C5d1C0aa",
       indexFundPercentage: 10,
     };
 
@@ -222,6 +222,7 @@ task("verify-active-vault", "Verify unipilot vault contract")
   .addParam("factory", "the unipilot factory address")
   .addParam("vault", "the hypervisor to verify")
   .addParam("governance", "governer address")
+  .addParam("strategy", "vault strategy type")
   .addParam("name", "erc20 name")
   .addParam("symbol", "erc2 symbol")
   .setAction(async (cliArgs, { ethers, run, network }) => {
@@ -238,8 +239,9 @@ task("verify-active-vault", "Verify unipilot vault contract")
     const args = {
       pool: cliArgs.pool,
       factory: cliArgs.factory,
-      WETH: "0x7ceb23fd6bc0add59e62ac25578270cff1b9f619",
+      WETH: "0xA6FA4fB5f76172d178d61B04b0ecd319C5d1C0aa",
       governance: cliArgs.governance,
+      strategyType: cliArgs.strategy,
       name: cliArgs.name,
       symbol: cliArgs.symbol,
     };
