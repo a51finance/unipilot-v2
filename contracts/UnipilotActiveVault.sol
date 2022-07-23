@@ -34,6 +34,7 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
     IUnipilotFactory private unipilotFactory;
 
     address private WETH;
+    uint16 private _strategyType;
     uint32 private _pulled = 1;
     uint32 private _unlocked = 1;
     uint32 private _initialized = 1;
@@ -68,7 +69,8 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         address _pool,
         address _unipilotFactory,
         address _WETH,
-        address governance,
+        address _governance,
+        uint16 _strategytype,
         string memory _name,
         string memory _symbol
     ) ERC20Permit(_name) ERC20(_name, _symbol) {
@@ -79,7 +81,8 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         token1 = IERC20(pool.token1());
         fee = pool.fee();
         tickSpacing = pool.tickSpacing();
-        _operatorApproved[governance] = true;
+        _operatorApproved[_governance] = true;
+        _strategyType = _strategytype;
     }
 
     receive() external payable {}
@@ -495,7 +498,11 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
 
     function getBaseThreshold() internal view returns (int24 baseThreshold) {
         (, address strategy, , , ) = getProtocolDetails();
-        return IUnipilotStrategy(strategy).getBaseThreshold(address(pool));
+        return
+            IUnipilotStrategy(strategy).getBaseThreshold(
+                address(pool),
+                _strategyType
+            );
     }
 
     function getProtocolDetails()
