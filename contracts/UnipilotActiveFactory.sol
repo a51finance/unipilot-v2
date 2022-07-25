@@ -108,7 +108,7 @@ contract UnipilotActiveFactory is IUnipilotFactory {
 
         vaults[token0][token1][_fee][_vaultStrategy] = _vault;
         vaults[token1][token0][_fee][_vaultStrategy] = _vault; // populate mapping in the reverse direction
-        emit VaultCreated(token0, token1, _fee, _vault);
+        emit VaultCreated(token0, token1, _vaultStrategy, _fee, _vault);
     }
 
     /// @notice Updates the governance of the Unipilot factory

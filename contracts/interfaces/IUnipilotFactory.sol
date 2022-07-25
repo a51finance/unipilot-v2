@@ -11,6 +11,7 @@ interface IUnipilotFactory {
     event VaultCreated(
         address indexed _tokenA,
         address indexed _tokenB,
+        uint16 _strategyType,
         uint24 _fee,
         address indexed _vault
     );
