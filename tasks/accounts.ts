@@ -81,7 +81,7 @@ task("deploy-unipilotFactory-active", "Deploy unipilot active factory contract")
       uniswapFactory: "0x1F98431c8aD98523631AE4a59f267346ea31F984",
       governance: cliArgs.governance,
       uniStrategy: "0x4d876f4117c516C573F3CF3a2F7dd58b96fEa658",
-      indexFund: "0xa0e9E6B79a3e1AB87FeB209567eF3E0373210a89",
+      indexFund: cliArgs.governance,
       WETH: "0xA6FA4fB5f76172d178d61B04b0ecd319C5d1C0aa",
       indexFundPercentage: 10,
     };
@@ -131,9 +131,9 @@ task(
     const args = {
       uniswapFactory: "0x1f98431c8ad98523631ae4a59f267346ea31f984",
       governance: cliArgs.governance,
-      uniStrategy: "0x16521C7f91e850fa9dACB700231737A25Da1053A",
-      indexFund: "0x96A4BEd8e08e5d8bb91214Bada1f146842692dd6",
-      WETH: "0x9c3C9283D3e44854697Cd22D3Faa240Cfb032889",
+      uniStrategy: "0x4d876f4117c516C573F3CF3a2F7dd58b96fEa658",
+      indexFund: cliArgs.governance,
+      WETH: "0xA6FA4fB5f76172d178d61B04b0ecd319C5d1C0aa",
       indexFundPercentage: 10,
       swapPercentage: 2,
     };
@@ -281,7 +281,7 @@ task("verify-passive-vault", "Verify unipilot vault contract")
     const args = {
       pool: cliArgs.pool,
       factory: cliArgs.factory,
-      WETH: "0xc778417E063141139Fce010982780140Aa0cD5Ab",
+      WETH: "0xA6FA4fB5f76172d178d61B04b0ecd319C5d1C0aa",
       name: cliArgs.name,
       symbol: cliArgs.symbol,
     };
