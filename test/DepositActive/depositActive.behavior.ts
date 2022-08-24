@@ -75,7 +75,7 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
 
     await uniswapPool.initialize(encodedPrice);
 
-    await uniStrategy.setBaseTicks([daiUsdtPoolAddress], [100]);
+    await uniStrategy.setBaseTicks([daiUsdtPoolAddress], [0], [100]);
 
     unipilotVault = await createVault(
       USDT.address,
@@ -158,6 +158,7 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
     );
 
     await unipilotFactory.toggleWhitelistAccount(unipilotVault.address);
+    await unipilotVault.toggleOperator(wallet.address);
   });
 
   it("checking name of vault LP Token", async () => {

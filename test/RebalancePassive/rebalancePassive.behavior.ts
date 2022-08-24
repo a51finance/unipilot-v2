@@ -76,7 +76,7 @@ export async function shouldBehaveLikeRebalancePassive(): Promise<void> {
 
     await uniswapPool.initialize(encodedPrice);
 
-    await uniStrategy.setBaseTicks([uniswapPoolAddress], [100]);
+    await uniStrategy.setBaseTicks([uniswapPoolAddress], [0], [100]);
 
     unipilotVault = await createVault(
       ENS.address,

@@ -79,7 +79,7 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
 
     await uniswapPool.initialize(encodedPrice);
 
-    await uniStrategy.setBaseTicks([uniswapPoolAddress], [100]);
+    await uniStrategy.setBaseTicks([uniswapPoolAddress], [0], [100]);
 
     unipilotVault = await createVault(
       UNI.address,
@@ -161,6 +161,8 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
         gasLimit: "3000000",
       },
     );
+
+    unipilotVault.toggleOperator(wallet.address);
   });
 
   it("Only called by owner and whitelisted vaults are eligible for rebalance", async () => {

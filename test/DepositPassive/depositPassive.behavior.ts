@@ -77,7 +77,7 @@ export async function shouldBehaveLikeDepositPassive(): Promise<void> {
 
     await uniswapPool.initialize(encodedPrice);
 
-    await uniStrategy.setBaseTicks([uniswapPoolAddress], [100]);
+    await uniStrategy.setBaseTicks([uniswapPoolAddress], [0], [100]);
 
     unipilotVault = await createVault(
       SHIB.address,

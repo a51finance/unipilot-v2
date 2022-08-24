@@ -67,7 +67,7 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
     )) as UniswapV3Pool;
 
     await pool.initialize(encodePriceSqrt(1, 2));
-    await uniStrategy.setBaseTicks([poolAddress], [100]);
+    await uniStrategy.setBaseTicks([poolAddress], [0], [100]);
 
     vault = await createVault(
       USDC.address,
@@ -146,6 +146,9 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
         parseUnits("1000", "18"),
         wallet.address,
       );
+
+      // pool.increaseObservationCardinalityNext(80);
+      await vault.toggleOperator(wallet.address);
       await vault.readjustLiquidity(50);
     });
 
