@@ -69,7 +69,6 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         address _pool,
         address _unipilotFactory,
         address _WETH,
-        address _governance,
         uint16 _strategytype,
         string memory _name,
         string memory _symbol
@@ -81,7 +80,6 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         token1 = IERC20(pool.token1());
         fee = pool.fee();
         tickSpacing = pool.tickSpacing();
-        _operatorApproved[_governance] = true;
         _strategyType = _strategytype;
     }
 
@@ -348,7 +346,7 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
     /// @dev Finds base position and limit position for imbalanced token
     /// mints all amounts to this position(including earned fees)
     /// @dev Must be called by the current governer or selected operators
-    function rerange() external onlyOperator {
+    function rerange() external onlyGovernance {
         _pulled = 1;
 
         (, , uint256 fees0, uint256 fees1) = pool.burnLiquidity(
