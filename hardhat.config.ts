@@ -24,6 +24,7 @@ const chainIds = {
   rinkeby: 4,
   ropsten: 3,
   mumbai: 80001,
+  polygon: 137,
 };
 
 // Ensure that we have all the environment variables we need.
@@ -47,9 +48,9 @@ function createTestnetConfig(
   const url: string =
     network == "mumbai"
       ? "https://polygon-mumbai.g.alchemy.com/v2/gEMZWZWwC1VXZdezkoirsfxeRNTH_Qf_"
-      : "https://" + network + ".infura.io/v3/" + infuraApiKey;
+      : "https://polygon-mainnet.g.alchemy.com/v2/gEMZWZWwC1VXZdezkoirsfxeRNTH_Qf_";
   return {
-    accounts: [`${process.env.PK1}`, `${process.env.PK2}`],
+    accounts: [`${process.env.PK_POLY}`, `${process.env.PK2}`],
     chainId: chainIds[network],
     url,
     gas: 2100000,
@@ -82,6 +83,7 @@ const config: HardhatUserConfig = {
     ropsten: createTestnetConfig("ropsten"),
     mainnet: createTestnetConfig("mainnet"),
     mumbai: createTestnetConfig("mumbai"),
+    polygon: createTestnetConfig("polygon"),
   },
   mocha: {
     timeout: 50000,

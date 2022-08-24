@@ -82,8 +82,8 @@ task("deploy-unipilotFactory-active", "Deploy unipilot active factory contract")
       governance: cliArgs.governance,
       uniStrategy: "0x4d876f4117c516C573F3CF3a2F7dd58b96fEa658",
       indexFund: cliArgs.governance,
-      WETH: "0xA6FA4fB5f76172d178d61B04b0ecd319C5d1C0aa",
-      indexFundPercentage: 10,
+      WETH: "0x9c3C9283D3e44854697Cd22D3Faa240Cfb032889",
+      indexFundPercentage: 0,
     };
 
     console.log("Network");
@@ -131,9 +131,9 @@ task(
     const args = {
       uniswapFactory: "0x1f98431c8ad98523631ae4a59f267346ea31f984",
       governance: cliArgs.governance,
-      uniStrategy: "0x4d876f4117c516C573F3CF3a2F7dd58b96fEa658",
+      uniStrategy: "0x549F4bF09e54Cbd0B1ffB25fd5Eb8fe08d5F3c37",
       indexFund: cliArgs.governance,
-      WETH: "0xA6FA4fB5f76172d178d61B04b0ecd319C5d1C0aa",
+      WETH: "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270",
       indexFundPercentage: 10,
       swapPercentage: 2,
     };
@@ -221,7 +221,6 @@ task("verify-active-vault", "Verify unipilot vault contract")
   .addParam("pool", "the uniswap pool address")
   .addParam("factory", "the unipilot factory address")
   .addParam("vault", "the hypervisor to verify")
-  .addParam("governance", "governer address")
   .addParam("strategy", "vault strategy type")
   .addParam("name", "erc20 name")
   .addParam("symbol", "erc2 symbol")
@@ -239,8 +238,7 @@ task("verify-active-vault", "Verify unipilot vault contract")
     const args = {
       pool: cliArgs.pool,
       factory: cliArgs.factory,
-      WETH: "0xA6FA4fB5f76172d178d61B04b0ecd319C5d1C0aa",
-      governance: cliArgs.governance,
+      WETH: "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270",
       strategyType: cliArgs.strategy,
       name: cliArgs.name,
       symbol: cliArgs.symbol,
@@ -281,7 +279,7 @@ task("verify-passive-vault", "Verify unipilot vault contract")
     const args = {
       pool: cliArgs.pool,
       factory: cliArgs.factory,
-      WETH: "0xA6FA4fB5f76172d178d61B04b0ecd319C5d1C0aa",
+      WETH: "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619",
       name: cliArgs.name,
       symbol: cliArgs.symbol,
     };
@@ -337,30 +335,16 @@ task("deploy-strategy", "Deploy unipilot strategy contract")
     });
   });
 
-task("deploy-migrator", "Deploy Unipilot Migrator contract")
-  // .addParam("position-manager", "address of position manager")
-  // .addParam("uniswapfactory", "address of uniswap factory")
-  // .addParam("unipilot", "address of unipilot")
-  // .addParam("v2Factory", "address of v2Factory")
-  // .addParam("ulm", "address of ulm")
-  .setAction(async (cliArgs, { ethers, run, network }) => {
+task("deploy-migrator", "Deploy Unipilot Migrator contract").setAction(
+  async (cliArgs, { ethers, run, network }) => {
     await run("compile");
     const signer = (await ethers.getSigners())[0];
     console.log("Signer");
     console.log("  at", signer.address);
     console.log("  ETH", formatEther(await signer.getBalance()));
 
-    // const args = {
-    //   positionManager: cliArgs.positionmanager,
-    //   uniswapFactory: cliArgs.uniswapfactory,
-    //   unipilot: cliArgs.unipilot,
-    //   v2Factory: cliArgs.v2Factory,
-    //   ulm: cliArgs.ulm,
-    // };
     const args = {
       positionManager: "0xC36442b4a4522E871399CD717aBDD847Ab11FE88",
-      unipilot: "0x0000000000000000000000000000000000000000",
-      ulm: "0x0000000000000000000000000000000000000000",
     };
 
     console.log("Network");
@@ -372,16 +356,17 @@ task("deploy-migrator", "Deploy Unipilot Migrator contract")
       "UnipilotMigrator",
       await ethers.getContractFactory("UnipilotMigrator"),
       signer,
-      [args.positionManager, args.unipilot, args.ulm],
+      Object.values(args),
     );
     await unipilotMigrator.deployTransaction.wait(5);
     await delay(60000);
 
     await run("verify:verify", {
       address: unipilotMigrator.address,
-      constructorArguments: [args.positionManager, args.unipilot, args.ulm],
+      constructorArguments: Object.values(args),
     });
-  });
+  },
+);
 
 function delay(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms));
