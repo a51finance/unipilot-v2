@@ -15,11 +15,9 @@ import "./interfaces/IUnipilotVault.sol";
 import "./interfaces/external/IWETH9.sol";
 import "./interfaces/IUnipilotMigrator.sol";
 import "./libraries/TransferHelper.sol";
-import "./interfaces/external/IUniswapLiquidityManager.sol";
 import "./interfaces/popsicle-interfaces/IPopsicleV3Optimizer.sol";
 import "./interfaces/visor-interfaces/IVault.sol";
 import "./interfaces/lixir-interfaces/ILixirVaultETH.sol";
-import "./interfaces/external/IUnipilot.sol";
 import "./base/PeripheryPayments.sol";
 
 /// @title Uniswap V2, V3, Sushiswap, Visor, Lixir, Popsicle Liquidity Migrator
@@ -32,20 +30,10 @@ contract UnipilotMigrator is
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
-    address private immutable ulm;
     address private immutable positionManager;
 
-    IUnipilot private unipilot;
-
-    constructor(
-        address _positionManager,
-        address _unipilot,
-        address _ulm
-    ) {
+    constructor(address _positionManager) {
         positionManager = _positionManager;
-        ulm = _ulm;
-
-        unipilot = IUnipilot(_unipilot);
     }
 
     function onERC721Received(
@@ -55,63 +43,6 @@ contract UnipilotMigrator is
         bytes calldata data
     ) external override returns (bytes4) {
         return IERC721Receiver(0).onERC721Received.selector;
-    }
-
-    function migrateUnipilotLiquididty(MigrateV3Params memory params) external {
-        address caller = _msgSender();
-        IUniswapLiquidityManager.Position
-            memory userPosition = IUniswapLiquidityManager(ulm).userPositions(
-                params.tokenId
-            );
-
-        IExchangeManager.WithdrawParams memory withdrawParam = IExchangeManager
-            .WithdrawParams({
-                pilotToken: false,
-                wethToken: true,
-                exchangeManagerAddress: ulm,
-                liquidity: userPosition.liquidity,
-                tokenId: params.tokenId
-            });
-
-        unipilot.safeTransferFrom(caller, address(this), params.tokenId);
-
-        unipilot.withdraw(withdrawParam, abi.encode(address(this)));
-
-        uint256 amount0 = _balanceOf(params.token0, address(this));
-        uint256 amount1 = _balanceOf(params.token1, address(this));
-
-        require(amount0 > 0 && amount1 > 0, "IF");
-
-        _tokenApproval(params.token0, params.vault, amount0);
-        _tokenApproval(params.token1, params.vault, amount1);
-
-        (
-            uint256 amount0Unipilot,
-            uint256 amount1Unipilot
-        ) = _addLiquidityUnipilot(params.vault, amount0, amount1, caller);
-
-        _refundRemainingLiquidiy(
-            RefundLiquidityParams({
-                vault: params.vault,
-                token0: params.token0,
-                token1: params.token1,
-                amount0Unipilot: amount0Unipilot,
-                amount1Unipilot: amount1Unipilot,
-                amount0Recieved: amount0,
-                amount1Recieved: amount1,
-                amount0ToMigrate: amount0,
-                amount1ToMigrate: amount1,
-                refundAsETH: false
-            })
-        );
-
-        emit LiquidityMigratedFromV3(
-            true,
-            params.vault,
-            caller,
-            amount0Unipilot,
-            amount1Unipilot
-        );
     }
 
     function migrateV2Liquidity(MigrateV2Params calldata params) external {
@@ -484,7 +415,7 @@ contract UnipilotMigrator is
             if (params.refundAsETH && params.token1 == WETH) {
                 unwrapWETH9(0, _msgSender());
             } else {
-                (params.token1, 0, _msgSender());
+                sweepToken(params.token1, 0, _msgSender());
             }
         }
     }
