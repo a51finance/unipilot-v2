@@ -43,7 +43,7 @@ contract UnipilotPassiveFactory is IUnipilotFactory {
     /// @inheritdoc IUnipilotFactory
     mapping(address => bool) public override isWhitelist;
 
-    mapping(address => mapping(address => mapping(uint24 => address)))
+    mapping(address => mapping(address => mapping(uint24 => mapping(uint16 => address))))
         public vaults;
 
     modifier onlyGovernance() {
@@ -87,7 +87,7 @@ contract UnipilotPassiveFactory is IUnipilotFactory {
         (address token0, address token1) = _tokenA < _tokenB
             ? (_tokenA, _tokenB)
             : (_tokenB, _tokenA);
-        require(vaults[token0][token1][_fee] == address(0));
+        require(vaults[token0][token1][_fee][0] == address(0));
         address pool = uniswapFactory.getPool(token0, token1, _fee);
 
         if (pool == address(0)) {
@@ -126,8 +126,9 @@ contract UnipilotPassiveFactory is IUnipilotFactory {
                 salt: keccak256(abi.encodePacked(_tokenA, _tokenB, _fee))
             }(pool, address(this), WETH, _name, _symbol)
         );
-        vaults[token0][token1][_fee] = _vault;
-        vaults[token1][token0][_fee] = _vault; // populate mapping in the reverse direction
+
+        vaults[token0][token1][_fee][0] = _vault;
+        vaults[token1][token0][_fee][0] = _vault; // populate mapping in the reverse direction
         emit VaultCreated(token0, token1, _vaultStrategy, _fee, _vault);
     }
 
