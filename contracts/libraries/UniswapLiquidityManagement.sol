@@ -427,6 +427,8 @@ library UniswapLiquidityManagement {
         require(tickLower < tickUpper, "TLU");
         require(tickLower >= TickMath.MIN_TICK, "TLM");
         require(tickUpper <= TickMath.MAX_TICK, "TUM");
+        require(tickLower % tickSpacing == 0, "TLI");
+        require(tickUpper % tickSpacing == 0, "TUI");
     }
 
     /// @dev Get imbalanced token

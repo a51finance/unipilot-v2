@@ -342,12 +342,9 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         );
     }
 
-    /// @notice Updates Unipilot's position.
-    /// @dev Finds base position and limit position for imbalanced token
-    /// mints all amounts to this position(including earned fees)
-    /// @dev Must be called by the current governer or selected operators
-    function rerange() external onlyGovernance {
+    function readjustLiquidity() external override checkDeviation {
         _pulled = 1;
+        pool.checkRange(tickLower, tickUpper, tickSpacing);
 
         (, , uint256 fees0, uint256 fees1) = pool.burnLiquidity(
             ticksData.baseTickLower,
@@ -355,17 +352,15 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
             address(this)
         );
 
-        transferFeesToIF(true, fees0, fees1);
+        transferFeesToIF(true, a.fees0, a.fees1);
 
-        int24 baseThreshold = tickSpacing * getBaseThreshold();
+        if (amountSpecified != 0)
+            pool.swapToken(address(this), zeroForOne, amountSpecified);
 
-        (ticksData.baseTickLower, ticksData.baseTickUpper) = pool
-            .rerangeLiquidity(
-                baseThreshold,
-                tickSpacing,
-                _balance0(),
-                _balance1()
-            );
+        pool.mintLiquidity(tickLower, tickUpper, _balance0(), _balance1());
+
+        ticksData.baseTickLower = tickLower;
+        ticksData.baseTickUpper = tickUpper;
     }
 
     /// @inheritdoc IUnipilotVault
