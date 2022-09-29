@@ -88,20 +88,12 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
     fallback() external payable {}
 
     /// @dev sets initial position of the vault & can only called once by the governer
-    function init() external onlyGovernance {
+    function init(int24 tickLower, int24 tickUpper) external onlyGovernance {
         require(_initialized == 1);
         _initialized = 2;
-        int24 _tickSpacing = tickSpacing;
-        int24 baseThreshold = _tickSpacing * getBaseThreshold();
-        (, int24 currentTick, ) = pool.getSqrtRatioX96AndTick();
 
-        int24 tickFloor = UniswapLiquidityManagement.floor(
-            currentTick,
-            _tickSpacing
-        );
-
-        ticksData.baseTickLower = tickFloor - baseThreshold;
-        ticksData.baseTickUpper = tickFloor + baseThreshold;
+        ticksData.baseTickLower = tickLower;
+        ticksData.baseTickUpper = tickUpper;
 
         UniswapLiquidityManagement.checkRange(
             ticksData.baseTickLower,
@@ -342,25 +334,36 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         );
     }
 
-    function readjustLiquidity() external override checkDeviation {
-        _pulled = 1;
-        pool.checkRange(tickLower, tickUpper, tickSpacing);
+    function rebalance(
+        int256 swapAmount,
+        bool zeroForOne,
+        int24 tickLower,
+        int24 tickUpper
+    ) external onlyGovernance {
+        UniswapLiquidityManagement.checkRange(
+            tickLower,
+            tickUpper,
+            tickSpacing
+        );
 
+        // Withdraw all current liquidity from Uniswap pool & transfer fees
         (, , uint256 fees0, uint256 fees1) = pool.burnLiquidity(
             ticksData.baseTickLower,
             ticksData.baseTickUpper,
             address(this)
         );
 
-        transferFeesToIF(true, a.fees0, a.fees1);
+        transferFeesToIF(true, fees0, fees1);
 
-        if (amountSpecified != 0)
-            pool.swapToken(address(this), zeroForOne, amountSpecified);
+        if (swapAmount != 0)
+            pool.swapToken(address(this), zeroForOne, swapAmount);
 
         pool.mintLiquidity(tickLower, tickUpper, _balance0(), _balance1());
 
-        ticksData.baseTickLower = tickLower;
-        ticksData.baseTickUpper = tickUpper;
+        (ticksData.baseTickLower, ticksData.baseTickUpper) = (
+            tickLower,
+            tickUpper
+        );
     }
 
     /// @inheritdoc IUnipilotVault
@@ -398,7 +401,7 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
     /// Only called by the governer or selected operators
     /// @dev Users can also deposit/withdraw during HODL period.
     function pullLiquidity(address recipient) external onlyOperator {
-        require(unipilotFactory.isWhitelist(recipient));
+        // require(unipilotFactory.isWhitelist(recipient));
 
         (
             uint256 reserves0,
