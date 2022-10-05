@@ -8,12 +8,14 @@ import {
 } from "../utils/fixuresActive";
 import { ethers, waffle } from "hardhat";
 import { encodePriceSqrt } from "../utils/encodePriceSqrt";
+import { mineNBlocks } from "../utils/blockMining";
 import {
   UnipilotActiveVault,
   UniswapV3Pool,
   NonfungiblePositionManager,
 } from "../../typechain";
 import { generateFeeThroughSwap } from "../utils/SwapFunction/swap";
+import { utils } from "jest-snapshot";
 
 export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
   const createFixtureLoader = waffle.createFixtureLoader;
@@ -140,7 +142,9 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
 
   describe("#withdraw for active pools", () => {
     beforeEach("Add liquidity in vault and whiteliste vault", async () => {
-      await vault.init();
+      await vault.toggleOperator(wallet.address);
+
+      await vault.rebalance(0, false, getMinTick(60), getMaxTick(60)); // initializing vault
       await vault.deposit(
         parseUnits("1000", "18"),
         parseUnits("1000", "18"),
@@ -148,7 +152,6 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
       );
 
       // pool.increaseObservationCardinalityNext(80);
-      await vault.toggleOperator(wallet.address);
       await vault.readjustLiquidity(50);
     });
 
@@ -303,6 +306,9 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
     });
 
     it("receive correct amounts of liquidity for unclaimed pool fees", async () => {
+      pool.increaseObservationCardinalityNext(80);
+      mineNBlocks(5000);
+
       await generateFeeThroughSwap(
         swapRouter,
         other,
@@ -360,6 +366,9 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
     });
 
     it("after pulling liquidity should withdraw correctly", async () => {
+      pool.increaseObservationCardinalityNext(80);
+      mineNBlocks(5000);
+
       const deposit = await vault
         .connect(other)
         .callStatic.deposit(
@@ -391,6 +400,9 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
     });
 
     it("before pulling liquidity should withdraw correctly", async () => {
+      pool.increaseObservationCardinalityNext(80);
+      mineNBlocks(5000);
+
       await vault.pullLiquidity(vault.address);
 
       const deposit = await vault
@@ -419,38 +431,6 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
       expect(user1LP).to.be.eq(0);
       expect(deposit[1]).to.be.eq(amount0.add(1));
       expect(deposit[2]).to.be.eq(amount1);
-    });
-
-    it("after rerrange should withdraw correctly", async () => {
-      await vault.pullLiquidity(vault.address);
-
-      const unusedAmount0 = await token0Instance.balanceOf(vault.address);
-      const unusedAmount1 = await token1Instance.balanceOf(vault.address);
-
-      var reserves = await vault.callStatic.getPositionDetails();
-
-      await vault
-        .connect(other)
-        .deposit(
-          parseUnits("1000", "18"),
-          parseUnits("1000", "18"),
-          other.address,
-        );
-
-      await vault.rerange();
-
-      await vault
-        .connect(other)
-        .deposit(
-          parseUnits("1000", "18"),
-          parseUnits("1000", "18"),
-          other.address,
-        );
-
-      const unusedAmount0After = await token0Instance.balanceOf(vault.address);
-      const unusedAmount1After = await token1Instance.balanceOf(vault.address);
-
-      reserves = await vault.callStatic.getPositionDetails();
     });
 
     // it("test rerrange for liquidity utilization", async () => {
@@ -605,6 +585,39 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
     //     await (await vault.getCurrentPrice())[1],
     //     await (await vault.ticksData())[0], await (await vault.ticksData())[1]
     //   );
+    // });
+
+    // it("test readjust with cutom swap", async () => {
+    //   await vault.rebalance(0, false, getMinTick(60), getMaxTick(60));
+    //   // await vault.init(getMinTick(60), getMaxTick(60));
+    //   // console.log(await vault.ticksData());
+    //   await vault.deposit(
+    //     parseUnits("1000", "18"),
+    //     "499999999999999999980",
+    //     wallet.address,
+    //   );
+
+    //   await generateFeeThroughSwap(
+    //     swapRouter,
+    //     other,
+    //     token1Instance,
+    //     token0Instance,
+    //     "4800",
+    //   );
+
+    //   await generateFeeThroughSwap(
+    //     swapRouter,
+    //     other,
+    //     token0Instance,
+    //     token1Instance,
+    //     "5000",
+    //   );
+
+    //   console.log(await vault.callStatic.getPositionDetails(), await token0Instance.balanceOf(vault.address), await token1Instance.balanceOf(vault.address));
+
+    //   await vault.rebalance("962928679761489107074", true, getMinTick(60), getMaxTick(60));
+    //   console.log(await vault.callStatic.getPositionDetails(), await token0Instance.balanceOf(vault.address), await token1Instance.balanceOf(vault.address));
+
     // });
   });
 }

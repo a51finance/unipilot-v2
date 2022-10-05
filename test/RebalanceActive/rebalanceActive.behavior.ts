@@ -166,7 +166,7 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
   });
 
   it("Only called by owner and whitelisted vaults are eligible for rebalance", async () => {
-    await unipilotVault.init();
+    await unipilotVault.rebalance(0, false, getMinTick(60), getMaxTick(60)); // initializing vault
     await unipilotVault
       .connect(wallet)
       .deposit(
@@ -178,7 +178,7 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
   });
 
   it("Index fund account should recieve 10% of the pool fees earned.", async () => {
-    await unipilotVault.init();
+    await unipilotVault.rebalance(0, false, getMinTick(60), getMaxTick(60)); // initializing vault
 
     await unipilotVault
       .connect(wallet)
@@ -221,7 +221,7 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
   });
 
   it("check fees compounding", async () => {
-    await unipilotVault.init();
+    await unipilotVault.rebalance(0, false, getMinTick(60), getMaxTick(60)); // initializing vault
 
     await unipilotVault
       .connect(wallet)
@@ -278,25 +278,25 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
   });
 
   it("readjust after pool out of range", async () => {
-    // await unipilotVault.init();
-    // await unipilotVault
-    //   .connect(wallet)
-    //   .deposit(parseUnits("1", "18"), parseUnits("1", "18"), wallet.address);
-    // let positionDetails = await unipilotVault.callStatic.getPositionDetails();
-    // await generateFeeThroughSwap(
-    //   swapRouter,
-    //   bob,
-    //   token1Instance,
-    //   token0Instance,
-    //   "900000000",
-    // );
-    // positionDetails = await unipilotVault.callStatic.getPositionDetails();
-    // expect(positionDetails[0]).to.be.eq(0);
-    // await unipilotVault.connect(wallet).readjustLiquidity();
-    // positionDetails = await unipilotVault.callStatic.getPositionDetails();
-    // console.log("res -> ", positionDetails);
-    // expect(positionDetails[0]).to.be.gt(0);
-    // expect(positionDetails[1]).to.be.gt(0);
+    await unipilotVault.rebalance(0, false, getMinTick(60), getMaxTick(60)); // initializing vault
+    await unipilotVault
+      .connect(wallet)
+      .deposit(parseUnits("1", "18"), parseUnits("1", "18"), wallet.address);
+    let positionDetails = await unipilotVault.callStatic.getPositionDetails();
+    await generateFeeThroughSwap(
+      swapRouter,
+      bob,
+      token1Instance,
+      token0Instance,
+      "900000000",
+    );
+    positionDetails = await unipilotVault.callStatic.getPositionDetails();
+    expect(positionDetails[0]).to.be.eq(0);
+    await unipilotVault.connect(wallet).readjustLiquidity(50);
+    positionDetails = await unipilotVault.callStatic.getPositionDetails();
+    console.log("res -> ", positionDetails);
+    expect(positionDetails[0]).to.be.gt(0);
+    expect(positionDetails[1]).to.be.gt(0);
   });
 
   // it("only operator can readjust", async () => {
