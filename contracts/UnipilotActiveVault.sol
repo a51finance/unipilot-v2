@@ -87,21 +87,6 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
 
     fallback() external payable {}
 
-    /// @dev sets initial position of the vault & can only called once by the governer
-    function init(int24 tickLower, int24 tickUpper) external onlyGovernance {
-        require(_initialized == 1);
-        _initialized = 2;
-
-        ticksData.baseTickLower = tickLower;
-        ticksData.baseTickUpper = tickUpper;
-
-        UniswapLiquidityManagement.checkRange(
-            ticksData.baseTickLower,
-            ticksData.baseTickUpper,
-            tickSpacing
-        );
-    }
-
     /// @inheritdoc IUnipilotVault
     function deposit(
         uint256 amount0Desired,
@@ -339,7 +324,8 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         bool zeroForOne,
         int24 tickLower,
         int24 tickUpper
-    ) external onlyGovernance {
+    ) external onlyOperator checkDeviation {
+        _pulled = 1;
         UniswapLiquidityManagement.checkRange(
             tickLower,
             tickUpper,
@@ -401,7 +387,7 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
     /// Only called by the governer or selected operators
     /// @dev Users can also deposit/withdraw during HODL period.
     function pullLiquidity(address recipient) external onlyOperator {
-        // require(unipilotFactory.isWhitelist(recipient));
+        require(unipilotFactory.isWhitelist(recipient));
 
         (
             uint256 reserves0,
