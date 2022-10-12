@@ -433,6 +433,94 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
       expect(deposit[2]).to.be.eq(amount1);
     });
 
+    it("rebalance method test", async () => {
+      await vault.rebalance(0, true, getMinTick(60), getMaxTick(60));
+
+      await generateFeeThroughSwap(
+        swapRouter,
+        other,
+        token0Instance,
+        token1Instance,
+        "3000",
+      );
+
+      await generateFeeThroughSwap(
+        swapRouter,
+        other,
+        token1Instance,
+        token0Instance,
+        "4000",
+      );
+
+      const reservesBefore = await vault.callStatic.getPositionDetails();
+      const details = await unipilotFactory.getUnipilotDetails();
+
+      const unusedAmount0B = await token0Instance.balanceOf(vault.address);
+      const unusedAmount1B = await token1Instance.balanceOf(vault.address);
+
+      const amount0IndexFund = reservesBefore[2].div(details[3]);
+      const amount1IndexFund = reservesBefore[3].div(details[3]);
+
+      await vault.rebalance(0, false, getMinTick(60), getMaxTick(60));
+
+      // idle assets
+      const unusedAmount0 = await token0Instance.balanceOf(vault.address);
+      const unusedAmount1 = await token1Instance.balanceOf(vault.address);
+
+      const newReserves0 = reservesBefore[0]
+        .add(reservesBefore[2].sub(amount0IndexFund))
+        .add(unusedAmount0B.sub(unusedAmount0));
+      const newReserves1 = reservesBefore[1].add(
+        reservesBefore[3].sub(amount1IndexFund),
+      );
+
+      const reservesAfter = await vault.callStatic.getPositionDetails();
+
+      expect(reservesAfter[0]).to.be.eq(newReserves0.sub(1));
+      expect(reservesAfter[1]).to.be.eq(newReserves1.sub(1));
+
+      await vault.pullLiquidity(vault.address);
+
+      const reserves0 = await token0Instance.balanceOf(vault.address);
+      const reserves1 = await token1Instance.balanceOf(vault.address);
+      const unipilotPosition = await vault.callStatic.getPositionDetails();
+
+      expect(reserves0).to.be.eq(newReserves0.add(unusedAmount0.sub(1)));
+      expect(reserves1).to.be.eq(newReserves1.sub(1));
+      expect(unipilotPosition[0]).to.be.eq(0);
+      expect(unipilotPosition[1]).to.be.eq(0);
+
+      await vault.rebalance(0, false, getMinTick(60), getMaxTick(60));
+      var newPosition = await vault.callStatic.getPositionDetails();
+
+      expect(newPosition[0]).to.be.eq(newReserves0.sub(2));
+      expect(newPosition[1]).to.be.eq(newReserves1.sub(2));
+
+      await vault.rebalance(
+        parseUnits("500", "18"),
+        false,
+        getMinTick(60),
+        getMaxTick(60),
+      );
+      newPosition = await vault.callStatic.getPositionDetails();
+      expect(newPosition[1]).to.be.eq(
+        newReserves1.sub(parseUnits("500", "18")).sub(3),
+      );
+
+      await vault.rebalance(
+        parseUnits("500", "18"),
+        true,
+        getMinTick(60),
+        getMaxTick(60),
+      );
+      newPosition = await vault.callStatic.getPositionDetails();
+      expect(newPosition[0]).to.be.lte(newReserves0);
+
+      await expect(
+        vault.connect(other).rebalance(0, true, getMinTick(60), getMaxTick(60)),
+      ).to.be.reverted;
+    });
+
     // it("test rerrange for liquidity utilization", async () => {
 
     //   console.log(
