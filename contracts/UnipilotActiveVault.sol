@@ -37,7 +37,6 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
     uint16 private _strategyType;
     uint32 private _pulled = 1;
     uint32 private _unlocked = 1;
-    uint32 private _initialized = 1;
 
     mapping(address => bool) private _operatorApproved;
 
@@ -509,21 +508,23 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
     ) internal {
         (, , address indexFund, uint8 percentage, ) = getProtocolDetails();
 
-        if (fees0 > 0)
-            TransferHelper.safeTransfer(
-                address(token0),
-                indexFund,
-                FullMath.mulDiv(fees0, percentage, 100)
-            );
+        if (percentage > 0) {
+            if (fees0 > 0)
+                TransferHelper.safeTransfer(
+                    address(token0),
+                    indexFund,
+                    FullMath.mulDiv(fees0, percentage, 100)
+                );
 
-        if (fees1 > 0)
-            TransferHelper.safeTransfer(
-                address(token1),
-                indexFund,
-                FullMath.mulDiv(fees1, percentage, 100)
-            );
+            if (fees1 > 0)
+                TransferHelper.safeTransfer(
+                    address(token1),
+                    indexFund,
+                    FullMath.mulDiv(fees1, percentage, 100)
+                );
 
-        emit FeesSnapshot(isReadjustLiquidity, fees0, fees1);
+            emit FeesSnapshot(isReadjustLiquidity, fees0, fees1);
+        }
     }
 
     function transferFunds(
