@@ -32,7 +32,7 @@ contract UnipilotPassiveVault is ERC20Permit, IUnipilotVault {
 
     address private immutable WETH;
     IUnipilotFactory private immutable unipilotFactory;
-    uint256 internal constant MIN_INITIAL_SHARES = 1e9;
+    uint256 internal constant MIN_INITIAL_SHARES = 1e3;
 
     TicksData public ticksData;
     IUniswapV3Pool private pool;
@@ -106,7 +106,8 @@ contract UnipilotPassiveVault is ERC20Permit, IUnipilotVault {
         pay(address(token1), sender, address(this), amount1);
 
         if (totalSupply == 0) {
-            require(lpShares > MIN_INITIAL_SHARES, "IS");
+            // prevent first staker from stealing funds of subsequent stakers
+            require(lpShares > MIN_INITIAL_SHARES, "ML");
             setPassivePositions(amount0, amount1);
         } else {
             require(lpShares != 0, "IS");
