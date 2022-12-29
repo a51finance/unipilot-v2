@@ -6,7 +6,7 @@ import {
   getMinTick,
   unipilotActiveVaultFixture,
 } from "../utils/fixuresActive";
-import { ethers, waffle } from "hardhat";
+import { ethers, waffle, network } from "hardhat";
 import { encodePriceSqrt } from "../utils/encodePriceSqrt";
 import { mineNBlocks } from "../utils/blockMining";
 import {
@@ -137,7 +137,6 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
         gasLimit: "3000000",
       },
     );
-    await unipilotFactory.toggleWhitelistAccount(vault.address);
   });
 
   describe("#withdraw for active pools", () => {
@@ -386,7 +385,7 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
         );
 
       var user1LP = await vault.balanceOf(other.address);
-      await vault.pullLiquidity(vault.address);
+      await vault.pullLiquidity();
 
       const { amount0, amount1 } = await vault
         .connect(other)
@@ -403,7 +402,7 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
       pool.increaseObservationCardinalityNext(80);
       mineNBlocks(5000);
 
-      await vault.pullLiquidity(vault.address);
+      await vault.pullLiquidity();
 
       const deposit = await vault
         .connect(other)
@@ -479,7 +478,7 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
       expect(reservesAfter[0]).to.be.eq(newReserves0.sub(1));
       expect(reservesAfter[1]).to.be.eq(newReserves1.sub(1));
 
-      await vault.pullLiquidity(vault.address);
+      await vault.pullLiquidity();
 
       const reserves0 = await token0Instance.balanceOf(vault.address);
       const reserves1 = await token1Instance.balanceOf(vault.address);
