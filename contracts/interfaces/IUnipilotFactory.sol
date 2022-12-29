@@ -42,11 +42,6 @@ interface IUnipilotFactory {
         string memory _symbol
     ) external returns (address _vault);
 
-    /// @notice Returns the status for a given account that can recieve the vault reserves after pull liquidity
-    /// @dev by default vault address will be whitelist as a recipient in order to resist IL
-    /// @dev Only applicable for active vaults
-    function isWhitelist(address recipient) external view returns (bool);
-
     /// @notice Used to give addresses of governance, strategy, indexFund
     /// @return governance address, strategy address, indexFund address
     function getUnipilotDetails()

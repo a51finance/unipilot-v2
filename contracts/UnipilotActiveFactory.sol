@@ -37,9 +37,6 @@ contract UnipilotActiveFactory is IUnipilotFactory {
         indexFundPercentage = percentage;
     }
 
-    /// @inheritdoc IUnipilotFactory
-    mapping(address => bool) public override isWhitelist;
-
     mapping(address => mapping(address => mapping(uint24 => mapping(uint16 => address))))
         public vaults;
 
@@ -110,13 +107,6 @@ contract UnipilotActiveFactory is IUnipilotFactory {
         require(_newGovernance != address(0));
         emit GovernanceChanged(governance, _newGovernance);
         governance = _newGovernance;
-    }
-
-    /// @notice Updates the whitelist status of given account
-    /// @dev Must be called by the current governance
-    /// @param _address Account to update status
-    function toggleWhitelistAccount(address _address) external onlyGovernance {
-        isWhitelist[_address] = !isWhitelist[_address];
     }
 
     /// @notice Updates all the necessary Unipilot details used in active vaults
