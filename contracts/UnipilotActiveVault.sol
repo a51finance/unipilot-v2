@@ -32,6 +32,7 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
     TicksData public ticksData;
     IUniswapV3Pool private pool;
     IUnipilotFactory private unipilotFactory;
+    uint256 internal constant MIN_INITIAL_SHARES = 1e3;
 
     address private WETH;
     uint16 private _strategyType;
@@ -106,15 +107,24 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         require(amount0Desired > 0 && amount1Desired > 0);
 
         address sender = _msgSender();
+        uint256 totalSupply = totalSupply();
+
         (lpShares, amount0, amount1) = pool.computeLpShares(
             true,
             amount0Desired,
             amount1Desired,
             _balance0(),
             _balance1(),
-            totalSupply(),
+            totalSupply,
             ticksData
         );
+
+        if (totalSupply == 0) {
+            // prevent first staker from stealing funds of subsequent stakers
+            require(lpShares > MIN_INITIAL_SHARES, "ML");
+        }
+
+        require(lpShares != 0, "IS");
 
         pay(address(token0), sender, address(this), amount0);
         pay(address(token1), sender, address(this), amount1);
@@ -385,9 +395,7 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
     /// @dev Burns all the Unipilot position and HODL in the vault to prevent users from huge IL
     /// Only called by the governer or selected operators
     /// @dev Users can also deposit/withdraw during HODL period.
-    function pullLiquidity(address recipient) external onlyOperator {
-        require(unipilotFactory.isWhitelist(recipient));
-
+    function pullLiquidity() external onlyOperator {
         (
             uint256 reserves0,
             uint256 reserves1,
@@ -396,13 +404,8 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         ) = pool.burnLiquidity(
                 ticksData.baseTickLower,
                 ticksData.baseTickUpper,
-                recipient
+                address(this)
             );
-
-        if (recipient != address(this)) {
-            pay(address(token0), address(this), recipient, _balance0());
-            pay(address(token1), address(this), recipient, _balance1());
-        }
 
         _pulled = 2;
         emit PullLiquidity(reserves0, reserves1, fees0, fees1);
