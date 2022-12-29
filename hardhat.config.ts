@@ -53,11 +53,11 @@ function createTestnetConfig(
       ? "https://polygon-mumbai.g.alchemy.com/v2/gEMZWZWwC1VXZdezkoirsfxeRNTH_Qf_"
       : "https://polygon-mainnet.g.alchemy.com/v2/gEMZWZWwC1VXZdezkoirsfxeRNTH_Qf_";
   return {
-    accounts: [`${process.env.PK1}`, `${process.env.PK2}`],
+    accounts: [`${process.env.PK_POLY}`, `${process.env.PK2}`],
     chainId: chainIds[network],
     url,
     // gas: 2100000,
-    // gasPrice: 48000000000,
+    gasPrice: 300000000000,
   };
 }
 const coinMarketCapKey = process.env.COIN_MARKETCAP;

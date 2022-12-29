@@ -80,10 +80,10 @@ task("deploy-unipilotFactory-active", "Deploy unipilot active factory contract")
     const args = {
       uniswapFactory: "0x1F98431c8aD98523631AE4a59f267346ea31F984",
       governance: cliArgs.governance,
-      uniStrategy: "0x4d876f4117c516C573F3CF3a2F7dd58b96fEa658",
-      indexFund: cliArgs.governance,
-      WETH: "0x9c3C9283D3e44854697Cd22D3Faa240Cfb032889",
-      indexFundPercentage: 0,
+      uniStrategy: "0x330e15829aB8c0DabAFc8Ead484CF643b8964FB3",
+      indexFund: "0x189254DeE4Ba8bb7fF5356F3C2E0f215525B3450",
+      WETH: "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270",
+      indexFundPercentage: 20,
     };
 
     console.log("Network");
@@ -131,11 +131,11 @@ task(
     const args = {
       uniswapFactory: "0x1f98431c8ad98523631ae4a59f267346ea31f984",
       governance: cliArgs.governance,
-      uniStrategy: "0x549F4bF09e54Cbd0B1ffB25fd5Eb8fe08d5F3c37",
-      indexFund: cliArgs.governance,
+      uniStrategy: "0x330e15829aB8c0DabAFc8Ead484CF643b8964FB3",
+      indexFund: "0x189254DeE4Ba8bb7fF5356F3C2E0f215525B3450",
       WETH: "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270",
       indexFundPercentage: 10,
-      swapPercentage: 2,
+      swapPercentage: 20,
     };
 
     console.log("Network");
@@ -238,7 +238,7 @@ task("verify-active-vault", "Verify unipilot vault contract")
     const args = {
       pool: cliArgs.pool,
       factory: cliArgs.factory,
-      WETH: "0x9c3C9283D3e44854697Cd22D3Faa240Cfb032889",
+      WETH: "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270",
       strategyType: cliArgs.strategy,
       name: cliArgs.name,
       symbol: cliArgs.symbol,
@@ -279,7 +279,7 @@ task("verify-passive-vault", "Verify unipilot vault contract")
     const args = {
       pool: cliArgs.pool,
       factory: cliArgs.factory,
-      WETH: "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619",
+      WETH: "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270",
       name: cliArgs.name,
       symbol: cliArgs.symbol,
     };
