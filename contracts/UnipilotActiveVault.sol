@@ -8,6 +8,7 @@ import "./interfaces/IUnipilotVault.sol";
 import "./interfaces/IUnipilotStrategy.sol";
 import "./interfaces/IUnipilotFactory.sol";
 import "./libraries/UniswapLiquidityManagement.sol";
+import "./libraries/SafeCastExtended.sol";
 import "./libraries/UniswapPoolActions.sol";
 
 import "@openzeppelin/contracts/drafts/ERC20Permit.sol";
@@ -20,6 +21,7 @@ import "@openzeppelin/contracts/drafts/ERC20Permit.sol";
 /// rate.
 /// @dev In order to minimize IL for users contract pulls liquidity to the vault (HODL) when necessary
 contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
+    using SafeCastExtended for uint256;
     using LowGasSafeMath for uint256;
     using UniswapPoolActions for IUniswapV3Pool;
     using UniswapLiquidityManagement for IUniswapV3Pool;
@@ -73,9 +75,9 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         string memory _name,
         string memory _symbol
     ) ERC20Permit(_name) ERC20(_name, _symbol) {
-        WETH = _WETH;
-        unipilotFactory = IUnipilotFactory(_unipilotFactory);
         pool = IUniswapV3Pool(_pool);
+        unipilotFactory = IUnipilotFactory(_unipilotFactory);
+        WETH = _WETH;
         token0 = IERC20(pool.token0());
         token1 = IERC20(pool.token1());
         fee = pool.fee();
@@ -120,7 +122,8 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         );
 
         if (totalSupply == 0) {
-            // prevent first staker from stealing funds of subsequent stakers
+            // prevent first LP from stealing funds of subsequent LPs
+            // see https://code4rena.com/reports/2022-01-sherlock/#h-01-first-user-can-steal-everyone-elses-tokens
             require(lpShares > MIN_INITIAL_SHARES, "ML");
         }
 
@@ -262,8 +265,8 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
             bool zeroForOne = a.amount0Desired > 0 ? true : false;
 
             int256 amountSpecified = zeroForOne
-                ? int256(FullMath.mulDiv(a.amount0Desired, swapBP, 100))
-                : int256(FullMath.mulDiv(a.amount1Desired, swapBP, 100));
+                ? FullMath.mulDiv(a.amount0Desired, swapBP, 100).toInt256()
+                : FullMath.mulDiv(a.amount1Desired, swapBP, 100).toInt256();
 
             pool.swapToken(address(this), zeroForOne, amountSpecified);
         } else {
