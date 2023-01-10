@@ -81,13 +81,16 @@ contract UnipilotPassiveFactory is IUnipilotFactory {
         string memory _symbol
     ) external override returns (address _vault) {
         require(_tokenA != _tokenB);
+
         (address token0, address token1) = _tokenA < _tokenB
             ? (_tokenA, _tokenB)
             : (_tokenB, _tokenA);
-        require(vaults[token0][token1][_fee][0] == address(0));
+
         address pool = uniswapFactory.getPool(token0, token1, _fee);
 
-        if (pool == address(0)) {
+        if (pool != address(0)) {
+            require(vaults[token0][token1][_fee][0] == address(0));
+        } else {
             pool = uniswapFactory.createPool(token0, token1, _fee);
             IUniswapV3Pool(pool).initialize(_sqrtPriceX96);
         }
