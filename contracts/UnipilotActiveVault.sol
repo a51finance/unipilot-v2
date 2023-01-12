@@ -75,6 +75,10 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         string memory _name,
         string memory _symbol
     ) ERC20Permit(_name) ERC20(_name, _symbol) {
+        require(_pool != address(0));
+        require(_WETH != address(0));
+        require(_unipilotFactory != address(0));
+
         pool = IUniswapV3Pool(_pool);
         unipilotFactory = IUnipilotFactory(_unipilotFactory);
         WETH = _WETH;
