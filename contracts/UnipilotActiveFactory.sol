@@ -37,13 +37,8 @@ contract UnipilotActiveFactory is IUnipilotFactory {
         indexFundPercentage = percentage;
     }
 
-    /// @inheritdoc IUnipilotFactory
-    mapping(address => bool) public override isWhitelist;
-
-    /// @inheritdoc IUnipilotFactory
-    mapping(address => mapping(address => mapping(uint24 => address)))
-        public
-        override vaults;
+    mapping(address => mapping(address => mapping(uint24 => mapping(uint16 => address))))
+        public vaults;
 
     modifier onlyGovernance() {
         require(msg.sender == governance);
@@ -77,18 +72,22 @@ contract UnipilotActiveFactory is IUnipilotFactory {
         address _tokenA,
         address _tokenB,
         uint24 _fee,
+        uint16 _vaultStrategy,
         uint160 _sqrtPriceX96,
         string memory _name,
         string memory _symbol
     ) external override onlyGovernance returns (address _vault) {
         require(_tokenA != _tokenB);
+
         (address token0, address token1) = _tokenA < _tokenB
             ? (_tokenA, _tokenB)
             : (_tokenB, _tokenA);
-        require(vaults[token0][token1][_fee] == address(0));
+
         address pool = uniswapFactory.getPool(token0, token1, _fee);
 
-        if (pool == address(0)) {
+        if (pool != address(0)) {
+            require(vaults[token0][token1][_fee][0] == address(0));
+        } else {
             pool = uniswapFactory.createPool(token0, token1, _fee);
             IUniswapV3Pool(pool).initialize(_sqrtPriceX96);
         }
@@ -96,12 +95,12 @@ contract UnipilotActiveFactory is IUnipilotFactory {
         _vault = address(
             new UnipilotActiveVault{
                 salt: keccak256(abi.encodePacked(_tokenA, _tokenB, _fee))
-            }(pool, address(this), WETH, governance, _name, _symbol)
+            }(pool, address(this), WETH, _vaultStrategy, _name, _symbol)
         );
 
-        vaults[token0][token1][_fee] = _vault;
-        vaults[token1][token0][_fee] = _vault; // populate mapping in the reverse direction
-        emit VaultCreated(token0, token1, _fee, _vault);
+        vaults[token0][token1][_fee][_vaultStrategy] = _vault;
+        vaults[token1][token0][_fee][_vaultStrategy] = _vault; // populate mapping in the reverse direction
+        emit VaultCreated(token0, token1, _vaultStrategy, _fee, _vault);
     }
 
     /// @notice Updates the governance of the Unipilot factory
@@ -111,13 +110,6 @@ contract UnipilotActiveFactory is IUnipilotFactory {
         require(_newGovernance != address(0));
         emit GovernanceChanged(governance, _newGovernance);
         governance = _newGovernance;
-    }
-
-    /// @notice Updates the whitelist status of given account
-    /// @dev Must be called by the current governance
-    /// @param _address Account to update status
-    function toggleWhitelistAccount(address _address) external onlyGovernance {
-        isWhitelist[_address] = !isWhitelist[_address];
     }
 
     /// @notice Updates all the necessary Unipilot details used in active vaults

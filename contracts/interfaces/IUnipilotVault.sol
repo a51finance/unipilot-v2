@@ -129,5 +129,5 @@ interface IUnipilotVault {
     /// position is placed first with as much liquidity as possible. This position
     /// should use up all of one token, leaving only the other one. This excess
     /// amount is then placed as a single-sided bid or ask position.
-    function readjustLiquidity() external;
+    function readjustLiquidity(uint8 swapBP) external;
 }

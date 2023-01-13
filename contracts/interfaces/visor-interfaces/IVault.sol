@@ -12,7 +12,8 @@ interface IVault {
     function withdraw(
         uint256,
         address,
-        address
+        address,
+        uint256[4] memory
     ) external returns (uint256, uint256);
 
     function rebalance(

@@ -11,6 +11,7 @@ interface IUnipilotFactory {
     event VaultCreated(
         address indexed _tokenA,
         address indexed _tokenB,
+        uint16 _strategyType,
         uint24 _fee,
         address indexed _vault
     );
@@ -35,27 +36,11 @@ interface IUnipilotFactory {
         address _tokenA,
         address _tokenB,
         uint24 _fee,
+        uint16 _vaultStrategy,
         uint160 _sqrtPriceX96,
         string memory _name,
         string memory _symbol
     ) external returns (address _vault);
-
-    /// @notice Returns the vault address for a given uniswap v3 pair of tokens and a fee
-    /// @dev tokenA and tokenB may be passed in either token0/token1 or token1/token0 order
-    /// @param tokenA The contract address of either token0 or token1
-    /// @param tokenB The contract address of the other token
-    /// @param fee The fee collected upon every swap in the pool, denominated in hundredths of a bip
-    /// @return vault The vault address
-    function vaults(
-        address tokenA,
-        address tokenB,
-        uint24 fee
-    ) external view returns (address vault);
-
-    /// @notice Returns the status for a given account that can recieve the vault reserves after pull liquidity
-    /// @dev by default vault address will be whitelist as a recipient in order to resist IL
-    /// @dev Only applicable for active vaults
-    function isWhitelist(address recipient) external view returns (bool);
 
     /// @notice Used to give addresses of governance, strategy, indexFund
     /// @return governance address, strategy address, indexFund address

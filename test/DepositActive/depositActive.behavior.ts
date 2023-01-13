@@ -75,7 +75,7 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
 
     await uniswapPool.initialize(encodedPrice);
 
-    await uniStrategy.setBaseTicks([daiUsdtPoolAddress], [100]);
+    await uniStrategy.setBaseTicks([daiUsdtPoolAddress], [0], [100]);
 
     unipilotVault = await createVault(
       USDT.address,
@@ -158,6 +158,7 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
     );
 
     await unipilotFactory.toggleWhitelistAccount(unipilotVault.address);
+    await unipilotVault.toggleOperator(wallet.address);
   });
 
   it("checking name of vault LP Token", async () => {
@@ -210,7 +211,7 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
     const expectedToken1BalanceAfterDeposit =
       expectedDaiBalanceBeforeDeposit.sub(token1ToBeDesposited); //1994875
 
-    await unipilotVault.init();
+    await unipilotVault.rebalance(0, false, getMinTick(60), getMaxTick(60)); // initializing vault
     await unipilotVault
       .connect(wallet)
       .deposit(
@@ -228,7 +229,7 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
   });
 
   it("should successfully predict amounts after deposit", async () => {
-    await unipilotVault.init();
+    await unipilotVault.rebalance(0, false, getMinTick(60), getMaxTick(60)); // initializing vault
     await unipilotVault
       .connect(wallet)
       .deposit(
@@ -237,7 +238,7 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
         wallet.address,
       );
 
-    await unipilotVault.readjustLiquidity();
+    await unipilotVault.readjustLiquidity(50);
 
     await unipilotVault
       .connect(wallet)
@@ -300,7 +301,7 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
   });
 
   it("fees calculation", async () => {
-    await unipilotVault.init();
+    await unipilotVault.rebalance(0, false, getMinTick(60), getMaxTick(60)); // initializing vault
 
     await unipilotVault
       .connect(wallet)
@@ -328,7 +329,7 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
   });
 
   it("Should deposit proportionally with pool reserves", async () => {
-    await unipilotVault.init();
+    await unipilotVault.rebalance(0, false, getMinTick(60), getMaxTick(60)); // initializing vault
 
     await unipilotVault
       .connect(wallet)
@@ -350,7 +351,7 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
   });
 
   it("should get lp according to share", async () => {
-    await unipilotVault.init();
+    await unipilotVault.rebalance(0, false, getMinTick(60), getMaxTick(60)); // initializing vault
 
     await unipilotVault
       .connect(wallet)
@@ -417,7 +418,7 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
   });
 
   it("should pull liquidity successfully", async () => {
-    await unipilotVault.init();
+    await unipilotVault.rebalance(0, false, getMinTick(60), getMaxTick(60)); // initializing vault
 
     await unipilotVault
       .connect(wallet)
@@ -439,7 +440,7 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
     const token0VaultBalance = positionDetails[0];
     const token1VaultBalance = positionDetails[1];
 
-    await unipilotVault.connect(wallet).pullLiquidity(unipilotVault.address);
+    await unipilotVault.connect(wallet).pullLiquidity();
     positionDetails = await unipilotVault.callStatic.getPositionDetails();
 
     const token0Balance: BigNumber = await token0Instance.balanceOf(
@@ -461,7 +462,7 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
   });
 
   it("should push liquidity back successfully", async () => {
-    await unipilotVault.init();
+    await unipilotVault.rebalance(0, false, getMinTick(60), getMaxTick(60)); // initializing vault
     await unipilotVault
       .connect(wallet)
       .deposit(
@@ -482,7 +483,7 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
     const token0VaultBalance = positionDetails[0];
     const token1VaultBalance = positionDetails[1];
 
-    await unipilotVault.connect(wallet).pullLiquidity(unipilotVault.address);
+    await unipilotVault.connect(wallet).pullLiquidity();
 
     positionDetails = await unipilotVault.callStatic.getPositionDetails();
 
@@ -503,7 +504,7 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
       token1VaultBalance,
     );
 
-    await unipilotVault.readjustLiquidity();
+    await unipilotVault.readjustLiquidity(50);
 
     token0Balance = await token0Instance.balanceOf(unipilotVault.address);
     token1Balance = await token1Instance.balanceOf(unipilotVault.address);
@@ -512,7 +513,7 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
   });
 
   it("should deposit after pull liquidity", async () => {
-    await unipilotVault.init();
+    await unipilotVault.rebalance(0, false, getMinTick(60), getMaxTick(60)); // initializing vault
 
     await unipilotVault
       .connect(wallet)
@@ -534,7 +535,7 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
     const token0VaultBalance = positionDetails[0]; //actual deposited
     const token1VaultBalance = positionDetails[1]; //actual deposited
 
-    await unipilotVault.connect(wallet).pullLiquidity(unipilotVault.address);
+    await unipilotVault.connect(wallet).pullLiquidity();
 
     positionDetails = await unipilotVault.callStatic.getPositionDetails();
 
@@ -580,6 +581,6 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
     const lpToWithdraw = parseUnits("2", "18");
     await unipilotVault.withdraw(lpToWithdraw, wallet.address, false);
 
-    await unipilotVault.readjustLiquidity();
+    await unipilotVault.readjustLiquidity(50);
   });
 }

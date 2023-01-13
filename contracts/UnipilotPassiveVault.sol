@@ -8,6 +8,7 @@ import "./interfaces/IUnipilotVault.sol";
 import "./interfaces/IUnipilotStrategy.sol";
 import "./interfaces/IUnipilotFactory.sol";
 import "./libraries/UniswapLiquidityManagement.sol";
+import "./libraries/SafeCastExtended.sol";
 import "./libraries/UniswapPoolActions.sol";
 
 import "@openzeppelin/contracts/drafts/ERC20Permit.sol";
@@ -21,6 +22,7 @@ import "@openzeppelin/contracts/drafts/ERC20Permit.sol";
 /// @dev The vault readjustment function can be called by anyone to ensure
 /// the liquidity of vault remains in the most optimum range
 contract UnipilotPassiveVault is ERC20Permit, IUnipilotVault {
+    using SafeCastExtended for uint256;
     using LowGasSafeMath for uint256;
     using UniswapPoolActions for IUniswapV3Pool;
     using UniswapLiquidityManagement for IUniswapV3Pool;
@@ -32,6 +34,7 @@ contract UnipilotPassiveVault is ERC20Permit, IUnipilotVault {
 
     address private immutable WETH;
     IUnipilotFactory private immutable unipilotFactory;
+    uint256 internal constant MIN_INITIAL_SHARES = 1e3;
 
     TicksData public ticksData;
     IUniswapV3Pool private pool;
@@ -57,9 +60,13 @@ contract UnipilotPassiveVault is ERC20Permit, IUnipilotVault {
         string memory _name,
         string memory _symbol
     ) ERC20Permit(_name) ERC20(_name, _symbol) {
-        WETH = _WETH;
-        unipilotFactory = IUnipilotFactory(_unipilotFactory);
+        require(_pool != address(0));
+        require(_WETH != address(0));
+        require(_unipilotFactory != address(0));
+
         pool = IUniswapV3Pool(_pool);
+        unipilotFactory = IUnipilotFactory(_unipilotFactory);
+        WETH = _WETH;
         token0 = IERC20(pool.token0());
         token1 = IERC20(pool.token1());
         fee = pool.fee();
@@ -105,8 +112,12 @@ contract UnipilotPassiveVault is ERC20Permit, IUnipilotVault {
         pay(address(token1), sender, address(this), amount1);
 
         if (totalSupply == 0) {
+            // prevent first LP from stealing funds of subsequent LPs
+            // see https://code4rena.com/reports/2022-01-sherlock/#h-01-first-user-can-steal-everyone-elses-tokens
+            require(lpShares > MIN_INITIAL_SHARES, "ML");
             setPassivePositions(amount0, amount1);
         } else {
+            require(lpShares != 0, "IS");
             (uint256 amount0Base, uint256 amount1Base) = pool.mintLiquidity(
                 ticksData.baseTickLower,
                 ticksData.baseTickUpper,
@@ -205,7 +216,12 @@ contract UnipilotPassiveVault is ERC20Permit, IUnipilotVault {
     }
 
     /// @inheritdoc IUnipilotVault
-    function readjustLiquidity() external override nonReentrant checkDeviation {
+    function readjustLiquidity(uint8 swapBP)
+        external
+        override
+        nonReentrant
+        checkDeviation
+    {
         (
             uint256 baseAmount0,
             uint256 baseAmount1,
@@ -243,8 +259,8 @@ contract UnipilotPassiveVault is ERC20Permit, IUnipilotVault {
             (, , , , uint8 swapPercentage) = getProtocolDetails();
 
             int256 amountSpecified = zeroForOne
-                ? int256(FullMath.mulDiv(amount0, swapPercentage, 100))
-                : int256(FullMath.mulDiv(amount1, swapPercentage, 100));
+                ? FullMath.mulDiv(amount0, swapPercentage, 100).toInt256()
+                : FullMath.mulDiv(amount1, swapPercentage, 100).toInt256();
 
             pool.swapToken(address(this), zeroForOne, amountSpecified);
         }

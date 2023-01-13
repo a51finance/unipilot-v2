@@ -23,6 +23,11 @@ const chainIds = {
   mainnet: 1,
   rinkeby: 4,
   ropsten: 3,
+  mumbai: 80001,
+  polygon: 137,
+  optgoerli: 420,
+  arbgoerli: 421613,
+  optimism: 10,
 };
 
 // Ensure that we have all the environment variables we need.
@@ -43,13 +48,16 @@ const etherscanApiKey = process.env.ETHERSCAN_API_KEY;
 function createTestnetConfig(
   network: keyof typeof chainIds,
 ): NetworkUserConfig {
-  const url: string = "https://" + network + ".infura.io/v3/" + infuraApiKey;
+  const url: string =
+    network == "mumbai"
+      ? "https://polygon-mumbai.g.alchemy.com/v2/gEMZWZWwC1VXZdezkoirsfxeRNTH_Qf_"
+      : "https://polygon-mainnet.g.alchemy.com/v2/gEMZWZWwC1VXZdezkoirsfxeRNTH_Qf_";
   return {
-    accounts: [`${process.env.PK1}`, `${process.env.PK2}`],
+    accounts: [`${process.env.PK_POLY}`, `${process.env.PK2}`],
     chainId: chainIds[network],
     url,
-    gas: 2100000,
-    gasPrice: 48000000000,
+    // gas: 2100000,
+    gasPrice: 300000000000,
   };
 }
 const coinMarketCapKey = process.env.COIN_MARKETCAP;
@@ -77,6 +85,11 @@ const config: HardhatUserConfig = {
     rinkeby: createTestnetConfig("rinkeby"),
     ropsten: createTestnetConfig("ropsten"),
     mainnet: createTestnetConfig("mainnet"),
+    mumbai: createTestnetConfig("mumbai"),
+    polygon: createTestnetConfig("polygon"),
+    optgoerli: createTestnetConfig("optgoerli"),
+    arbgoerli: createTestnetConfig("arbgoerli"),
+    optimism: createTestnetConfig("optimism"),
   },
   mocha: {
     timeout: 50000,

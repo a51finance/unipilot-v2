@@ -67,7 +67,7 @@ export async function shouldBehaveLikeWithdrawPassive(): Promise<void> {
     )) as UniswapV3Pool;
 
     await pool.initialize(encodePriceSqrt(1, 2));
-    await uniStrategy.setBaseTicks([poolAddress], [1800]);
+    await uniStrategy.setBaseTicks([poolAddress], [0], [1800]);
 
     vault = await createVault(
       SPELL.address,

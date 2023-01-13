@@ -8,6 +8,7 @@ import "./interfaces/IUnipilotVault.sol";
 import "./interfaces/IUnipilotStrategy.sol";
 import "./interfaces/IUnipilotFactory.sol";
 import "./libraries/UniswapLiquidityManagement.sol";
+import "./libraries/SafeCastExtended.sol";
 import "./libraries/UniswapPoolActions.sol";
 
 import "@openzeppelin/contracts/drafts/ERC20Permit.sol";
@@ -20,6 +21,7 @@ import "@openzeppelin/contracts/drafts/ERC20Permit.sol";
 /// rate.
 /// @dev In order to minimize IL for users contract pulls liquidity to the vault (HODL) when necessary
 contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
+    using SafeCastExtended for uint256;
     using LowGasSafeMath for uint256;
     using UniswapPoolActions for IUniswapV3Pool;
     using UniswapLiquidityManagement for IUniswapV3Pool;
@@ -32,11 +34,12 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
     TicksData public ticksData;
     IUniswapV3Pool private pool;
     IUnipilotFactory private unipilotFactory;
+    uint256 internal constant MIN_INITIAL_SHARES = 1e3;
 
     address private WETH;
+    uint16 private _strategyType;
     uint32 private _pulled = 1;
     uint32 private _unlocked = 1;
-    uint32 private _initialized = 1;
 
     mapping(address => bool) private _operatorApproved;
 
@@ -68,45 +71,27 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         address _pool,
         address _unipilotFactory,
         address _WETH,
-        address governance,
+        uint16 _strategytype,
         string memory _name,
         string memory _symbol
     ) ERC20Permit(_name) ERC20(_name, _symbol) {
-        WETH = _WETH;
-        unipilotFactory = IUnipilotFactory(_unipilotFactory);
+        require(_pool != address(0));
+        require(_WETH != address(0));
+        require(_unipilotFactory != address(0));
+
         pool = IUniswapV3Pool(_pool);
+        unipilotFactory = IUnipilotFactory(_unipilotFactory);
+        WETH = _WETH;
         token0 = IERC20(pool.token0());
         token1 = IERC20(pool.token1());
         fee = pool.fee();
         tickSpacing = pool.tickSpacing();
-        _operatorApproved[governance] = true;
+        _strategyType = _strategytype;
     }
 
     receive() external payable {}
 
     fallback() external payable {}
-
-    /// @dev sets initial position of the vault & can only called once by the governer
-    function init() external onlyGovernance {
-        require(_initialized == 1);
-        _initialized = 2;
-        int24 _tickSpacing = tickSpacing;
-        int24 baseThreshold = _tickSpacing * getBaseThreshold();
-        (, int24 currentTick, ) = pool.getSqrtRatioX96AndTick();
-
-        int24 tickFloor = UniswapLiquidityManagement.floor(
-            currentTick,
-            _tickSpacing
-        );
-
-        ticksData.baseTickLower = tickFloor - baseThreshold;
-        ticksData.baseTickUpper = tickFloor + baseThreshold;
-
-        UniswapLiquidityManagement.checkRange(
-            ticksData.baseTickLower,
-            ticksData.baseTickUpper
-        );
-    }
 
     /// @inheritdoc IUnipilotVault
     function deposit(
@@ -118,6 +103,7 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         payable
         override
         nonReentrant
+        checkDeviation
         returns (
             uint256 lpShares,
             uint256 amount0,
@@ -127,15 +113,25 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         require(amount0Desired > 0 && amount1Desired > 0);
 
         address sender = _msgSender();
+        uint256 totalSupply = totalSupply();
+
         (lpShares, amount0, amount1) = pool.computeLpShares(
             true,
             amount0Desired,
             amount1Desired,
             _balance0(),
             _balance1(),
-            totalSupply(),
+            totalSupply,
             ticksData
         );
+
+        if (totalSupply == 0) {
+            // prevent first LP from stealing funds of subsequent LPs
+            // see https://code4rena.com/reports/2022-01-sherlock/#h-01-first-user-can-steal-everyone-elses-tokens
+            require(lpShares > MIN_INITIAL_SHARES, "ML");
+        }
+
+        require(lpShares != 0, "IS");
 
         pay(address(token0), sender, address(this), amount0);
         pay(address(token1), sender, address(this), amount1);
@@ -165,6 +161,7 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         external
         override
         nonReentrant
+        checkDeviation
         returns (uint256 amount0, uint256 amount1)
     {
         require(liquidity > 0);
@@ -233,7 +230,12 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
     }
 
     /// @inheritdoc IUnipilotVault
-    function readjustLiquidity() external override onlyOperator checkDeviation {
+    function readjustLiquidity(uint8 swapBP)
+        external
+        override
+        onlyOperator
+        checkDeviation
+    {
         _pulled = 1;
         ReadjustVars memory a;
 
@@ -267,8 +269,8 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
             bool zeroForOne = a.amount0Desired > 0 ? true : false;
 
             int256 amountSpecified = zeroForOne
-                ? int256(FullMath.mulDiv(a.amount0Desired, 50, 100))
-                : int256(FullMath.mulDiv(a.amount1Desired, 50, 100));
+                ? FullMath.mulDiv(a.amount0Desired, swapBP, 100).toInt256()
+                : FullMath.mulDiv(a.amount1Desired, swapBP, 100).toInt256();
 
             pool.swapToken(address(this), zeroForOne, amountSpecified);
         } else {
@@ -297,10 +299,18 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
 
             a.amountSpecified = a.zeroForOne
                 ? int256(
-                    FullMath.mulDiv(a.amount0Desired.sub(a.amount0), 50, 100)
+                    FullMath.mulDiv(
+                        a.amount0Desired.sub(a.amount0),
+                        swapBP,
+                        100
+                    )
                 )
                 : int256(
-                    FullMath.mulDiv(a.amount1Desired.sub(a.amount1), 50, 100)
+                    FullMath.mulDiv(
+                        a.amount1Desired.sub(a.amount1),
+                        swapBP,
+                        100
+                    )
                 );
 
             pool.swapToken(address(this), a.zeroForOne, a.amountSpecified);
@@ -325,13 +335,20 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         );
     }
 
-    /// @notice Updates Unipilot's position.
-    /// @dev Finds base position and limit position for imbalanced token
-    /// mints all amounts to this position(including earned fees)
-    /// @dev Must be called by the current governer or selected operators
-    function rerange() external onlyOperator {
+    function rebalance(
+        int256 swapAmount,
+        bool zeroForOne,
+        int24 tickLower,
+        int24 tickUpper
+    ) external onlyOperator checkDeviation {
         _pulled = 1;
+        UniswapLiquidityManagement.checkRange(
+            tickLower,
+            tickUpper,
+            tickSpacing
+        );
 
+        // Withdraw all current liquidity from Uniswap pool & transfer fees
         (, , uint256 fees0, uint256 fees1) = pool.burnLiquidity(
             ticksData.baseTickLower,
             ticksData.baseTickUpper,
@@ -340,15 +357,15 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
 
         transferFeesToIF(true, fees0, fees1);
 
-        int24 baseThreshold = tickSpacing * getBaseThreshold();
+        if (swapAmount != 0)
+            pool.swapToken(address(this), zeroForOne, swapAmount);
 
-        (ticksData.baseTickLower, ticksData.baseTickUpper) = pool
-            .rerangeLiquidity(
-                baseThreshold,
-                tickSpacing,
-                _balance0(),
-                _balance1()
-            );
+        pool.mintLiquidity(tickLower, tickUpper, _balance0(), _balance1());
+
+        (ticksData.baseTickLower, ticksData.baseTickUpper) = (
+            tickLower,
+            tickUpper
+        );
     }
 
     /// @inheritdoc IUnipilotVault
@@ -385,9 +402,7 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
     /// @dev Burns all the Unipilot position and HODL in the vault to prevent users from huge IL
     /// Only called by the governer or selected operators
     /// @dev Users can also deposit/withdraw during HODL period.
-    function pullLiquidity(address recipient) external onlyOperator {
-        require(unipilotFactory.isWhitelist(recipient));
-
+    function pullLiquidity() external onlyOperator {
         (
             uint256 reserves0,
             uint256 reserves1,
@@ -396,13 +411,8 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         ) = pool.burnLiquidity(
                 ticksData.baseTickLower,
                 ticksData.baseTickUpper,
-                recipient
+                address(this)
             );
-
-        if (recipient != address(this)) {
-            pay(address(token0), address(this), recipient, _balance0());
-            pay(address(token1), address(this), recipient, _balance1());
-        }
 
         _pulled = 2;
         emit PullLiquidity(reserves0, reserves1, fees0, fees1);
@@ -479,7 +489,11 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
 
     function getBaseThreshold() internal view returns (int24 baseThreshold) {
         (, address strategy, , , ) = getProtocolDetails();
-        return IUnipilotStrategy(strategy).getBaseThreshold(address(pool));
+        return
+            IUnipilotStrategy(strategy).getBaseThreshold(
+                address(pool),
+                _strategyType
+            );
     }
 
     function getProtocolDetails()
@@ -504,21 +518,23 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
     ) internal {
         (, , address indexFund, uint8 percentage, ) = getProtocolDetails();
 
-        if (fees0 > 0)
-            TransferHelper.safeTransfer(
-                address(token0),
-                indexFund,
-                FullMath.mulDiv(fees0, percentage, 100)
-            );
+        if (percentage > 0) {
+            if (fees0 > 0)
+                TransferHelper.safeTransfer(
+                    address(token0),
+                    indexFund,
+                    FullMath.mulDiv(fees0, percentage, 100)
+                );
 
-        if (fees1 > 0)
-            TransferHelper.safeTransfer(
-                address(token1),
-                indexFund,
-                FullMath.mulDiv(fees1, percentage, 100)
-            );
+            if (fees1 > 0)
+                TransferHelper.safeTransfer(
+                    address(token1),
+                    indexFund,
+                    FullMath.mulDiv(fees1, percentage, 100)
+                );
 
-        emit FeesSnapshot(isReadjustLiquidity, fees0, fees1);
+            emit FeesSnapshot(isReadjustLiquidity, fees0, fees1);
+        }
     }
 
     function transferFunds(
