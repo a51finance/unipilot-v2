@@ -328,6 +328,7 @@ contract UnipilotPassiveVault is ERC20Permit, IUnipilotVault {
     /// @notice Returns unipilot vault details
     /// @return The first of the two tokens of the pool, sorted by address
     /// @return The second of the two tokens of the pool, sorted by address
+    /// @return The pool's fee in hundredths of a bip, i.e. 1e-6
     /// @return The address of the Uniswap V3 Pool
     function getVaultInfo()
         external
@@ -335,10 +336,12 @@ contract UnipilotPassiveVault is ERC20Permit, IUnipilotVault {
         returns (
             address,
             address,
+            uint16,
             address
         )
     {
-        return (address(token0), address(token1), address(pool));
+        (, , uint16 fee, , , , ) = pool.globalState();
+        return (address(token0), address(token1), fee, address(pool));
     }
 
     /// @dev Amount of token0 held as unused balance.
