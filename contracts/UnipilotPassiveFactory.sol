@@ -3,8 +3,8 @@ pragma solidity ^0.7.6;
 
 import "./UnipilotPassiveVault.sol";
 import "./interfaces/IUnipilotFactory.sol";
-import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
-import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
+import "@cryptoalgebra/core/contracts/interfaces/IAlgebraFactory.sol";
+import "@cryptoalgebra/core/contracts/interfaces/IAlgebraPool.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 /// @title Unipilot Passive Factory
@@ -20,10 +20,10 @@ contract UnipilotPassiveFactory is IUnipilotFactory {
 
     uint8 private swapPercentage;
     uint8 private indexFundPercentage;
-    IUniswapV3Factory private uniswapFactory;
+    IAlgebraFactory private algebraFactory;
 
     constructor(
-        address _uniswapFactory,
+        address _algebraFactory,
         address _governance,
         address _uniStrategy,
         address _indexFund,
@@ -33,14 +33,14 @@ contract UnipilotPassiveFactory is IUnipilotFactory {
     ) {
         governance = _governance;
         strategy = _uniStrategy;
-        uniswapFactory = IUniswapV3Factory(_uniswapFactory);
+        algebraFactory = IAlgebraFactory(_algebraFactory);
         indexFund = _indexFund;
         WETH = _WETH;
         indexFundPercentage = _indexFundPercentage;
         swapPercentage = _swapPercentage;
     }
 
-    mapping(address => mapping(address => mapping(uint24 => mapping(uint16 => address))))
+    mapping(address => mapping(address => mapping(uint16 => address)))
         public vaults;
 
     modifier onlyGovernance() {
@@ -74,7 +74,6 @@ contract UnipilotPassiveFactory is IUnipilotFactory {
     function createVault(
         address _tokenA,
         address _tokenB,
-        uint24 _fee,
         uint16 _vaultStrategy,
         uint160 _sqrtPriceX96,
         string memory _name,
@@ -86,13 +85,13 @@ contract UnipilotPassiveFactory is IUnipilotFactory {
             ? (_tokenA, _tokenB)
             : (_tokenB, _tokenA);
 
-        address pool = uniswapFactory.getPool(token0, token1, _fee);
+        address pool = algebraFactory.poolByPair(token0, token1);
 
         if (pool != address(0)) {
-            require(vaults[token0][token1][_fee][0] == address(0));
+            require(vaults[token0][token1][0] == address(0));
         } else {
-            pool = uniswapFactory.createPool(token0, token1, _fee);
-            IUniswapV3Pool(pool).initialize(_sqrtPriceX96);
+            pool = algebraFactory.createPool(token0, token1);
+            IAlgebraPool(pool).initialize(_sqrtPriceX96);
         }
 
         ERC20 token0Instance = ERC20(token0);
@@ -123,13 +122,13 @@ contract UnipilotPassiveFactory is IUnipilotFactory {
 
         _vault = address(
             new UnipilotPassiveVault{
-                salt: keccak256(abi.encodePacked(_tokenA, _tokenB, _fee))
+                salt: keccak256(abi.encodePacked(_tokenA, _tokenB))
             }(pool, address(this), WETH, _name, _symbol)
         );
 
-        vaults[token0][token1][_fee][0] = _vault;
-        vaults[token1][token0][_fee][0] = _vault; // populate mapping in the reverse direction
-        emit VaultCreated(token0, token1, _vaultStrategy, _fee, _vault);
+        vaults[token0][token1][0] = _vault;
+        vaults[token1][token0][0] = _vault; // populate mapping in the reverse direction
+        emit VaultCreated(token0, token1, _vaultStrategy, _vault);
     }
 
     /// @notice Updates the governance of all Unipilot passive vaults

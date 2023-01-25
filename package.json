@@ -94,6 +94,7 @@
     "typechain": "cross-env TS_NODE_TRANSPILE_ONLY=true hardhat typechain"
   },
   "dependencies": {
+    "@cryptoalgebra/core": "^2.0.0",
     "@nomiclabs/hardhat-etherscan": "^2.1.8",
     "@openzeppelin/contracts": "3.4.1-solc-0.7-2",
     "@uniswap/sdk-core": "^3.0.1",

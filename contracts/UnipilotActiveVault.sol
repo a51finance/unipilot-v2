@@ -23,16 +23,15 @@ import "@openzeppelin/contracts/drafts/ERC20Permit.sol";
 contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
     using SafeCastExtended for uint256;
     using LowGasSafeMath for uint256;
-    using UniswapPoolActions for IUniswapV3Pool;
-    using UniswapLiquidityManagement for IUniswapV3Pool;
+    using UniswapPoolActions for IAlgebraPool;
+    using UniswapLiquidityManagement for IAlgebraPool;
 
     IERC20 private token0;
     IERC20 private token1;
-    uint24 private fee;
     int24 private tickSpacing;
 
     TicksData public ticksData;
-    IUniswapV3Pool private pool;
+    IAlgebraPool private pool;
     IUnipilotFactory private unipilotFactory;
     uint256 internal constant MIN_INITIAL_SHARES = 1e3;
 
@@ -79,12 +78,11 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         require(_WETH != address(0));
         require(_unipilotFactory != address(0));
 
-        pool = IUniswapV3Pool(_pool);
+        pool = IAlgebraPool(_pool);
         unipilotFactory = IUnipilotFactory(_unipilotFactory);
         WETH = _WETH;
         token0 = IERC20(pool.token0());
         token1 = IERC20(pool.token1());
-        fee = pool.fee();
         tickSpacing = pool.tickSpacing();
         _strategyType = _strategytype;
     }
@@ -369,7 +367,7 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
     }
 
     /// @inheritdoc IUnipilotVault
-    function uniswapV3MintCallback(
+    function algebraMintCallback(
         uint256 amount0Owed,
         uint256 amount1Owed,
         bytes calldata data
@@ -384,7 +382,7 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
     }
 
     /// @inheritdoc IUnipilotVault
-    function uniswapV3SwapCallback(
+    function algebraSwapCallback(
         int256 amount0,
         int256 amount1,
         bytes calldata data
@@ -457,7 +455,6 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
     /// @notice Returns unipilot vault details
     /// @return The first of the two tokens of the pool, sorted by address
     /// @return The second of the two tokens of the pool, sorted by address
-    /// @return The pool's fee in hundredths of a bip, i.e. 1e-6
     /// @return The address of the Uniswap V3 Pool
     function getVaultInfo()
         external
@@ -465,11 +462,10 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         returns (
             address,
             address,
-            uint24,
             address
         )
     {
-        return (address(token0), address(token1), fee, address(pool));
+        return (address(token0), address(token1), address(pool));
     }
 
     /// @dev Amount of token0 held as unused balance.

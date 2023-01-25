@@ -3,8 +3,7 @@ pragma solidity >=0.5.0;
 
 import "./SafeCastExtended.sol";
 import "./UniswapLiquidityManagement.sol";
-
-import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
+import "@cryptoalgebra/core/contracts/interfaces/IAlgebraPool.sol";
 import "@uniswap/v3-core/contracts/libraries/FullMath.sol";
 import "@uniswap/v3-core/contracts/libraries/LowGasSafeMath.sol";
 
@@ -13,10 +12,10 @@ import "@uniswap/v3-core/contracts/libraries/LowGasSafeMath.sol";
 library UniswapPoolActions {
     using LowGasSafeMath for uint256;
     using SafeCastExtended for uint256;
-    using UniswapLiquidityManagement for IUniswapV3Pool;
+    using UniswapLiquidityManagement for IAlgebraPool;
 
     function updatePosition(
-        IUniswapV3Pool pool,
+        IAlgebraPool pool,
         int24 tickLower,
         int24 tickUpper
     ) internal returns (uint128 liquidity) {
@@ -28,7 +27,7 @@ library UniswapPoolActions {
     }
 
     function burnLiquidity(
-        IUniswapV3Pool pool,
+        IAlgebraPool pool,
         int24 tickLower,
         int24 tickUpper,
         address recipient
@@ -62,7 +61,7 @@ library UniswapPoolActions {
     }
 
     function burnUserLiquidity(
-        IUniswapV3Pool pool,
+        IAlgebraPool pool,
         int24 tickLower,
         int24 tickUpper,
         uint256 userSharePercentage,
@@ -97,7 +96,7 @@ library UniswapPoolActions {
     }
 
     function mintLiquidity(
-        IUniswapV3Pool pool,
+        IAlgebraPool pool,
         int24 tickLower,
         int24 tickUpper,
         uint256 amount0Desired,
@@ -111,7 +110,8 @@ library UniswapPoolActions {
         );
 
         if (liquidity > 0) {
-            (amount0, amount1) = pool.mint(
+            (amount0, amount1, ) = pool.mint(
+                address(this),
                 address(this),
                 tickLower,
                 tickUpper,
@@ -122,7 +122,7 @@ library UniswapPoolActions {
     }
 
     function swapToken(
-        IUniswapV3Pool pool,
+        IAlgebraPool pool,
         address recipient,
         bool zeroForOne,
         int256 amountSpecified
@@ -145,7 +145,7 @@ library UniswapPoolActions {
     }
 
     function collectPendingFees(
-        IUniswapV3Pool pool,
+        IAlgebraPool pool,
         address recipient,
         int24 tickLower,
         int24 tickUpper
@@ -162,7 +162,7 @@ library UniswapPoolActions {
     }
 
     function rerangeLiquidity(
-        IUniswapV3Pool pool,
+        IAlgebraPool pool,
         int24 baseThreshold,
         int24 tickSpacing,
         uint256 balance0,

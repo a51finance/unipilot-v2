@@ -6,13 +6,11 @@ interface IUnipilotFactory {
     /// @notice Emitted when a vault is created
     /// @param _tokenA The first token of the pool by address sort order
     /// @param _tokenB The second token of the pool by address sort order
-    /// @param _fee The fee tier for which the vault is created
     /// @param _vault The address of the vault that is created
     event VaultCreated(
         address indexed _tokenA,
         address indexed _tokenB,
         uint16 _strategyType,
-        uint24 _fee,
         address indexed _vault
     );
 
@@ -27,7 +25,6 @@ interface IUnipilotFactory {
     /// @notice Creates a vault for the given two tokens and fee
     /// @param _tokenA The first token of the pool by address sort order
     /// @param _tokenB The second token of the pool by address sort order
-    /// @param _fee The desired fee for the unipilot vault
     /// @dev tokenA and tokenB may be passed in either order: token0/token1 or token1/token0.
     /// The call will revert if the vault already exists, the fee is invalid, or the token arguments
     /// are invalid.
@@ -35,7 +32,6 @@ interface IUnipilotFactory {
     function createVault(
         address _tokenA,
         address _tokenB,
-        uint24 _fee,
         uint16 _vaultStrategy,
         uint160 _sqrtPriceX96,
         string memory _name,

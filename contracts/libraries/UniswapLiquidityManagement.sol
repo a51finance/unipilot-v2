@@ -29,12 +29,12 @@ library UniswapLiquidityManagement {
     /// @param _tickUpper The upper tick of the range
     /// @return amounts of token0 and token1 that corresponds to liquidity
     function getAmountsForLiquidity(
-        IUniswapV3Pool pool,
+        IAlgebraPool pool,
         uint128 liquidity,
         int24 _tickLower,
         int24 _tickUpper
     ) internal view returns (uint256, uint256) {
-        (uint160 sqrtRatioX96, , , , , , ) = pool.slot0();
+        (uint160 sqrtRatioX96, , , , , , ) = pool.globalState();
         return
             LiquidityAmounts.getAmountsForLiquidity(
                 sqrtRatioX96,
@@ -52,13 +52,13 @@ library UniswapLiquidityManagement {
     /// @param _tickUpper The upper tick of the range
     /// @return The maximum amount of liquidity that can be held amount0 and amount1
     function getLiquidityForAmounts(
-        IUniswapV3Pool pool,
+        IAlgebraPool pool,
         uint256 amount0,
         uint256 amount1,
         int24 _tickLower,
         int24 _tickUpper
     ) internal view returns (uint128) {
-        (uint160 sqrtRatioX96, , , , , , ) = pool.slot0();
+        (uint160 sqrtRatioX96, , , , , , ) = pool.globalState();
 
         return
             LiquidityAmounts.getLiquidityForAmounts(
@@ -76,7 +76,7 @@ library UniswapLiquidityManagement {
     /// @param _tickUpper The upper tick of the range
     /// @return liquidity stored in position
     function getPositionLiquidity(
-        IUniswapV3Pool pool,
+        IAlgebraPool pool,
         int24 _tickLower,
         int24 _tickUpper
     )
@@ -93,7 +93,9 @@ library UniswapLiquidityManagement {
             _tickLower,
             _tickUpper
         );
-        (liquidity, , , tokensOwed0, tokensOwed1) = pool.positions(positionKey);
+        (liquidity, , , , tokensOwed0, tokensOwed1) = pool.positions(
+            positionKey
+        );
     }
 
     /// @dev Rounds tick down towards negative infinity so that it's a multiple
@@ -108,7 +110,7 @@ library UniswapLiquidityManagement {
         return compressed * tickSpacing;
     }
 
-    function getSqrtRatioX96AndTick(IUniswapV3Pool pool)
+    function getSqrtRatioX96AndTick(IAlgebraPool pool)
         internal
         view
         returns (
@@ -117,7 +119,8 @@ library UniswapLiquidityManagement {
             uint16 observationCardinality
         )
     {
-        (_sqrtRatioX96, _tick, , observationCardinality, , , ) = pool.slot0();
+        (_sqrtRatioX96, _tick, , observationCardinality, , , ) = pool
+            .globalState();
     }
 
     /// @dev Calc base ticks depending on base threshold and tickspacing
@@ -132,7 +135,7 @@ library UniswapLiquidityManagement {
     }
 
     function collectableAmountsInPosition(
-        IUniswapV3Pool pool,
+        IAlgebraPool pool,
         int24 _lowerTick,
         int24 _upperTick
     )
@@ -157,7 +160,7 @@ library UniswapLiquidityManagement {
     }
 
     function computeLpShares(
-        IUniswapV3Pool pool,
+        IAlgebraPool pool,
         bool isWhitelisted,
         uint256 amount0Max,
         uint256 amount1Max,
@@ -197,7 +200,7 @@ library UniswapLiquidityManagement {
     }
 
     function getTotalAmounts(
-        IUniswapV3Pool pool,
+        IAlgebraPool pool,
         bool isWhitelisted,
         IUnipilotVault.TicksData memory ticks
     )
@@ -235,7 +238,7 @@ library UniswapLiquidityManagement {
     }
 
     function getReserves(
-        IUniswapV3Pool pool,
+        IAlgebraPool pool,
         int24 tickLower,
         int24 tickUpper
     )
@@ -310,7 +313,7 @@ library UniswapLiquidityManagement {
     /// @return tickLower The lower tick of the range
     /// @return tickUpper The upper tick of the range
     function getPositionTicks(
-        IUniswapV3Pool pool,
+        IAlgebraPool pool,
         uint256 amount0Desired,
         uint256 amount1Desired,
         int24 baseThreshold,
@@ -318,7 +321,8 @@ library UniswapLiquidityManagement {
     ) internal view returns (int24 tickLower, int24 tickUpper) {
         Info memory cache = Info(amount0Desired, amount1Desired, 0, 0, 0, 0, 0);
         // Get current price and tick from the pool
-        (uint160 sqrtPriceX96, int24 currentTick, , , , , ) = pool.slot0();
+        (uint160 sqrtPriceX96, int24 currentTick, , , , , ) = pool
+            .globalState();
         //Calc base ticks
         (cache.tickLower, cache.tickUpper) = getBaseTicks(
             currentTick,
@@ -393,7 +397,7 @@ library UniswapLiquidityManagement {
     /// @return amount0 amounts of token0 that can be stored in range
     /// @return amount1 amounts of token1 that can be stored in range
     function getAmountsForTicks(
-        IUniswapV3Pool pool,
+        IAlgebraPool pool,
         uint256 amount0Desired,
         uint256 amount1Desired,
         int24 _tickLower,

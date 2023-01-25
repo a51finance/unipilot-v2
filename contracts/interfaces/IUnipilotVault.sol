@@ -103,7 +103,7 @@ interface IUnipilotVault {
     /// @param amount0Owed The amount of token0 due to the pool for the minted liquidity
     /// @param amount1Owed The amount of token1 due to the pool for the minted liquidity
     /// @param data Any data passed through by the caller via the IUniswapV3PoolActions#mint call
-    function uniswapV3MintCallback(
+    function algebraMintCallback(
         uint256 amount0Owed,
         uint256 amount1Owed,
         bytes calldata data
@@ -114,7 +114,7 @@ interface IUnipilotVault {
     /// @param amount0Delta The amount of token0 due to the pool for the swap
     /// @param amount1Delta The amount of token1 due to the pool for the swap
     /// @param data Any data passed through by the caller via the IUniswapV3PoolActions#swap call
-    function uniswapV3SwapCallback(
+    function algebraSwapCallback(
         int256 amount0Delta,
         int256 amount1Delta,
         bytes calldata data
