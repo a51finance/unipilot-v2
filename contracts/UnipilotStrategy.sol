@@ -7,7 +7,7 @@ import "./interfaces/IUnipilotStrategy.sol";
 import "./base/oracle/libraries/OracleLibrary.sol";
 
 import "@uniswap/v3-core/contracts/libraries/TickMath.sol";
-import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
+import "@cryptoalgebra/core/contracts/interfaces/IAlgebraPool.sol";
 
 /**
  *
@@ -205,7 +205,7 @@ contract UnipilotStrategy is IUnipilotStrategy {
         PoolStrategy memory oldStrategy = poolStrategy[_pool];
         validateStrategy(
             params.baseThreshold,
-            IUniswapV3Pool(_pool).tickSpacing()
+            IAlgebraPool(_pool).tickSpacing()
         );
         emit StrategyUpdated(
             oldStrategy,
@@ -289,9 +289,10 @@ contract UnipilotStrategy is IUnipilotStrategy {
      *   @param pool: pool address
      **/
     function calculateTwap(address pool) internal view returns (int24 twap) {
-        uint128 inRangeLiquidity = IUniswapV3Pool(pool).liquidity();
+        uint128 inRangeLiquidity = IAlgebraPool(pool).liquidity();
         if (inRangeLiquidity == 0) {
-            (uint160 sqrtPriceX96, , , , , , ) = IUniswapV3Pool(pool).slot0();
+            (uint160 sqrtPriceX96, , , , , , ) = IAlgebraPool(pool)
+                .globalState();
             twap = TickMath.getTickAtSqrtRatio(sqrtPriceX96);
         } else {
             twap = getTwap(pool);
@@ -303,18 +304,10 @@ contract UnipilotStrategy is IUnipilotStrategy {
      *   @param _pool: pool address
      **/
     function getTwap(address _pool) public view override returns (int24 twap) {
-        IUniswapV3Pool uniswapV3Pool = IUniswapV3Pool(_pool);
-        (
-            ,
-            ,
-            uint16 observationIndex,
-            uint16 observationCardinality,
-            ,
-            ,
-
-        ) = uniswapV3Pool.slot0();
-        (uint32 lastTimeStamp, , , ) = uniswapV3Pool.observations(
-            (observationIndex + 1) % observationCardinality
+        IAlgebraPool uniswapV3Pool = IAlgebraPool(_pool);
+        (, , , uint16 observationIndex, , , ) = uniswapV3Pool.globalState();
+        (, uint32 lastTimeStamp, , , , , ) = uniswapV3Pool.timepoints(
+            (observationIndex + 1) % 65536
         );
         uint32 timeDiff = uint32(block.timestamp) - lastTimeStamp;
         uint32 duration = poolStrategy[_pool].twapDuration;
@@ -351,8 +344,8 @@ contract UnipilotStrategy is IUnipilotStrategy {
         view
         returns (int24 tick, int24 tickSpacing)
     {
-        (, tick, , , , , ) = IUniswapV3PoolState(pool).slot0();
-        tickSpacing = IUniswapV3Pool(pool).tickSpacing();
+        (, tick, , , , , ) = IAlgebraPoolState(pool).globalState();
+        tickSpacing = IAlgebraPool(pool).tickSpacing();
     }
 
     /**
