@@ -159,17 +159,11 @@ export const unipilotPassiveVaultFixture: Fixture<UNIPILOT_VAULT_FIXTURE> =
           tokenB,
           fee,
           0,
-          sqrtPrice,
           tokenName,
           tokenSymbol,
         );
 
-        const vaultAddress = await unipilotFactory.vaults(
-          tokenA,
-          tokenB,
-          fee,
-          0,
-        );
+        const vaultAddress = await unipilotFactory.vaults(tokenA, tokenB, fee);
         return unipilotVaultDep.attach(vaultAddress) as UnipilotPassiveVault;
       },
     };

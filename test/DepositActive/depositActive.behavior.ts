@@ -7,6 +7,7 @@ import {
   unipilotActiveVaultFixture,
 } from "../utils/fixuresActive";
 import { MaxUint256 } from "@ethersproject/constants";
+//import { ethers, waffle } from "hardhat";
 import { ethers, waffle } from "hardhat";
 import { encodePriceSqrt } from "../utils/encodePriceSqrt";
 import {
@@ -36,10 +37,12 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
   );
 
   type ThenArg<T> = T extends PromiseLike<infer U> ? U : T;
+
   const [wallet, alice, bob, carol, other, user0, user1, user2, user3, user4] =
     waffle.provider.getWallets();
 
   let loadFixture: ReturnType<typeof createFixtureLoader>;
+
   let createVault: ThenArg<
     ReturnType<typeof unipilotActiveVaultFixture>
   >["createVault"];
@@ -59,13 +62,11 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
       uniStrategy,
       createVault,
     } = await loadFixture(unipilotActiveVaultFixture));
+    await uniswapV3Factory.createPool(DAI.address, USDT.address);
 
-    await uniswapV3Factory.createPool(DAI.address, USDT.address, 3000);
-
-    let daiUsdtPoolAddress = await uniswapV3Factory.getPool(
+    let daiUsdtPoolAddress = await uniswapV3Factory.poolByPair(
       DAI.address,
       USDT.address,
-      3000,
     );
 
     uniswapPool = (await ethers.getContractAt(
@@ -74,7 +75,6 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
     )) as UniswapV3Pool;
 
     await uniswapPool.initialize(encodedPrice);
-
     await uniStrategy.setBaseTicks([daiUsdtPoolAddress], [0], [100]);
 
     unipilotVault = await createVault(
@@ -100,7 +100,6 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
 
     await USDT.connect(user0)._mint(user0.address, parseUnits("2000000", "18"));
     await DAI.connect(user0)._mint(user0.address, parseUnits("2000000", "18"));
-
     await DAI.approve(uniswapV3PositionManager.address, MaxUint256);
     await USDT.approve(uniswapV3PositionManager.address, MaxUint256);
 
@@ -144,20 +143,21 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
         token1: token1,
         tickLower: getMinTick(60),
         tickUpper: getMaxTick(60),
-        fee: 3000,
-        recipient: wallet.address,
+        //fee: 3000,
         amount0Desired: parseUnits("100000", "18"),
         amount1Desired: parseUnits("100000", "18"),
         amount0Min: 0,
         amount1Min: 0,
+        recipient: wallet.address,
         deadline: 2000000000,
       },
       {
+        value: 0,
         gasLimit: "3000000",
       },
     );
 
-    await unipilotFactory.toggleWhitelistAccount(unipilotVault.address);
+    //await unipilotFactory.toggleWhitelistAccount(unipilotVault.address);
     await unipilotVault.toggleOperator(wallet.address);
   });
 

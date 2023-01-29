@@ -16,15 +16,19 @@ const deployWeth9 = async (wallet: Wallet) => {
 
 const deployUniswap = async (wallet: Wallet, WETH9: Contract) => {
   let uniswapv3Contracts = await deployUniswapContracts(wallet, WETH9);
+
   const nonFungible = await ethers.getContractFactory(
     "NonfungiblePositionManager",
   );
   const nonFungbileInstance = (await nonFungible.deploy(
     uniswapv3Contracts.factory.address,
     WETH9.address,
-    uniswapv3Contracts.factory.address,
+    uniswapv3Contracts.positionDescriptor.address,
+    uniswapv3Contracts.pooldeployer.address,
   )) as NonfungiblePositionManager;
-
+  const tx = await uniswapv3Contracts.pooldeployer.setFactory(
+    uniswapv3Contracts.factory.address,
+  );
   return {
     uniswapV3Factory: uniswapv3Contracts.factory,
     uniswapV3PositionManager: nonFungbileInstance,
@@ -106,9 +110,11 @@ export const unipilotActiveVaultFixture: Fixture<UNIPILOT_VAULT_FIXTURE> =
       user3,
       user4,
     ] = waffle.provider.getWallets();
+
     const WETH9 = await deployWeth9(wallet);
     const { uniswapV3Factory, uniswapV3PositionManager, swapRouter } =
       await deployUniswap(wallet, WETH9);
+
     const uniStrategy = await deployStrategy(wallet);
     const indexFund = carol;
     const { unipilotFactory } = await unipilotFactoryFixture(
@@ -154,19 +160,13 @@ export const unipilotActiveVaultFixture: Fixture<UNIPILOT_VAULT_FIXTURE> =
         const tx = await unipilotFactory.createVault(
           tokenA,
           tokenB,
-          fee,
           0,
           sqrtPrice,
           tokenName,
           tokenSymbol,
         );
 
-        const vaultAddress = await unipilotFactory.vaults(
-          tokenA,
-          tokenB,
-          fee,
-          0,
-        );
+        const vaultAddress = await unipilotFactory.vaults(tokenA, tokenB, 0);
         return unipilotVaultDep.attach(vaultAddress) as UnipilotActiveVault;
       },
     };
