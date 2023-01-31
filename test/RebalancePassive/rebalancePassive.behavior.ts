@@ -140,7 +140,6 @@ export async function shouldBehaveLikeRebalancePassive(): Promise<void> {
         token1: token1,
         tickLower: getMinTick(60),
         tickUpper: getMaxTick(60),
-        fee: 3000,
         recipient: alice.address,
         amount0Desired: parseUnits("7000", "18"),
         amount1Desired: parseUnits("7000", "18"),

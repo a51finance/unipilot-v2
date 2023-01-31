@@ -20,7 +20,7 @@ import "./base/PoolInitializer.sol";
 
 /// @title NFT positions
 /// @notice Wraps Uniswap V3 positions in the ERC721 non-fungible token interface
-contract NonfungiblePositionManager is
+contract NonfungiblePositionManage is
     INonfungiblePositionManager,
     Multicall,
     ERC721Permit,

@@ -131,7 +131,6 @@ export async function shouldBehaveLikeDepositPassive(): Promise<void> {
         token1: token1,
         tickLower: getMinTick(60),
         tickUpper: getMaxTick(60),
-        fee: 3000,
         recipient: wallet.address,
         amount0Desired: parseUnits("1000", "18"),
         amount1Desired: parseUnits("1000", "18"),

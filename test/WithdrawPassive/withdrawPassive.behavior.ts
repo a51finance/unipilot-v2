@@ -126,7 +126,6 @@ export async function shouldBehaveLikeWithdrawPassive(): Promise<void> {
         token1: token1,
         tickLower: getMinTick(60),
         tickUpper: getMaxTick(60),
-        fee: 3000,
         recipient: other.address.toLowerCase(),
         amount0Desired: parseUnits("1500", "18"),
         amount1Desired: parseUnits("1500", "18"),

@@ -3,6 +3,7 @@ pragma solidity =0.7.6;
 
 import "./interfaces/IAlgebraPoolDeployer.sol";
 import "./AlgebraPool.sol";
+import "hardhat/console.sol";
 
 contract AlgebraPoolDeployer is IAlgebraPoolDeployer {
     struct Parameters {
@@ -29,6 +30,7 @@ contract AlgebraPoolDeployer is IAlgebraPoolDeployer {
     }
 
     constructor() {
+        console.log("Pool deployer");
         owner = msg.sender;
     }
 

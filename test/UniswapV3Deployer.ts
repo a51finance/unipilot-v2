@@ -105,7 +105,7 @@ export class UniswapV3Deployer {
     // );
 
     const router1 = await ethers.getContractFactory(
-      "contracts/src/periphery/contracts/SwapRouter.sol:SwapRouter",
+      "contracts/test/periphery/SwapRouter.sol:SwapRouter",
     );
     const router = await router1.deploy(
       factoryAddress,
@@ -122,11 +122,11 @@ export class UniswapV3Deployer {
     //   [],
     //   this.deployer,
     // );
-    const router1 = await ethers.getContractFactory(
-      "contracts/src/periphery/contracts/libraries/NFTDescriptor.sol:NFTDescriptor",
+    const dep = await ethers.getContractFactory(
+      "contracts/test/periphery/libraries/NFTDescriptor.sol:NFTDescriptor",
     );
-    const router = await router1.deploy();
-    return router;
+    const NFTDLIB = await dep.deploy();
+    return NFTDLIB;
   }
 
   async deployPositionDescriptor(
@@ -160,7 +160,7 @@ export class UniswapV3Deployer {
     // )) as Contract;
     //const Lib =
     const NFTD = await ethers.getContractFactory(
-      "contracts/src/periphery/contracts/NonfungibleTokenPositionDescriptor.sol:NonfungibleTokenPositionDescriptor",
+      "contracts/test/periphery/NonfungibleTokenPositionDescriptor.sol:NonfungibleTokenPositionDescriptor",
       {
         libraries: {
           NFTDescriptor: nftDescriptorLibraryAddress,
@@ -183,7 +183,7 @@ export class UniswapV3Deployer {
     //   this.deployer,
     // );
     const router1 = await ethers.getContractFactory(
-      "contracts/src/periphery/contracts/NonfungiblePositionManager.sol:NonfungiblePositionManager",
+      "contracts/test/periphery/NonfungiblePositionManager.sol:NonfungiblePositionManager",
     );
     const router = await router1.deploy(
       factoryAddress,

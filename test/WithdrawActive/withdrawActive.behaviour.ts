@@ -145,7 +145,7 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
         parseUnits("1000", "18"),
         wallet.address,
       );
-      pool.increaseObservationCardinalityNext(80);
+      //pool.increaseObservationCardinalityNext(80);
       await vault.readjustLiquidity(50);
     });
 
