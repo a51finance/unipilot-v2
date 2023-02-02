@@ -1,19 +1,19 @@
 import { use } from "chai";
 import { solidity } from "ethereum-waffle";
 
-import { shouldBehaveLikeDepositActive } from "./DepositActive/depositActive.behavior";
+// import { shouldBehaveLikeDepositActive } from "./DepositActive/depositActive.behavior";
 //import { shouldBehaveLikeDepositPassive } from "./DepositPassive/depositPassive.behavior";
 //import { shouldBehaveLikeRebalancePassive } from "./RebalancePassive/rebalancePassive.behavior";
 //import { shouldBehaveLikeRebalanceActive } from "./RebalanceActive/rebalanceActive.behavior";
 //import { shouldBehaveLikeWithdrawPassive } from "./WithdrawPassive/withdrawPassive.behavior";
-//import { shouldBehaveLikeWithdrawActive } from "./WithdrawActive/withdrawActive.behaviour";
+import { shouldBehaveLikeWithdrawActive } from "./WithdrawActive/withdrawActive.behaviour";
 //import { shouldBehaveLikeLive } from "./MainnetFork/mainnetFork.behavior";
 
 use(solidity);
 
-describe("Invokes Deposit Active Tests", async () => {
-  await shouldBehaveLikeDepositActive();
-});
+// describe("Invokes Deposit Active Tests", async () => {
+//   await shouldBehaveLikeDepositActive();
+// });
 
 // describe("Invokes Deposit Passive Tests", async () => {
 //   await shouldBehaveLikeDepositPassive();
@@ -31,6 +31,6 @@ describe("Invokes Deposit Active Tests", async () => {
 //   await shouldBehaveLikeWithdrawPassive();
 // });
 
-// describe("Withdraw Liquidity for Active", async () => {
-//   await shouldBehaveLikeWithdrawActive();
-// });
+describe("Withdraw Liquidity for Active", async () => {
+  await shouldBehaveLikeWithdrawActive();
+});
