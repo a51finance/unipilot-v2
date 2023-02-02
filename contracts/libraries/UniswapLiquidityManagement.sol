@@ -7,8 +7,6 @@ import "@uniswap/v3-periphery/contracts/libraries/PositionKey.sol";
 import "@uniswap/v3-periphery/contracts/libraries/LiquidityAmounts.sol";
 import "../interfaces/IUnipilotVault.sol";
 
-import "hardhat/console.sol";
-
 /// @title Liquidity and ticks functions
 /// @notice Provides functions for computing liquidity and ticks for token amounts and prices
 library UniswapLiquidityManagement {
@@ -91,11 +89,11 @@ library UniswapLiquidityManagement {
         )
     {
         bytes32 positionKey;
-        address This = address(this);
+        address vault = address(this);
 
         assembly {
             positionKey := or(
-                shl(24, or(shl(24, This), and(_tickLower, 0xFFFFFF))),
+                shl(24, or(shl(24, vault), and(_tickLower, 0xFFFFFF))),
                 and(_tickUpper, 0xFFFFFF)
             )
         }
