@@ -209,99 +209,101 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
       ).to.be.reverted;
     });
 
-    // it("withdraw with fees earned", async () => {
-    //   await generateFeeThroughSwap(
-    //     swapRouter,
-    //     other,
-    //     token0Instance,
-    //     token1Instance,
-    //     "1000",
-    //   );
-    //   await generateFeeThroughSwap(
-    //     swapRouter,
-    //     other,
-    //     token1Instance,
-    //     token0Instance,
-    //     "1000",
-    //   );
+    it("withdraw with fees earned", async () => {
+      await generateFeeThroughSwap(
+        swapRouter,
+        other,
+        token0Instance,
+        token1Instance,
+        "1000",
+      );
 
-    //   const fees = await vault.callStatic.getPositionDetails();
-    //   const unusedAmount0 = await token0Instance.balanceOf(vault.address);
+      await generateFeeThroughSwap(
+        swapRouter,
+        other,
+        token1Instance,
+        token0Instance,
+        "1000",
+      );
 
-    //   await vault.withdraw(parseUnits("1000", "18"), wallet.address, false);
+      const fees = await vault.callStatic.getPositionDetails();
 
-    //   const userToken0Balance = await token0Instance.balanceOf(wallet.address);
-    //   const userToken1Balance = await token1Instance.balanceOf(wallet.address);
+      const unusedAmount0 = await token0Instance.balanceOf(vault.address);
 
-    //   const details = await unipilotFactory.getUnipilotDetails();
+      await vault.withdraw(parseUnits("1000", "18"), wallet.address, false);
 
-    //   const amount0IndexFund = fees[2].div(details[3]);
-    //   const amount1IndexFund = fees[3].div(details[3]);
+      const userToken0Balance = await token0Instance.balanceOf(wallet.address);
+      const userToken1Balance = await token1Instance.balanceOf(wallet.address);
 
-    //   const total0 = fees[0].add(fees[2]).add(unusedAmount0);
-    //   const total1 = fees[1].add(fees[3]);
+      const details = await unipilotFactory.getUnipilotDetails();
 
-    //   expect(userToken0Balance).to.be.eq(total0.sub(amount0IndexFund));
-    //   expect(userToken1Balance).to.be.eq(total1.sub(amount1IndexFund));
-    // });
+      const amount0IndexFund = fees[2].div(details[3]);
+      const amount1IndexFund = fees[3].div(details[3]);
 
-    // it("fees compounding on withdraw", async () => {
-    //   await vault
-    //     .connect(other)
-    //     .deposit(
-    //       parseUnits("1000", "18"),
-    //       parseUnits("1000", "18"),
-    //       other.address,
-    //     );
+      const total0 = fees[0].add(fees[2]).add(unusedAmount0);
+      const total1 = fees[1].add(fees[3]);
 
-    //   const user0LP = await vault.balanceOf(wallet.address);
-    //   const user1LP = await vault.balanceOf(other.address);
+      expect(userToken0Balance).to.be.eq(total0.sub(amount0IndexFund));
+      expect(userToken1Balance).to.be.eq(total1.sub(amount1IndexFund));
+    });
 
-    //   await generateFeeThroughSwap(
-    //     swapRouter,
-    //     other,
-    //     token0Instance,
-    //     token1Instance,
-    //     "1000",
-    //   );
-    //   await generateFeeThroughSwap(
-    //     swapRouter,
-    //     other,
-    //     token1Instance,
-    //     token0Instance,
-    //     "1000",
-    //   );
+    it("fees compounding on withdraw", async () => {
+      await vault
+        .connect(other)
+        .deposit(
+          parseUnits("1000", "18"),
+          parseUnits("1000", "18"),
+          other.address,
+        );
 
-    //   const reservesBefore = await vault.callStatic.getPositionDetails();
+      const user0LP = await vault.balanceOf(wallet.address);
+      const user1LP = await vault.balanceOf(other.address);
 
-    //   const amount0ToCompound = reservesBefore[0].add(reservesBefore[2]).div(2);
-    //   const amount1ToCompound = reservesBefore[1].add(reservesBefore[3]).div(2);
+      await generateFeeThroughSwap(
+        swapRouter,
+        other,
+        token0Instance,
+        token1Instance,
+        "1000",
+      );
+      await generateFeeThroughSwap(
+        swapRouter,
+        other,
+        token1Instance,
+        token0Instance,
+        "1000",
+      );
 
-    //   const details = await unipilotFactory.getUnipilotDetails();
+      const reservesBefore = await vault.callStatic.getPositionDetails();
 
-    //   const amount0IndexFund = reservesBefore[2].div(details[3]);
-    //   const amount1IndexFund = reservesBefore[3].div(details[3]);
+      const amount0ToCompound = reservesBefore[0].add(reservesBefore[2]).div(2);
+      const amount1ToCompound = reservesBefore[1].add(reservesBefore[3]).div(2);
 
-    //   await vault.connect(other).withdraw(user1LP, other.address, false);
-    //   const reservesAfter = await vault.callStatic.getPositionDetails();
+      const details = await unipilotFactory.getUnipilotDetails();
 
-    //   expect(reservesAfter[0]).to.be.gte(
-    //     amount0ToCompound.sub(amount0IndexFund),
-    //   );
-    //   expect(reservesAfter[1]).to.be.gte(
-    //     amount1ToCompound.sub(amount1IndexFund),
-    //   );
+      const amount0IndexFund = reservesBefore[2].div(details[3]);
+      const amount1IndexFund = reservesBefore[3].div(details[3]);
 
-    //   const unusedAmount0 = await token0Instance.balanceOf(vault.address);
+      await vault.connect(other).withdraw(user1LP, other.address, false);
+      const reservesAfter = await vault.callStatic.getPositionDetails();
 
-    //   await vault.withdraw(user0LP, wallet.address, false);
+      expect(reservesAfter[0]).to.be.gte(
+        amount0ToCompound.sub(amount0IndexFund),
+      );
+      expect(reservesAfter[1]).to.be.gte(
+        amount1ToCompound.sub(amount1IndexFund),
+      );
 
-    //   const userToken0Balance = await token0Instance.balanceOf(wallet.address);
-    //   const userToken1Balance = await token1Instance.balanceOf(wallet.address);
+      const unusedAmount0 = await token0Instance.balanceOf(vault.address);
 
-    //   expect(userToken0Balance).to.be.eq(reservesAfter[0].add(unusedAmount0));
-    //   expect(userToken1Balance).to.be.eq(reservesAfter[1]);
-    // });
+      await vault.withdraw(user0LP, wallet.address, false);
+
+      const userToken0Balance = await token0Instance.balanceOf(wallet.address);
+      const userToken1Balance = await token1Instance.balanceOf(wallet.address);
+
+      expect(userToken0Balance).to.be.eq(reservesAfter[0].add(unusedAmount0));
+      expect(userToken1Balance).to.be.eq(reservesAfter[1]);
+    });
 
     // it("receive correct amounts of liquidity for unclaimed pool fees", async () => {
     //   pool.increaseObservationCardinalityNext(80);
