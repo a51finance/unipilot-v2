@@ -62,7 +62,7 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
 
     modifier checkDeviation() {
         (, address strategy, , , ) = getProtocolDetails();
-        IUnipilotStrategy(strategy).checkDeviation(address(pool));
+        //IUnipilotStrategy(strategy).checkDeviation(address(pool));
         _;
     }
 

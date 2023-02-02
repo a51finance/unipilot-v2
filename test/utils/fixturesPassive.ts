@@ -24,8 +24,11 @@ const deployUniswap = async (wallet: Wallet, WETH9: Contract) => {
     uniswapv3Contracts.factory.address,
     WETH9.address,
     uniswapv3Contracts.factory.address,
+    uniswapv3Contracts.pooldeployer.address,
   )) as NonfungiblePositionManager;
-
+  const tx = await uniswapv3Contracts.pooldeployer.setFactory(
+    uniswapv3Contracts.factory.address,
+  );
   return {
     uniswapV3Factory: uniswapv3Contracts.factory,
     uniswapV3PositionManager: nonFungbileInstance,
@@ -163,7 +166,7 @@ export const unipilotPassiveVaultFixture: Fixture<UNIPILOT_VAULT_FIXTURE> =
           tokenSymbol,
         );
 
-        const vaultAddress = await unipilotFactory.vaults(tokenA, tokenB, fee);
+        const vaultAddress = await unipilotFactory.vaults(tokenA, tokenB, 0);
         return unipilotVaultDep.attach(vaultAddress) as UnipilotPassiveVault;
       },
     };
