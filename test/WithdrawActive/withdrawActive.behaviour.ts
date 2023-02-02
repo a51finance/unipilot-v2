@@ -305,133 +305,125 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
       expect(userToken1Balance).to.be.eq(reservesAfter[1]);
     });
 
-    // it("receive correct amounts of liquidity for unclaimed pool fees", async () => {
-    //   pool.increaseObservationCardinalityNext(80);
-    //   mineNBlocks(5000);
+    it("receive correct amounts of liquidity for unclaimed pool fees", async () => {
+      await generateFeeThroughSwap(
+        swapRouter,
+        other,
+        token0Instance,
+        token1Instance,
+        "1000",
+      );
 
-    //   await generateFeeThroughSwap(
-    //     swapRouter,
-    //     other,
-    //     token0Instance,
-    //     token1Instance,
-    //     "1000",
-    //   );
-    //   await generateFeeThroughSwap(
-    //     swapRouter,
-    //     other,
-    //     token1Instance,
-    //     token0Instance,
-    //     "1000",
-    //   );
+      await generateFeeThroughSwap(
+        swapRouter,
+        other,
+        token1Instance,
+        token0Instance,
+        "1000",
+      );
 
-    //   const { amount0, amount1 } = await vault
-    //     .connect(other)
-    //     .callStatic.deposit(
-    //       parseUnits("1000", "18"),
-    //       parseUnits("1000", "18"),
-    //       other.address,
-    //     );
+      const { amount0, amount1 } = await vault
+        .connect(other)
+        .callStatic.deposit(
+          parseUnits("1000", "18"),
+          parseUnits("1000", "18"),
+          other.address,
+        );
 
-    //   await vault
-    //     .connect(other)
-    //     .deposit(
-    //       parseUnits("1000", "18"),
-    //       parseUnits("1000", "18"),
-    //       other.address,
-    //     );
+      await vault
+        .connect(other)
+        .deposit(
+          parseUnits("1000", "18"),
+          parseUnits("1000", "18"),
+          other.address,
+        );
 
-    //   const userToken0BalanceBfore = await token0Instance.balanceOf(
-    //     other.address,
-    //   );
-    //   const userToken1BalanceBfore = await token1Instance.balanceOf(
-    //     other.address,
-    //   );
+      const userToken0BalanceBfore = await token0Instance.balanceOf(
+        other.address,
+      );
+      const userToken1BalanceBfore = await token1Instance.balanceOf(
+        other.address,
+      );
 
-    //   const otherLP = await vault.balanceOf(other.address);
+      const otherLP = await vault.balanceOf(other.address);
 
-    //   await vault.connect(other).withdraw(otherLP, other.address, false);
+      await vault.connect(other).withdraw(otherLP, other.address, false);
 
-    //   const userToken0BalanceAfter = await token0Instance.balanceOf(
-    //     other.address,
-    //   );
-    //   const userToken1BalanceAfter = await token1Instance.balanceOf(
-    //     other.address,
-    //   );
+      const userToken0BalanceAfter = await token0Instance.balanceOf(
+        other.address,
+      );
+      const userToken1BalanceAfter = await token1Instance.balanceOf(
+        other.address,
+      );
 
-    //   const t0 = userToken0BalanceAfter.sub(userToken0BalanceBfore);
-    //   const t1 = userToken1BalanceAfter.sub(userToken1BalanceBfore);
+      const t0 = userToken0BalanceAfter.sub(userToken0BalanceBfore);
+      const t1 = userToken1BalanceAfter.sub(userToken1BalanceBfore);
 
-    //   expect(t0).to.be.lte(amount0);
-    //   expect(t1).to.be.lte(amount1);
-    // });
+      expect(t0).to.be.lte(amount0);
+      expect(t1).to.be.lte(amount1);
+    });
 
-    // it("after pulling liquidity should withdraw correctly", async () => {
-    //   pool.increaseObservationCardinalityNext(80);
-    //   mineNBlocks(5000);
+    it("after pulling liquidity should withdraw correctly", async () => {
+      const deposit = await vault
+        .connect(other)
+        .callStatic.deposit(
+          parseUnits("1000", "18"),
+          parseUnits("1000", "18"),
+          other.address,
+        );
 
-    //   const deposit = await vault
-    //     .connect(other)
-    //     .callStatic.deposit(
-    //       parseUnits("1000", "18"),
-    //       parseUnits("1000", "18"),
-    //       other.address,
-    //     );
+      await vault
+        .connect(other)
+        .deposit(
+          parseUnits("1000", "18"),
+          parseUnits("1000", "18"),
+          other.address,
+        );
 
-    //   await vault
-    //     .connect(other)
-    //     .deposit(
-    //       parseUnits("1000", "18"),
-    //       parseUnits("1000", "18"),
-    //       other.address,
-    //     );
+      var user1LP = await vault.balanceOf(other.address);
+      await vault.pullLiquidity();
 
-    //   var user1LP = await vault.balanceOf(other.address);
-    //   await vault.pullLiquidity();
+      const { amount0, amount1 } = await vault
+        .connect(other)
+        .callStatic.withdraw(user1LP, other.address, false);
+      await vault.connect(other).withdraw(user1LP, other.address, false);
+      user1LP = await vault.balanceOf(other.address);
 
-    //   const { amount0, amount1 } = await vault
-    //     .connect(other)
-    //     .callStatic.withdraw(user1LP, other.address, false);
-    //   await vault.connect(other).withdraw(user1LP, other.address, false);
-    //   user1LP = await vault.balanceOf(other.address);
+      expect(user1LP).to.be.eq(0);
+      expect(deposit[1]).to.be.eq(amount0.add(1));
+      expect(deposit[2]).to.be.eq(amount1.add(1));
+    });
 
-    //   expect(user1LP).to.be.eq(0);
-    //   expect(deposit[1]).to.be.eq(amount0.add(1));
-    //   expect(deposit[2]).to.be.eq(amount1);
-    // });
+    it("before pulling liquidity should withdraw correctly", async () => {
+      await vault.pullLiquidity();
 
-    // it("before pulling liquidity should withdraw correctly", async () => {
-    //   pool.increaseObservationCardinalityNext(80);
-    //   mineNBlocks(5000);
+      const deposit = await vault
+        .connect(other)
+        .callStatic.deposit(
+          parseUnits("1000", "18"),
+          parseUnits("1000", "18"),
+          other.address,
+        );
 
-    //   await vault.pullLiquidity();
+      await vault
+        .connect(other)
+        .deposit(
+          parseUnits("1000", "18"),
+          parseUnits("1000", "18"),
+          other.address,
+        );
 
-    //   const deposit = await vault
-    //     .connect(other)
-    //     .callStatic.deposit(
-    //       parseUnits("1000", "18"),
-    //       parseUnits("1000", "18"),
-    //       other.address,
-    //     );
+      var user1LP = await vault.balanceOf(other.address);
+      const { amount0, amount1 } = await vault
+        .connect(other)
+        .callStatic.withdraw(user1LP, other.address, false);
+      await vault.connect(other).withdraw(user1LP, other.address, false);
+      user1LP = await vault.balanceOf(other.address);
 
-    //   await vault
-    //     .connect(other)
-    //     .deposit(
-    //       parseUnits("1000", "18"),
-    //       parseUnits("1000", "18"),
-    //       other.address,
-    //     );
-
-    //   var user1LP = await vault.balanceOf(other.address);
-    //   const { amount0, amount1 } = await vault
-    //     .connect(other)
-    //     .callStatic.withdraw(user1LP, other.address, false);
-    //   await vault.connect(other).withdraw(user1LP, other.address, false);
-    //   user1LP = await vault.balanceOf(other.address);
-
-    //   expect(user1LP).to.be.eq(0);
-    //   expect(deposit[1]).to.be.eq(amount0.add(1));
-    //   expect(deposit[2]).to.be.eq(amount1);
-    // });
+      expect(user1LP).to.be.eq(0);
+      expect(deposit[1]).to.be.eq(amount0.add(1));
+      expect(deposit[2]).to.be.eq(amount1.add(1));
+    });
 
     // it("rebalance method test", async () => {
     //   await vault.rebalance(0, true, getMinTick(60), getMaxTick(60));
