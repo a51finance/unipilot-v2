@@ -11,7 +11,7 @@ import { MaxUint256 } from "@ethersproject/constants";
 import { ethers, waffle } from "hardhat";
 import { encodePriceSqrt } from "../utils/encodePriceSqrt";
 import {
-  UniswapV3Pool,
+  AlgebraPool,
   NonfungiblePositionManager,
   UnipilotActiveVault,
 } from "../../typechain";
@@ -27,7 +27,7 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
   let unipilotVault: UnipilotActiveVault;
   let DAI: Contract;
   let USDT: Contract;
-  let uniswapPool: UniswapV3Pool;
+  let algebraPool: AlgebraPool;
   let token0Instance: Contract;
   let token1Instance: Contract;
 
@@ -62,19 +62,18 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
       uniStrategy,
       createVault,
     } = await loadFixture(unipilotActiveVaultFixture));
-    await uniswapV3Factory.createPool(DAI.address, USDT.address);
-
+    const tx = await uniswapV3Factory.createPool(DAI.address, USDT.address);
     let daiUsdtPoolAddress = await uniswapV3Factory.poolByPair(
       DAI.address,
       USDT.address,
     );
 
-    uniswapPool = (await ethers.getContractAt(
-      "UniswapV3Pool",
+    algebraPool = (await ethers.getContractAt(
+      "AlgebraPool",
       daiUsdtPoolAddress,
-    )) as UniswapV3Pool;
+    )) as AlgebraPool;
 
-    await uniswapPool.initialize(encodedPrice);
+    await algebraPool.initialize(encodedPrice);
     await uniStrategy.setBaseTicks([daiUsdtPoolAddress], [0], [100]);
 
     unipilotVault = await createVault(
@@ -277,7 +276,7 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
 
     const token1ToBeDesposited = parseUnits("2000", "18")
       .mul(parseUnits("1", "18"))
-      .div(parseUnits("8", "18")); // 125
+      .div(parseUnits("8", "18")); //
 
     const expectedToken1BalanceAfterDeposit =
       expectedToken1BalanceBeforeDeposit.sub(token1ToBeDesposited); //1994875
@@ -288,6 +287,7 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
     const token1Balance: BigNumber = await token1Instance.balanceOf(
       wallet.address,
     );
+    console.log(token0Balance, token1Balance); //1898000,1986500
 
     expect(
       token0Balance.gt(parseUnits("1898000", "18")) &&
@@ -311,13 +311,7 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
         wallet.address,
       );
 
-    await generateFeeThroughSwap(
-      swapRouter,
-      alice,
-      token0Instance,
-      token1Instance,
-      "2000",
-    );
+    await generateFeeThroughSwap(swapRouter, alice, USDT, DAI, "2000");
 
     const calculatedFees = parseUnits("2000", "18")
       .mul(parseUnits("0.3", "18"))
@@ -340,7 +334,7 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
       );
 
     const positionDetails = await unipilotVault.callStatic.getPositionDetails();
-
+    console.log(positionDetails[0], positionDetails[1]);
     const reserve1 =
       positionDetails[0].lte(parseUnits("1000", "18")) &&
       positionDetails[0].gte(parseUnits("999", "18"));
@@ -352,6 +346,7 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
 
   it("should get lp according to share", async () => {
     await unipilotVault.rebalance(0, false, getMinTick(60), getMaxTick(60)); // initializing vault
+    const p = await uniswapV3Factory.poolByPair(DAI.address, USDT.address);
 
     await unipilotVault
       .connect(wallet)
@@ -373,6 +368,15 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
         carol.address,
       );
 
+    // const sellOrderParams = {
+    //   tokenIn: tokenIn.address,
+    //   tokenOut: tokenOut.address,
+    //   recipient: wallet.address,
+    //   deadline: Math.round(Date.now() / 1000) + 86400,
+    //   amountIn: parseUnits(amountIn, "18"),
+    //   amountOutMinimum: parseUnits("0", "18"),
+    //   limitSqrtPrice: "0",
+    // };
     await generateFeeThroughSwap(
       swapRouter,
       wallet,
@@ -397,7 +401,12 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
     const lpBalanceOfBob = await unipilotVault.balanceOf(bob.address);
     const lpBalanceOfCarol = await unipilotVault.balanceOf(carol.address);
     const lpBalanceOfUser0 = await unipilotVault.balanceOf(user0.address);
-
+    console.log(
+      lpBalanceOfWallet,
+      lpBalanceOfBob,
+      lpBalanceOfCarol,
+      lpBalanceOfUser0,
+    );
     const walletLp =
       lpBalanceOfWallet.gte(parseUnits("1000", "18")) &&
       lpBalanceOfWallet.lt(parseUnits("1001", "18"));
@@ -409,11 +418,11 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
     const carolLp =
       lpBalanceOfCarol.gte(parseUnits("1000", "18")) &&
       lpBalanceOfCarol.lt(parseUnits("1001", "18"));
-
     const user0Lp =
       lpBalanceOfUser0.gte(parseUnits("3198", "18")) &&
       lpBalanceOfUser0.lt(parseUnits("3841", "18"));
 
+    console.log(walletLp, bobLp, carolLp, user0Lp);
     expect(bobLp && walletLp && carolLp && user0Lp).to.be.true;
   });
 

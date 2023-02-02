@@ -3,6 +3,8 @@ import { linkLibraries } from "./utils/linklibraries";
 import WETH from "uniswap-v3-deploy-plugin/src/util/WETH9.json";
 //import { AlgebraPoolDeployer, SwapRouter,AlgebraFactory,NFTDescriptor, NonfungibleTokenPositionDescriptor  } from "../typechain";
 import { ethers } from "hardhat";
+import { string } from "hardhat/internal/core/params/argumentTypes";
+import console from "console";
 type ContractJson = { abi: any; bytecode: string };
 const artifacts: { [name: string]: ContractJson } = {
   // PoolDeployer: require("@cryptoalgebra/core/artifacts/contracts/AlgebraPoolDeployer.sol/AlgebraPoolDeployer.json"),
@@ -38,8 +40,8 @@ export class UniswapV3Deployer {
     );
     const router = await deployer.deployRouter(
       factory.address,
-      weth9.address,
       pooldeployer.address,
+      weth9.address,
     );
     const nftDescriptorLibrary = await deployer.deployNFTDescriptorLibrary();
     const positionDescriptor = await deployer.deployPositionDescriptor(
@@ -72,7 +74,9 @@ export class UniswapV3Deployer {
 
   async deployPoolDeployer() {
     const poolDep = await ethers.getContractFactory("AlgebraPoolDeployer");
-    return await poolDep.deploy();
+    const p = await poolDep.deploy();
+
+    return p;
     // return await this.deployContract<Contract>(
     //   artifacts.PoolDeployer.abi,
     //   artifacts.PoolDeployer.bytecode,
@@ -83,7 +87,9 @@ export class UniswapV3Deployer {
   //const vaultAddress = '0x1d8b6fA722230153BE08C4Fa4Aa4B4c7cd01A95a'
   async deployFactory(poolDeployerAddress: string, vaultAddress: string) {
     const factory = await ethers.getContractFactory("AlgebraFactory");
-    return await factory.deploy(poolDeployerAddress, vaultAddress);
+    const f = await factory.deploy(poolDeployerAddress, vaultAddress);
+
+    return f;
     // return await this.deployContract<Contract>(
     //   artifacts.UniswapV3Factory.abi,
     //   artifacts.UniswapV3Factory.bytecode,
@@ -112,6 +118,17 @@ export class UniswapV3Deployer {
       weth9Address,
       pooldeployer,
     );
+
+    // const sellOrderParams = {
+    //   tokenIn: "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
+    //   tokenOut: "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
+    //   recipient: "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
+    //   deadline: Math.round(Date.now() / 1000) + 86400,
+    //   amountIn: 18,
+    //   amountOutMinimum: 0,
+    //   limitSqrtPrice: 0,
+    // };
+    // await router.exactInputSingle(sellOrderParams)
     return router;
   }
 
@@ -126,6 +143,7 @@ export class UniswapV3Deployer {
       "contracts/test/periphery/libraries/NFTDescriptor.sol:NFTDescriptor",
     );
     const NFTDLIB = await dep.deploy();
+
     return NFTDLIB;
   }
 
@@ -182,6 +200,7 @@ export class UniswapV3Deployer {
     //   [factoryAddress, weth9Address, positionDescriptorAddress,pooldeployer],
     //   this.deployer,
     // );
+
     const router1 = await ethers.getContractFactory(
       "contracts/test/periphery/NonfungiblePositionManager.sol:NonfungiblePositionManager",
     );
@@ -191,7 +210,6 @@ export class UniswapV3Deployer {
       positionDescriptorAddress,
       pooldeployer,
     );
-
     return router;
   }
 
