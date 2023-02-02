@@ -306,14 +306,28 @@ contract UnipilotStrategy is IUnipilotStrategy {
     function getTwap(address _pool) public view override returns (int24 twap) {
         IAlgebraPool uniswapV3Pool = IAlgebraPool(_pool);
         (, , , uint16 observationIndex, , , ) = uniswapV3Pool.globalState();
+
+        uint16 oldestIndex;
+        // check if we have overflow in the past
+        uint16 nextIndex = observationIndex + 1; // considering overflow
+
+        (bool initialized, , , , , , ) = uniswapV3Pool.timepoints(nextIndex);
+
+        if (initialized) {
+            oldestIndex = nextIndex;
+        }
+
         (, uint32 lastTimeStamp, , , , , ) = uniswapV3Pool.timepoints(
-            (observationIndex + 1) % 65536
+            oldestIndex
         );
+
         uint32 timeDiff = uint32(block.timestamp) - lastTimeStamp;
         uint32 duration = poolStrategy[_pool].twapDuration;
+
         if (duration == 0) {
             duration = twapDuration;
         }
+
         twap = OracleLibrary.consult(
             _pool,
             timeDiff > duration ? duration : timeDiff
