@@ -16,7 +16,7 @@ import {
   UnipilotActiveVault,
 } from "../../typechain";
 import { generateFeeThroughSwap } from "../utils/SwapFunction/swap";
-
+import hre from "hardhat";
 export async function shouldBehaveLikeDepositActive(): Promise<void> {
   const createFixtureLoader = waffle.createFixtureLoader;
   let uniswapV3Factory: Contract;
@@ -238,7 +238,8 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
       );
 
     await unipilotVault.readjustLiquidity(50);
-
+    await hre.network.provider.send("evm_increaseTime", [3600]);
+    await hre.network.provider.send("evm_mine");
     await unipilotVault
       .connect(wallet)
       .deposit(
@@ -287,7 +288,6 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
     const token1Balance: BigNumber = await token1Instance.balanceOf(
       wallet.address,
     );
-    console.log(token0Balance, token1Balance); //1898000,1986500
 
     expect(
       token0Balance.gt(parseUnits("1898000", "18")) &&
@@ -334,7 +334,6 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
       );
 
     const positionDetails = await unipilotVault.callStatic.getPositionDetails();
-    console.log(positionDetails[0], positionDetails[1]);
     const reserve1 =
       positionDetails[0].lte(parseUnits("1000", "18")) &&
       positionDetails[0].gte(parseUnits("999", "18"));
@@ -387,6 +386,8 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
 
     let positionDetails = await unipilotVault.callStatic.getPositionDetails();
 
+    await hre.network.provider.send("evm_increaseTime", [3600]);
+    await hre.network.provider.send("evm_mine");
     await unipilotVault
       .connect(user0)
       .deposit(
@@ -401,12 +402,6 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
     const lpBalanceOfBob = await unipilotVault.balanceOf(bob.address);
     const lpBalanceOfCarol = await unipilotVault.balanceOf(carol.address);
     const lpBalanceOfUser0 = await unipilotVault.balanceOf(user0.address);
-    console.log(
-      lpBalanceOfWallet,
-      lpBalanceOfBob,
-      lpBalanceOfCarol,
-      lpBalanceOfUser0,
-    );
     const walletLp =
       lpBalanceOfWallet.gte(parseUnits("1000", "18")) &&
       lpBalanceOfWallet.lt(parseUnits("1001", "18"));
@@ -420,9 +415,8 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
       lpBalanceOfCarol.lt(parseUnits("1001", "18"));
     const user0Lp =
       lpBalanceOfUser0.gte(parseUnits("3198", "18")) &&
-      lpBalanceOfUser0.lt(parseUnits("3841", "18"));
+      lpBalanceOfUser0.lt(parseUnits("3841", "18")); //actual 3923
 
-    console.log(walletLp, bobLp, carolLp, user0Lp);
     expect(bobLp && walletLp && carolLp && user0Lp).to.be.true;
   });
 
