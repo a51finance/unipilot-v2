@@ -19,8 +19,8 @@ import { generateFeeThroughSwap } from "../utils/SwapFunction/swap";
 import hre from "hardhat";
 export async function shouldBehaveLikeDepositActive(): Promise<void> {
   const createFixtureLoader = waffle.createFixtureLoader;
-  let uniswapV3Factory: Contract;
-  let uniswapV3PositionManager: NonfungiblePositionManager;
+  let algebraFactory: Contract;
+  let algebraPositionManager: NonfungiblePositionManager;
   let uniStrategy: Contract;
   let unipilotFactory: Contract;
   let swapRouter: Contract;
@@ -53,8 +53,8 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
 
   beforeEach("setting up fixture contracts", async () => {
     ({
-      uniswapV3Factory,
-      uniswapV3PositionManager,
+      algebraFactory,
+      algebraPositionManager,
       swapRouter,
       unipilotFactory,
       DAI,
@@ -62,8 +62,8 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
       uniStrategy,
       createVault,
     } = await loadFixture(unipilotActiveVaultFixture));
-    const tx = await uniswapV3Factory.createPool(DAI.address, USDT.address);
-    let daiUsdtPoolAddress = await uniswapV3Factory.poolByPair(
+    const tx = await algebraFactory.createPool(DAI.address, USDT.address);
+    let daiUsdtPoolAddress = await algebraFactory.poolByPair(
       DAI.address,
       USDT.address,
     );
@@ -79,7 +79,6 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
     unipilotVault = await createVault(
       USDT.address,
       DAI.address,
-      3000,
       encodedPrice,
       "unipilot USDT-DAI",
       "USDT-DAI",
@@ -99,8 +98,8 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
 
     await USDT.connect(user0)._mint(user0.address, parseUnits("2000000", "18"));
     await DAI.connect(user0)._mint(user0.address, parseUnits("2000000", "18"));
-    await DAI.approve(uniswapV3PositionManager.address, MaxUint256);
-    await USDT.approve(uniswapV3PositionManager.address, MaxUint256);
+    await DAI.approve(algebraPositionManager.address, MaxUint256);
+    await USDT.approve(algebraPositionManager.address, MaxUint256);
 
     await USDT.connect(wallet).approve(unipilotVault.address, MaxUint256);
     await DAI.connect(wallet).approve(unipilotVault.address, MaxUint256);
@@ -136,7 +135,7 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
     token1Instance =
       USDT.address.toLowerCase() > DAI.address.toLowerCase() ? USDT : DAI;
 
-    await uniswapV3PositionManager.connect(wallet).mint(
+    await algebraPositionManager.connect(wallet).mint(
       {
         token0: token0,
         token1: token1,
@@ -178,12 +177,12 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
   it("should successfully deposit", async () => {
     const token0MintedOnWallet0 = parseUnits("2000000", "18");
 
-    const mintedToken0OnUniswap = parseUnits("5000", "18")
+    const mintedToken0OnAlgebra = parseUnits("5000", "18")
       .mul(parseUnits("1", "18"))
       .div(parseUnits("1", "18"));
 
     const expectedUsdtBalanceBeforeDeposit = token0MintedOnWallet0.sub(
-      mintedToken0OnUniswap,
+      mintedToken0OnAlgebra,
     );
 
     const token0ToBeDesposited = parseUnits("1000", "18")
@@ -195,12 +194,12 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
 
     const token1MintedOnWallet0 = parseUnits("2000000", "18");
 
-    const mintedToken1OnUniswap = parseUnits("5000", "18")
+    const mintedToken1OnAlgebra = parseUnits("5000", "18")
       .mul(parseUnits("1", "18"))
       .div(parseUnits("8", "18"));
 
     const expectedDaiBalanceBeforeDeposit = token1MintedOnWallet0.sub(
-      mintedToken1OnUniswap,
+      mintedToken1OnAlgebra,
     ); // 1995000
 
     const token1ToBeDesposited = parseUnits("1000", "18")
@@ -250,12 +249,12 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
 
     const token0MintedOnWallet0 = parseUnits("2000000", "18");
 
-    const mintedToken0OnUniswap = parseUnits("5000", "18")
+    const mintedToken0OnAlgebra = parseUnits("5000", "18")
       .mul(parseUnits("1", "18"))
       .div(parseUnits("1", "18"));
 
     const expectedToken0BalanceBeforeDeposit = token0MintedOnWallet0.sub(
-      mintedToken0OnUniswap,
+      mintedToken0OnAlgebra,
     );
 
     const token0ToBeDesposited = parseUnits("2000", "18")
@@ -267,12 +266,12 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
 
     const token1MintedOnWallet0 = parseUnits("2000000", "18");
 
-    const mintedToken1OnUniswap = parseUnits("5000", "18")
+    const mintedToken1OnAlgebra = parseUnits("5000", "18")
       .mul(parseUnits("1", "18"))
       .div(parseUnits("8", "18"));
 
     const expectedToken1BalanceBeforeDeposit = token1MintedOnWallet0.sub(
-      mintedToken1OnUniswap,
+      mintedToken1OnAlgebra,
     ); // 1995000
 
     const token1ToBeDesposited = parseUnits("2000", "18")
@@ -345,7 +344,7 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
 
   it("should get lp according to share", async () => {
     await unipilotVault.rebalance(0, false, getMinTick(60), getMaxTick(60)); // initializing vault
-    const p = await uniswapV3Factory.poolByPair(DAI.address, USDT.address);
+    const p = await algebraFactory.poolByPair(DAI.address, USDT.address);
 
     await unipilotVault
       .connect(wallet)

@@ -20,8 +20,8 @@ import { generateFeeThroughSwap } from "../utils/SwapFunction/swap";
 import hre from "hardhat";
 export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
   const createFixtureLoader = waffle.createFixtureLoader;
-  let uniswapV3Factory: Contract;
-  let uniswapV3PositionManager: NonfungiblePositionManager;
+  let algebraFactory: Contract;
+  let algebraPositionManager: NonfungiblePositionManager;
   let uniStrategy: Contract;
   let unipilotFactory: UnipilotActiveFactory;
   let swapRouter: Contract;
@@ -33,7 +33,7 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
   let token0Instance: Contract;
   let token1Instance: Contract;
 
-  let uniswapPool: AlgebraPool;
+  let AlgebraPool: AlgebraPool;
 
   const encodedPrice = encodePriceSqrt(
     parseUnits("1", "18"),
@@ -55,8 +55,8 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
 
   beforeEach("setting up fixture contracts", async () => {
     ({
-      uniswapV3Factory,
-      uniswapV3PositionManager,
+      algebraFactory,
+      algebraPositionManager,
       swapRouter,
       unipilotFactory,
       SUSDC,
@@ -65,25 +65,24 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
       createVault,
     } = await loadFixture(unipilotActiveVaultFixture));
 
-    await uniswapV3Factory.createPool(SUSDC.address, UNI.address);
-    let uniswapPoolAddress = await uniswapV3Factory.poolByPair(
+    await algebraFactory.createPool(SUSDC.address, UNI.address);
+    let AlgebraPoolAddress = await algebraFactory.poolByPair(
       SUSDC.address,
       UNI.address,
     );
 
-    uniswapPool = (await ethers.getContractAt(
-      "UniswapV3Pool",
-      uniswapPoolAddress,
+    AlgebraPool = (await ethers.getContractAt(
+      "AlgebraPool",
+      AlgebraPoolAddress,
     )) as AlgebraPool;
 
-    await uniswapPool.initialize(encodedPrice);
+    await AlgebraPool.initialize(encodedPrice);
 
-    await uniStrategy.setBaseTicks([uniswapPoolAddress], [0], [100]);
+    await uniStrategy.setBaseTicks([AlgebraPoolAddress], [0], [100]);
 
     unipilotVault = await createVault(
       UNI.address,
       SUSDC.address,
-      3000,
       encodedPrice,
       "unipilot PILOT-UNI",
       "PILOT-UNI",
@@ -102,21 +101,21 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
     await SUSDC.connect(wallet).approve(unipilotVault.address, MaxUint256);
 
     await SUSDC.connect(wallet).approve(
-      uniswapV3PositionManager.address,
+      algebraPositionManager.address,
       MaxUint256,
     );
 
     await UNI.connect(wallet).approve(
-      uniswapV3PositionManager.address,
+      algebraPositionManager.address,
       MaxUint256,
     );
 
     await UNI.connect(alice).approve(
-      uniswapV3PositionManager.address,
+      algebraPositionManager.address,
       MaxUint256,
     );
     await SUSDC.connect(alice).approve(
-      uniswapV3PositionManager.address,
+      algebraPositionManager.address,
       MaxUint256,
     );
 
@@ -142,7 +141,7 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
     token1Instance =
       UNI.address.toLowerCase() > SUSDC.address.toLowerCase() ? UNI : SUSDC;
 
-    await uniswapV3PositionManager.connect(alice).mint(
+    await algebraPositionManager.connect(alice).mint(
       {
         token0: token0,
         token1: token1,

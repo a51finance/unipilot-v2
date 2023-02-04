@@ -6,7 +6,7 @@ import {
   UnipilotActiveFactory,
   UnipilotActiveVault,
 } from "../../typechain";
-import { deployStrategy, deployUniswapContracts, deployWETH9 } from "../stubs";
+import { deployStrategy, deployAlegbraFinanceContracts, deployWETH9 } from "../stubs";
 import { deployToken } from "../TokenDeployer/TokenStubs";
 
 const deployWeth9 = async (wallet: Wallet) => {
@@ -14,31 +14,31 @@ const deployWeth9 = async (wallet: Wallet) => {
   return WETH9;
 };
 
-const deployUniswap = async (wallet: Wallet, WETH9: Contract) => {
-  let uniswapv3Contracts = await deployUniswapContracts(wallet, WETH9);
+const deployAlgebraFinance = async (wallet: Wallet, WETH9: Contract) => {
+  let algebraContracts = await deployAlegbraFinanceContracts(wallet, WETH9);
 
   const nonFungible = await ethers.getContractFactory(
     "NonfungiblePositionManager",
   );
   const nonFungbileInstance = (await nonFungible.deploy(
-    uniswapv3Contracts.factory.address,
+    algebraContracts.factory.address,
     WETH9.address,
-    uniswapv3Contracts.positionDescriptor.address,
-    uniswapv3Contracts.pooldeployer.address,
+    algebraContracts.positionDescriptor.address,
+    algebraContracts.pooldeployer.address,
   )) as NonfungiblePositionManager;
-  const tx = await uniswapv3Contracts.pooldeployer.setFactory(
-    uniswapv3Contracts.factory.address,
+  const tx = await algebraContracts.pooldeployer.setFactory(
+    algebraContracts.factory.address,
   );
   return {
-    uniswapV3Factory: uniswapv3Contracts.factory,
-    uniswapV3PositionManager: nonFungbileInstance,
-    swapRouter: uniswapv3Contracts.router,
+    algebraFactory: algebraContracts.factory,
+    algebraPositionManager: nonFungbileInstance,
+    swapRouter: algebraContracts.router,
   };
 };
 
-interface UNISWAP_V3_FIXTURES {
-  uniswapV3Factory: Contract;
-  uniswapV3PositionManager: NonfungiblePositionManager;
+interface ALGEBRA_FINANCE_FIXTURES {
+  algebraFactory: Contract;
+  algebraPositionManager: NonfungiblePositionManager;
   swapRouter: Contract;
 }
 
@@ -60,7 +60,7 @@ interface UNIPILOT_FACTORY_FIXTURE {
 }
 
 async function unipilotFactoryFixture(
-  uniswapV3Factory: string,
+  algebraFactory: string,
   deployer: Wallet,
   indexFund: Wallet,
   uniStrategy: string,
@@ -71,7 +71,7 @@ async function unipilotFactoryFixture(
     "UnipilotActiveFactory",
   );
   const unipilotFactory = (await unipilotFactoryDep.deploy(
-    uniswapV3Factory,
+    algebraFactory,
     deployer.address,
     uniStrategy,
     indexFund.address,
@@ -82,14 +82,13 @@ async function unipilotFactoryFixture(
 }
 
 type FACTORIES = UNIPILOT_FACTORY_FIXTURE &
-  UNISWAP_V3_FIXTURES &
+  ALGEBRA_FINANCE_FIXTURES &
   TEST_ERC20 &
   STRATEGIES;
 interface UNIPILOT_VAULT_FIXTURE extends FACTORIES {
   createVault(
     tokenA: string,
     tokenB: string,
-    fee: number,
     sqrtPrice: BigNumber,
     tokenName: string,
     tokenSymbol: string,
@@ -112,13 +111,13 @@ export const unipilotActiveVaultFixture: Fixture<UNIPILOT_VAULT_FIXTURE> =
     ] = waffle.provider.getWallets();
 
     const WETH9 = await deployWeth9(wallet);
-    const { uniswapV3Factory, uniswapV3PositionManager, swapRouter } =
-      await deployUniswap(wallet, WETH9);
+    const { algebraFactory, algebraPositionManager, swapRouter } =
+      await deployAlgebraFinance(wallet, WETH9);
 
     const uniStrategy = await deployStrategy(wallet);
     const indexFund = carol;
     const { unipilotFactory } = await unipilotFactoryFixture(
-      uniswapV3Factory.address,
+      algebraFactory.address,
       wallet,
       indexFund,
       uniStrategy.address,
@@ -138,8 +137,8 @@ export const unipilotActiveVaultFixture: Fixture<UNIPILOT_VAULT_FIXTURE> =
     );
 
     return {
-      uniswapV3Factory,
-      uniswapV3PositionManager,
+      algebraFactory,
+      algebraPositionManager,
       swapRouter,
       unipilotFactory,
       DAI,
@@ -152,7 +151,6 @@ export const unipilotActiveVaultFixture: Fixture<UNIPILOT_VAULT_FIXTURE> =
       createVault: async (
         tokenA,
         tokenB,
-        fee,
         sqrtPrice,
         tokenName,
         tokenSymbol,
