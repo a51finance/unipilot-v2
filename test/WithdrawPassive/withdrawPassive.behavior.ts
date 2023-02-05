@@ -10,22 +10,22 @@ import hre, { ethers, waffle } from "hardhat";
 import { encodePriceSqrt } from "../utils/encodePriceSqrt";
 import {
   UnipilotPassiveVault,
-  UniswapV3Pool,
+  AlgebraPool,
   NonfungiblePositionManager,
 } from "../../typechain";
 import { generateFeeThroughSwap } from "../utils/SwapFunction/swap";
 
 export async function shouldBehaveLikeWithdrawPassive(): Promise<void> {
   const createFixtureLoader = waffle.createFixtureLoader;
-  let uniswapV3PositionManager: NonfungiblePositionManager;
-  let uniswapV3Factory: Contract;
+  let algebraPositionManager: NonfungiblePositionManager;
+  let algebraFactory: Contract;
   let uniStrategy: Contract;
   let unipilotFactory: Contract;
   let swapRouter: Contract;
   let vault: UnipilotPassiveVault;
   let FEI: Contract;
   let SPELL: Contract;
-  let pool: UniswapV3Pool;
+  let pool: AlgebraPool;
   let token0Instance: Contract;
   let token1Instance: Contract;
 
@@ -43,8 +43,8 @@ export async function shouldBehaveLikeWithdrawPassive(): Promise<void> {
 
   beforeEach("basic setup", async () => {
     ({
-      uniswapV3Factory,
-      uniswapV3PositionManager,
+      algebraFactory,
+      algebraPositionManager,
       swapRouter,
       unipilotFactory,
       FEI,
@@ -53,9 +53,9 @@ export async function shouldBehaveLikeWithdrawPassive(): Promise<void> {
       createVault,
     } = await loadFixture(unipilotPassiveVaultFixture));
 
-    await uniswapV3Factory.createPool(FEI.address, SPELL.address);
+    await algebraFactory.createPool(FEI.address, SPELL.address);
 
-    let poolAddress = await uniswapV3Factory.poolByPair(
+    let poolAddress = await algebraFactory.poolByPair(
       FEI.address,
       SPELL.address,
     );
@@ -63,7 +63,7 @@ export async function shouldBehaveLikeWithdrawPassive(): Promise<void> {
     pool = (await ethers.getContractAt(
       "AlgebraPool",
       poolAddress,
-    )) as UniswapV3Pool;
+    )) as AlgebraPool;
 
     await pool.initialize(encodePriceSqrt(1, 2));
     await uniStrategy.setBaseTicks([poolAddress], [0], [1800]);
@@ -71,7 +71,6 @@ export async function shouldBehaveLikeWithdrawPassive(): Promise<void> {
     vault = await createVault(
       SPELL.address,
       FEI.address,
-      3000,
       encodePriceSqrt(1, 2),
       "FEI-SPELL UniLP",
       "UniLP",
@@ -88,14 +87,14 @@ export async function shouldBehaveLikeWithdrawPassive(): Promise<void> {
 
     await FEI.connect(other).approve(vault.address, constants.MaxUint256);
     await FEI.connect(other).approve(
-      uniswapV3PositionManager.address,
+      algebraPositionManager.address,
       constants.MaxUint256,
     );
     await FEI.connect(other).approve(swapRouter.address, constants.MaxUint256);
 
     await SPELL.connect(other).approve(vault.address, constants.MaxUint256);
     await SPELL.connect(other).approve(
-      uniswapV3PositionManager.address,
+      algebraPositionManager.address,
       constants.MaxUint256,
     );
     await SPELL.connect(other).approve(
@@ -119,7 +118,7 @@ export async function shouldBehaveLikeWithdrawPassive(): Promise<void> {
     token1Instance =
       SPELL.address.toLowerCase() > FEI.address.toLowerCase() ? SPELL : FEI;
 
-    await uniswapV3PositionManager.connect(other).mint(
+    await algebraPositionManager.connect(other).mint(
       {
         token0: token0,
         token1: token1,

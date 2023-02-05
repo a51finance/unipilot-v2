@@ -53,9 +53,7 @@ function createTestnetConfig(
       ? "https://polygon-mumbai.g.alchemy.com/v2/gEMZWZWwC1VXZdezkoirsfxeRNTH_Qf_"
       : "https://polygon-mainnet.g.alchemy.com/v2/gEMZWZWwC1VXZdezkoirsfxeRNTH_Qf_";
   return {
-    accounts: [
-      "1fc9289f485c3128f782af66c4b1104ba1031f401a16c0cf7a7bb80a147b04d7",
-    ],
+    accounts: [""],
     chainId: chainIds[network],
     url,
     // gas: 2100000,

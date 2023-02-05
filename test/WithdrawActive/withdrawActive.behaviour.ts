@@ -11,7 +11,7 @@ import { encodePriceSqrt } from "../utils/encodePriceSqrt";
 import { mineNBlocks } from "../utils/blockMining";
 import {
   UnipilotActiveVault,
-  UniswapV3Pool,
+  AlgebraPool,
   NonfungiblePositionManager,
 } from "../../typechain";
 import { generateFeeThroughSwap } from "../utils/SwapFunction/swap";
@@ -19,13 +19,13 @@ import { utils } from "jest-snapshot";
 
 export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
   const createFixtureLoader = waffle.createFixtureLoader;
-  let uniswapV3PositionManager: NonfungiblePositionManager;
-  let uniswapV3Factory: Contract;
+  let algebraPositionManager: NonfungiblePositionManager;
+  let algebraFactory: Contract;
   let uniStrategy: Contract;
   let unipilotFactory: Contract;
   let swapRouter: Contract;
   let vault: UnipilotActiveVault;
-  let pool: UniswapV3Pool;
+  let pool: AlgebraPool;
   let AAVE: Contract;
   let USDC: Contract;
   let token0Instance: Contract;
@@ -45,8 +45,8 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
 
   beforeEach("basic setup", async () => {
     ({
-      uniswapV3Factory,
-      uniswapV3PositionManager,
+      algebraFactory,
+      algebraPositionManager,
       swapRouter,
       unipilotFactory,
       AAVE,
@@ -55,17 +55,17 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
       createVault,
     } = await loadFixture(unipilotActiveVaultFixture));
 
-    await uniswapV3Factory.createPool(USDC.address, AAVE.address);
+    await algebraFactory.createPool(USDC.address, AAVE.address);
 
-    let poolAddress = await uniswapV3Factory.poolByPair(
+    let poolAddress = await algebraFactory.poolByPair(
       AAVE.address,
       USDC.address,
     );
 
     pool = (await ethers.getContractAt(
-      "UniswapV3Pool",
+      "AlgebraPool",
       poolAddress,
-    )) as UniswapV3Pool;
+    )) as AlgebraPool;
 
     await pool.initialize(encodePriceSqrt(1, 2));
     await uniStrategy.setBaseTicks([poolAddress], [0], [100]);
@@ -73,7 +73,6 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
     vault = await createVault(
       USDC.address,
       AAVE.address,
-      3000,
       encodePriceSqrt(1, 2),
       "AAVE-USDC UniLP",
       "UniLP",
@@ -90,14 +89,14 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
 
     await AAVE.connect(other).approve(vault.address, constants.MaxUint256);
     await AAVE.connect(other).approve(
-      uniswapV3PositionManager.address,
+      algebraPositionManager.address,
       constants.MaxUint256,
     );
     await AAVE.connect(other).approve(swapRouter.address, constants.MaxUint256);
 
     await USDC.connect(other).approve(vault.address, constants.MaxUint256);
     await USDC.connect(other).approve(
-      uniswapV3PositionManager.address,
+      algebraPositionManager.address,
       constants.MaxUint256,
     );
     await USDC.connect(other).approve(swapRouter.address, constants.MaxUint256);
@@ -118,7 +117,7 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
     token1Instance =
       USDC.address.toLowerCase() > AAVE.address.toLowerCase() ? USDC : AAVE;
 
-    await uniswapV3PositionManager.connect(other).mint(
+    await algebraPositionManager.connect(other).mint(
       {
         token0: token0,
         token1: token1,

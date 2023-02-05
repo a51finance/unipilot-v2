@@ -18,8 +18,8 @@ import { generateFeeThroughSwap } from "../utils/SwapFunction/swap";
 
 export async function shouldBehaveLikeDepositPassive(): Promise<void> {
   const createFixtureLoader = waffle.createFixtureLoader;
-  let uniswapV3Factory: Contract;
-  let uniswapV3PositionManager: NonfungiblePositionManager;
+  let algebraFactory: Contract;
+  let algebraPositionManager: NonfungiblePositionManager;
   let uniStrategy: Contract;
   let unipilotFactory: Contract;
   let swapRouter: Contract;
@@ -29,7 +29,7 @@ export async function shouldBehaveLikeDepositPassive(): Promise<void> {
   let token0Instance: Contract;
   let token1Instance: Contract;
 
-  let uniswapPool: AlgebraPool;
+  let AlgebraPool: AlgebraPool;
   const provider = waffle.provider;
 
   const encodedPrice = encodePriceSqrt(
@@ -52,8 +52,8 @@ export async function shouldBehaveLikeDepositPassive(): Promise<void> {
 
   beforeEach("setting up fixture contracts", async () => {
     ({
-      uniswapV3Factory,
-      uniswapV3PositionManager,
+      algebraFactory,
+      algebraPositionManager,
       swapRouter,
       unipilotFactory,
       WETH9,
@@ -61,24 +61,23 @@ export async function shouldBehaveLikeDepositPassive(): Promise<void> {
       uniStrategy,
       createVault,
     } = await loadFixture(unipilotPassiveVaultFixture));
-    await uniswapV3Factory.createPool(WETH9.address, SHIB.address);
-    let uniswapPoolAddress = await uniswapV3Factory.poolByPair(
+    await algebraFactory.createPool(WETH9.address, SHIB.address);
+    let AlgebraPoolAddress = await algebraFactory.poolByPair(
       WETH9.address,
       SHIB.address,
     );
-    uniswapPool = (await ethers.getContractAt(
+    AlgebraPool = (await ethers.getContractAt(
       "AlgebraPool",
-      uniswapPoolAddress,
+      AlgebraPoolAddress,
     )) as AlgebraPool;
 
-    await uniswapPool.initialize(encodedPrice);
+    await AlgebraPool.initialize(encodedPrice);
 
-    await uniStrategy.setBaseTicks([uniswapPoolAddress], [0], [100]);
+    await uniStrategy.setBaseTicks([AlgebraPoolAddress], [0], [100]);
 
     unipilotVault = await createVault(
       SHIB.address,
       WETH9.address,
-      3000,
       encodedPrice,
       "unipilot WETH-SHIB",
       "WETH-SHIB",
@@ -88,11 +87,11 @@ export async function shouldBehaveLikeDepositPassive(): Promise<void> {
     await SHIB.connect(alice)._mint(alice.address, parseUnits("10000", "18"));
 
     await SHIB.connect(alice).approve(
-      uniswapV3PositionManager.address,
+      algebraPositionManager.address,
       MaxUint256,
     );
     await WETH9.connect(alice).approve(
-      uniswapV3PositionManager.address,
+      algebraPositionManager.address,
       MaxUint256,
     );
 
@@ -102,8 +101,8 @@ export async function shouldBehaveLikeDepositPassive(): Promise<void> {
     await SHIB.connect(wallet).approve(swapRouter.address, MaxUint256);
     await WETH9.connect(wallet).approve(swapRouter.address, MaxUint256);
 
-    await SHIB.connect(wallet).approve(uniswapPoolAddress, MaxUint256);
-    await WETH9.connect(wallet).approve(uniswapPoolAddress, MaxUint256);
+    await SHIB.connect(wallet).approve(AlgebraPoolAddress, MaxUint256);
+    await WETH9.connect(wallet).approve(AlgebraPoolAddress, MaxUint256);
 
     const token0 =
       SHIB.address.toLowerCase() < WETH9.address.toLowerCase()
@@ -121,7 +120,7 @@ export async function shouldBehaveLikeDepositPassive(): Promise<void> {
     token1Instance =
       SHIB.address.toLowerCase() > WETH9.address.toLowerCase() ? SHIB : WETH9;
 
-    await uniswapV3PositionManager.connect(alice).mint(
+    await algebraPositionManager.connect(alice).mint(
       {
         token0: token0,
         token1: token1,
