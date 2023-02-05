@@ -7,7 +7,6 @@ import {
   unipilotActiveVaultFixture,
 } from "../utils/fixuresActive";
 import { MaxUint256 } from "@ethersproject/constants";
-//import { ethers, waffle } from "hardhat";
 import { ethers, waffle } from "hardhat";
 import { encodePriceSqrt } from "../utils/encodePriceSqrt";
 import {
@@ -142,7 +141,6 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
         token1: token1,
         tickLower: getMinTick(60),
         tickUpper: getMaxTick(60),
-        //fee: 3000,
         amount0Desired: parseUnits("100000", "18"),
         amount1Desired: parseUnits("100000", "18"),
         amount0Min: 0,
@@ -156,7 +154,6 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
       },
     );
 
-    //await unipilotFactory.toggleWhitelistAccount(unipilotVault.address);
     await unipilotVault.toggleOperator(wallet.address);
   });
 
@@ -344,80 +341,46 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
   });
 
   it("should get lp according to share", async () => {
+    const tokenAmount = 10000;
+
     await unipilotVault.rebalance(0, false, getMinTick(60), getMaxTick(60)); // initializing vault
-    const p = await uniswapV3Factory.poolByPair(DAI.address, USDT.address);
 
     await unipilotVault
       .connect(wallet)
-      .deposit(
-        parseUnits("1000", "18"),
-        parseUnits("1000", "18"),
-        wallet.address,
-      );
+      .deposit(tokenAmount, tokenAmount, wallet.address);
 
     await unipilotVault
       .connect(bob)
-      .deposit(parseUnits("1000", "18"), parseUnits("1000", "18"), bob.address);
+      .deposit(tokenAmount, tokenAmount, bob.address);
 
     await unipilotVault
       .connect(carol)
-      .deposit(
-        parseUnits("1000", "18"),
-        parseUnits("1000", "18"),
-        carol.address,
-      );
+      .deposit(tokenAmount, tokenAmount, carol.address);
 
-    // const sellOrderParams = {
-    //   tokenIn: tokenIn.address,
-    //   tokenOut: tokenOut.address,
-    //   recipient: wallet.address,
-    //   deadline: Math.round(Date.now() / 1000) + 86400,
-    //   amountIn: parseUnits(amountIn, "18"),
-    //   amountOutMinimum: parseUnits("0", "18"),
-    //   limitSqrtPrice: "0",
-    // };
     await generateFeeThroughSwap(
       swapRouter,
       wallet,
       token0Instance,
       token1Instance,
-      "2000",
+      "5000",
     );
 
-    let positionDetails = await unipilotVault.callStatic.getPositionDetails();
-
     await hre.network.provider.send("evm_increaseTime", [3600]);
-    await hre.network.provider.send("evm_mine");
+
     await unipilotVault
       .connect(user0)
-      .deposit(
-        parseUnits("4000", "18"),
-        parseUnits("4000", "18"),
-        user0.address,
-      );
+      .deposit(tokenAmount + 5000, tokenAmount + 5000, user0.address);
 
-    positionDetails = await unipilotVault.callStatic.getPositionDetails();
-
-    const lpBalanceOfWallet = await unipilotVault.balanceOf(wallet.address);
-    const lpBalanceOfBob = await unipilotVault.balanceOf(bob.address);
     const lpBalanceOfCarol = await unipilotVault.balanceOf(carol.address);
     const lpBalanceOfUser0 = await unipilotVault.balanceOf(user0.address);
-    const walletLp =
-      lpBalanceOfWallet.gte(parseUnits("1000", "18")) &&
-      lpBalanceOfWallet.lt(parseUnits("1001", "18"));
 
-    const bobLp =
-      lpBalanceOfBob.gte(parseUnits("1000", "18")) &&
-      lpBalanceOfBob.lt(parseUnits("1001", "18"));
+    const lpBalanceOfBob = await unipilotVault.balanceOf(bob.address);
+    const lpBalanceOfWallet = await unipilotVault.balanceOf(wallet.address);
 
-    const carolLp =
-      lpBalanceOfCarol.gte(parseUnits("1000", "18")) &&
-      lpBalanceOfCarol.lt(parseUnits("1001", "18"));
-    const user0Lp =
-      lpBalanceOfUser0.gte(parseUnits("3198", "18")) &&
-      lpBalanceOfUser0.lt(parseUnits("3841", "18")); //actual 3923
-
-    expect(bobLp && walletLp && carolLp && user0Lp).to.be.true;
+    expect(lpBalanceOfWallet).to.be.eq(tokenAmount);
+    expect(lpBalanceOfBob).to.be.eq(tokenAmount + 1);
+    expect(lpBalanceOfCarol).to.be.eq(tokenAmount + 1);
+    expect(lpBalanceOfUser0).to.be.eq(tokenAmount + 4288);
   });
 
   it("should pull liquidity successfully", async () => {
