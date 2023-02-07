@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity >=0.5.0;
 import "./UniswapPoolActions.sol";
-import "@uniswap/v3-core/contracts/libraries/TickMath.sol";
-import "@uniswap/v3-core/contracts/libraries/SqrtPriceMath.sol";
-import "@uniswap/v3-periphery/contracts/libraries/PositionKey.sol";
-import "@uniswap/v3-periphery/contracts/libraries/LiquidityAmounts.sol";
 import "../interfaces/IUnipilotVault.sol";
+
+import "@uniswap/v3-core/contracts/libraries/TickMath.sol";
+import "@uniswap/v3-periphery/contracts/libraries/PositionKey.sol";
+
+import "@cryptoalgebra/periphery/contracts/libraries/LiquidityAmounts.sol";
+import "@cryptoalgebra/core/contracts/libraries/PriceMovementMath.sol";
 
 /// @title Liquidity and ticks functions
 /// @notice Provides functions for computing liquidity and ticks for token amounts and prices
@@ -362,25 +364,25 @@ library UniswapLiquidityManagement {
 
         //Calc new tick(upper or lower) for imbalanced token
         if (zeroGreaterOne) {
-            uint160 nextSqrtPrice0 = SqrtPriceMath
-                .getNextSqrtPriceFromAmount0RoundingUp(
-                    sqrtPriceX96,
-                    cache.liquidity,
-                    cache.amount0Desired,
-                    false
-                );
+            uint160 nextSqrtPrice0 = PriceMovementMath.getNewPrice(
+                sqrtPriceX96,
+                cache.liquidity,
+                cache.amount0Desired,
+                true,
+                false
+            );
             cache.tickUpper = floor(
                 TickMath.getTickAtSqrtRatio(nextSqrtPrice0),
                 tickSpacing
             );
         } else {
-            uint160 nextSqrtPrice1 = SqrtPriceMath
-                .getNextSqrtPriceFromAmount1RoundingDown(
-                    sqrtPriceX96,
-                    cache.liquidity,
-                    cache.amount1Desired,
-                    false
-                );
+            uint160 nextSqrtPrice1 = PriceMovementMath.getNewPrice(
+                sqrtPriceX96,
+                cache.liquidity,
+                cache.amount1Desired,
+                true,
+                true
+            );
             cache.tickLower = floor(
                 TickMath.getTickAtSqrtRatio(nextSqrtPrice1),
                 tickSpacing
