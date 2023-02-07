@@ -3,9 +3,10 @@ pragma solidity >=0.5.0;
 
 import "./SafeCastExtended.sol";
 import "./UniswapLiquidityManagement.sol";
+
+import "@cryptoalgebra/core/contracts/libraries/FullMath.sol";
 import "@cryptoalgebra/core/contracts/interfaces/IAlgebraPool.sol";
-import "@uniswap/v3-core/contracts/libraries/FullMath.sol";
-import "@uniswap/v3-core/contracts/libraries/LowGasSafeMath.sol";
+import "@cryptoalgebra/core/contracts/libraries/LowGasSafeMath.sol";
 
 /// @title Liquidity and ticks functions
 /// @notice Provides functions for computing liquidity and ticks for token amounts and prices
