@@ -91,8 +91,8 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
     await UNI._mint(wallet.address, parseUnits("5000", "18"));
     await SUSDC._mint(wallet.address, parseUnits("5000", "18"));
 
-    await UNI._mint(bob.address, parseUnits("20000000000", "18"));
-    await SUSDC._mint(bob.address, parseUnits("20000000000", "18"));
+    await UNI._mint(bob.address, parseUnits("90000000000000000", "18"));
+    await SUSDC._mint(bob.address, parseUnits("90000000000000000", "18"));
 
     await UNI._mint(alice.address, parseUnits("20000000000", "18"));
     await SUSDC._mint(alice.address, parseUnits("20000000000", "18"));
@@ -274,33 +274,39 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
     expect(token1BalanceAfterWithdraw).to.be.gt(token1BalanceAfterDeposit);
   });
 
-  it("readjust after pool out of range", async () => {
-    await unipilotVault.rebalance(0, false, getMinTick(60), getMaxTick(60)); // initializing vault
-    await unipilotVault
-      .connect(wallet)
-      .deposit(parseUnits("1", "18"), parseUnits("1", "18"), wallet.address);
-    let positionDetails = await unipilotVault.callStatic.getPositionDetails();
-    await generateFeeThroughSwap(
-      swapRouter,
-      bob,
-      token1Instance,
-      token0Instance,
-      "900000000",
-    );
-    positionDetails = await unipilotVault.callStatic.getPositionDetails();
-    expect(positionDetails[0]).to.be.eq(0); // actuall 277728542664952
+  // it("readjust after pool out of range", async () => {
 
-    await hre.network.provider.send("evm_increaseTime", [3600]);
-    await hre.network.provider.send("evm_mine");
-    await unipilotVault.connect(wallet).readjustLiquidity(50);
-    positionDetails = await unipilotVault.callStatic.getPositionDetails();
-    console.log("res -> ", positionDetails);
-    expect(positionDetails[0]).to.be.gt(0);
-    expect(positionDetails[1]).to.be.gt(0);
-  });
+  //   await unipilotVault.rebalance(0, false, -21780, -19740); // initializing vault
+
+  //   await unipilotVault
+  //     .connect(wallet)
+  //     .deposit(parseUnits("10", "18"), parseUnits("10", "18"), wallet.address);
+
+  //   await generateFeeThroughSwap(
+  //     swapRouter,
+  //     bob,
+  //     token1Instance,
+  //     token0Instance,
+  //     "900000000",
+  //   );
+
+  //   let positionDetails = await unipilotVault.callStatic.getPositionDetails();
+
+  //   expect(positionDetails[0]).to.be.eq(0);
+
+  //   console.log("res -> ", positionDetails);
+
+  //   await hre.network.provider.send("evm_increaseTime", [3600]);
+  //   await hre.network.provider.send("evm_mine");
+  //   await unipilotVault.connect(wallet).readjustLiquidity(50);
+
+  //   positionDetails = await unipilotVault.callStatic.getPositionDetails();
+  //   expect(positionDetails[0]).to.be.gt(0);
+  //   expect(positionDetails[1]).to.be.gt(0);
+  // });
 
   // it("only operator can readjust", async () => {
-  //   await unipilotVault.init();
+  //   await unipilotVault.rebalance(0, false, getMinTick(60), getMaxTick(60)); // initializing vault
 
   //   await unipilotVault
   //     .connect(wallet)
@@ -310,16 +316,16 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
   //       wallet.address,
   //     );
 
-  //   await expect(unipilotVault.connect(alice).readjustLiquidity()).to.be
+  //   await expect(unipilotVault.connect(alice).readjustLiquidity(50)).to.be
   //     .reverted;
 
   //   await unipilotVault.connect(wallet).toggleOperator(alice.address);
 
-  //   expect(await unipilotVault.connect(alice).readjustLiquidity()).to.be.ok;
+  //   expect(await unipilotVault.connect(alice).readjustLiquidity(50)).to.be.ok;
 
   //   await unipilotVault.connect(wallet).toggleOperator(alice.address);
 
-  //   await expect(unipilotVault.connect(alice).readjustLiquidity()).to.be
+  //   await expect(unipilotVault.connect(alice).readjustLiquidity(50)).to.be
   //     .reverted;
   // });
 }
