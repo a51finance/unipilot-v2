@@ -368,7 +368,7 @@ library UniswapLiquidityManagement {
                 sqrtPriceX96,
                 cache.liquidity,
                 cache.amount0Desired,
-                true,
+                false,
                 false
             );
             cache.tickUpper = floor(
@@ -381,7 +381,7 @@ library UniswapLiquidityManagement {
                 cache.liquidity,
                 cache.amount1Desired,
                 true,
-                true
+                false
             );
             cache.tickLower = floor(
                 TickMath.getTickAtSqrtRatio(nextSqrtPrice1),
