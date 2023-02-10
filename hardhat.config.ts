@@ -26,6 +26,7 @@ const chainIds = {
   mumbai: 80001,
   polygon: 137,
   optgoerli: 420,
+  arbitrum: 42161,
   arbgoerli: 421613,
   optimism: 10,
 };
@@ -50,14 +51,13 @@ function createTestnetConfig(
 ): NetworkUserConfig {
   const url: string =
     network == "mumbai"
-      ? "https://polygon-mumbai.g.alchemy.com/v2/gEMZWZWwC1VXZdezkoirsfxeRNTH_Qf_"
-      : "https://polygon-mainnet.g.alchemy.com/v2/gEMZWZWwC1VXZdezkoirsfxeRNTH_Qf_";
+      ? "https://polygon-mumbai.g.alchemy.com/v2/" +
+        `${process.env.API_KEY_MUMBAI}`
+      : "https://arb-mainnet.g.alchemy.com/v2/" + `${process.env.API_KEY}`;
   return {
     accounts: [`${process.env.PK_POLY}`, `${process.env.PK2}`],
     chainId: chainIds[network],
     url,
-    // gas: 2100000,
-    gasPrice: 300000000000,
   };
 }
 const coinMarketCapKey = process.env.COIN_MARKETCAP;
@@ -90,6 +90,7 @@ const config: HardhatUserConfig = {
     optgoerli: createTestnetConfig("optgoerli"),
     arbgoerli: createTestnetConfig("arbgoerli"),
     optimism: createTestnetConfig("optimism"),
+    arbitrum: createTestnetConfig("arbitrum"),
   },
   mocha: {
     timeout: 50000,
