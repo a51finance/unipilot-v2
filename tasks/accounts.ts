@@ -80,10 +80,10 @@ task("deploy-unipilotFactory-active", "Deploy unipilot active factory contract")
     const args = {
       uniswapFactory: "0x1F98431c8aD98523631AE4a59f267346ea31F984",
       governance: cliArgs.governance,
-      uniStrategy: "0x330e15829aB8c0DabAFc8Ead484CF643b8964FB3",
-      indexFund: "0x189254DeE4Ba8bb7fF5356F3C2E0f215525B3450",
-      WETH: "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270",
-      indexFundPercentage: 20,
+      uniStrategy: "0xB7f7c5cea2b8b6138Ea3f669B2094B27dE2ec8d4",
+      indexFund: "0x00D5EDF0d6414f739Db70e37D8dc24b5eD551B88",
+      WETH: "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1",
+      indexFundPercentage: 10,
     };
 
     console.log("Network");
@@ -131,11 +131,11 @@ task(
     const args = {
       uniswapFactory: "0x1f98431c8ad98523631ae4a59f267346ea31f984",
       governance: cliArgs.governance,
-      uniStrategy: "0x330e15829aB8c0DabAFc8Ead484CF643b8964FB3",
-      indexFund: "0x189254DeE4Ba8bb7fF5356F3C2E0f215525B3450",
-      WETH: "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270",
+      uniStrategy: "0xB7f7c5cea2b8b6138Ea3f669B2094B27dE2ec8d4",
+      indexFund: "0x00D5EDF0d6414f739Db70e37D8dc24b5eD551B88",
+      WETH: "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1",
       indexFundPercentage: 10,
-      swapPercentage: 20,
+      swapPercentage: 40,
     };
 
     console.log("Network");
@@ -238,7 +238,7 @@ task("verify-active-vault", "Verify unipilot vault contract")
     const args = {
       pool: cliArgs.pool,
       factory: cliArgs.factory,
-      WETH: "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270",
+      WETH: "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1",
       strategyType: cliArgs.strategy,
       name: cliArgs.name,
       symbol: cliArgs.symbol,
@@ -279,7 +279,7 @@ task("verify-passive-vault", "Verify unipilot vault contract")
     const args = {
       pool: cliArgs.pool,
       factory: cliArgs.factory,
-      WETH: "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270",
+      WETH: "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1",
       name: cliArgs.name,
       symbol: cliArgs.symbol,
     };
