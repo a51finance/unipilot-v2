@@ -152,7 +152,6 @@ contract UnipilotStrategy is IUnipilotStrategy {
     ) external onlyGovernance {
         require(_pools.length == _baseMultiplier.length);
         require(_pools.length == _strategyType.length);
-        require(_baseMultiplier.length == _strategyType.length);
 
         for (uint256 i = 0; i < _pools.length; i++) {
             activePoolStrategy[_pools[i]][_strategyType[i]] = _baseMultiplier[
