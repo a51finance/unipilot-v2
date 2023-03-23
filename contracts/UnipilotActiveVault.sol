@@ -108,6 +108,7 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
             uint256 amount1
         )
     {
+        require(recipient != address(0));
         require(amount0Desired > 0 && amount1Desired > 0);
 
         address sender = _msgSender();
@@ -144,7 +145,7 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         }
 
         if (address(this).balance > 0)
-            TransferHelper.safeTransferETH(msg.sender, address(this).balance);
+            TransferHelper.safeTransferETH(sender, address(this).balance);
 
         _mint(recipient, lpShares);
         emit Deposit(sender, recipient, amount0, amount1, lpShares);
@@ -398,7 +399,7 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
     }
 
     /// @dev Burns all the Unipilot position and HODL in the vault to prevent users from huge IL
-    /// Only called by the governer or selected operators
+    /// Only called by the selected operators
     /// @dev Users can also deposit/withdraw during HODL period.
     function pullLiquidity() external onlyOperator {
         (

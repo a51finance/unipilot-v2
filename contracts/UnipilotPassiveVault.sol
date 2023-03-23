@@ -91,6 +91,7 @@ contract UnipilotPassiveVault is ERC20Permit, IUnipilotVault {
             uint256 amount1
         )
     {
+        require(recipient != address(0));
         require(amount0Desired > 0 && amount1Desired > 0);
 
         address sender = _msgSender();
@@ -131,7 +132,9 @@ contract UnipilotPassiveVault is ERC20Permit, IUnipilotVault {
             );
         }
 
-        refundETH();
+        if (address(this).balance > 0)
+            TransferHelper.safeTransferETH(sender, address(this).balance);
+
         _mint(recipient, lpShares);
         emit Deposit(sender, recipient, amount0, amount1, lpShares);
     }
@@ -550,8 +553,8 @@ contract UnipilotPassiveVault is ERC20Permit, IUnipilotVault {
     /// @notice Refunds any ETH balance held by this contract to the `msg.sender`
     /// @dev Useful for bundling with mint or increase liquidity that uses ether, or exact output swaps
     /// that use ether for the input amount
-    function refundETH() internal {
-        if (address(this).balance > 0)
-            TransferHelper.safeTransferETH(msg.sender, address(this).balance);
-    }
+    // function refundETH() internal {
+    //     if (address(this).balance > 0)
+    //         TransferHelper.safeTransferETH(_msgSender(), address(this).balance);
+    // }
 }
