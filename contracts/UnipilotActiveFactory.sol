@@ -122,6 +122,7 @@ contract UnipilotActiveFactory is IUnipilotFactory {
         address _indexFund,
         uint8 _indexFundPercentage
     ) external onlyGovernance {
+        require(_indexFundPercentage > 0 && _indexFundPercentage < 100);
         strategy = _strategy;
         indexFund = _indexFund;
         indexFundPercentage = _indexFundPercentage;
