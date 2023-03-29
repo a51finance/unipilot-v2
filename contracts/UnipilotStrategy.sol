@@ -206,6 +206,7 @@ contract UnipilotStrategy is IUnipilotStrategy {
             params.baseThreshold,
             IUniswapV3Pool(_pool).tickSpacing()
         );
+
         emit StrategyUpdated(
             oldStrategy,
             poolStrategy[_pool] = PoolStrategy({
@@ -249,7 +250,7 @@ contract UnipilotStrategy is IUnipilotStrategy {
         (int24 tick, ) = getCurrentTick(pool);
         int24 deviation = tick > twap ? tick - twap : twap - tick;
 
-        require(deviation <= maxTwapDeviation, "MTF");
+        require(deviation <= poolStrategy[pool].maxTwapDeviation, "MTF");
     }
 
     function getStrategy(address _pool)
