@@ -305,6 +305,7 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
     });
 
     it("receive correct amounts of liquidity for unclaimed pool fees", async () => {
+      await uniStrategy.setPoolTwapDeviation([pool.address], [300]);
       pool.increaseObservationCardinalityNext(80);
       mineNBlocks(5000);
 
