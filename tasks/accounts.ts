@@ -78,11 +78,11 @@ task("deploy-unipilotFactory-active", "Deploy unipilot active factory contract")
     console.log("  ETH", formatEther(await signer.getBalance()));
 
     const args = {
-      uniswapFactory: "0x1F98431c8aD98523631AE4a59f267346ea31F984",
+      uniswapFactory: "0xdB1d10011AD0Ff90774D0C6Bb92e5C5c8b4461F7",
       governance: cliArgs.governance,
-      uniStrategy: "0xea417362AA8AdD9A38BE9B3933F47CF48d45a93e",
-      indexFund: "0x9de199457b5f6e4690eac92c399a0cd31b901dc3",
-      WETH: "0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6",
+      uniStrategy: "0xB77F5D8a3e0E22a4ef89312960cB5f59dD97d4F5",
+      indexFund: cliArgs.governance,
+      WETH: "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
       indexFundPercentage: 10,
     };
 
@@ -129,11 +129,11 @@ task(
     console.log("  ETH", formatEther(await signer.getBalance()));
 
     const args = {
-      uniswapFactory: "0x1F98431c8aD98523631AE4a59f267346ea31F984",
+      uniswapFactory: "0xdB1d10011AD0Ff90774D0C6Bb92e5C5c8b4461F7",
       governance: cliArgs.governance,
-      uniStrategy: "0xea417362AA8AdD9A38BE9B3933F47CF48d45a93e",
-      indexFund: "0x9de199457b5f6e4690eac92c399a0cd31b901dc3",
-      WETH: "0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6",
+      uniStrategy: "0xB77F5D8a3e0E22a4ef89312960cB5f59dD97d4F5",
+      indexFund: cliArgs.governance,
+      WETH: "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
       indexFundPercentage: 10,
       swapPercentage: 40,
     };
@@ -238,7 +238,7 @@ task("verify-active-vault", "Verify unipilot vault contract")
     const args = {
       pool: cliArgs.pool,
       factory: cliArgs.factory,
-      WETH: "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1",
+      WETH: "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
       strategyType: cliArgs.strategy,
       name: cliArgs.name,
       symbol: cliArgs.symbol,
@@ -279,7 +279,7 @@ task("verify-passive-vault", "Verify unipilot vault contract")
     const args = {
       pool: cliArgs.pool,
       factory: cliArgs.factory,
-      WETH: "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1",
+      WETH: "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
       name: cliArgs.name,
       symbol: cliArgs.symbol,
     };

@@ -29,6 +29,8 @@ const chainIds = {
   arbitrum: 42161,
   arbgoerli: 421613,
   optimism: 10,
+  bnbtestnet: 97,
+  bsc: 56,
 };
 
 // Ensure that we have all the environment variables we need.
@@ -53,7 +55,7 @@ function createTestnetConfig(
     network == "mumbai"
       ? "https://polygon-mumbai.g.alchemy.com/v2/" +
         `${process.env.API_KEY_MUMBAI}`
-      : "https://arb-mainnet.g.alchemy.com/v2/" + `${process.env.API_KEY}`;
+      : "https://data-seed-prebsc-1-s1.binance.org:8545/";
   return {
     accounts: [`${process.env.PK_POLY}`, `${process.env.PK2}`],
     chainId: chainIds[network],
@@ -91,6 +93,8 @@ const config: HardhatUserConfig = {
     arbgoerli: createTestnetConfig("arbgoerli"),
     optimism: createTestnetConfig("optimism"),
     arbitrum: createTestnetConfig("arbitrum"),
+    bnbtestnet: createTestnetConfig("bnbtestnet"),
+    bsc: createTestnetConfig("bsc"),
   },
   mocha: {
     timeout: 50000,
