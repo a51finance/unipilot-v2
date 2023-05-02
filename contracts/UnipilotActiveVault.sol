@@ -374,12 +374,22 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         bytes calldata data
     ) external override {
         _verifyCallback();
-        address recipient = msg.sender;
+        address recipient = _msgSender();
         address payer = abi.decode(data, (address));
+
         if (amount0Owed > 0)
-            pay(address(token0), payer, recipient, amount0Owed);
+            TransferHelper.safeTransfer(
+                address(token0),
+                recipient,
+                amount0Owed
+            );
+
         if (amount1Owed > 0)
-            pay(address(token1), payer, recipient, amount1Owed);
+            TransferHelper.safeTransfer(
+                address(token1),
+                recipient,
+                amount1Owed
+            );
     }
 
     /// @inheritdoc IUnipilotVault
@@ -394,8 +404,17 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         bool zeroForOne = abi.decode(data, (bool));
 
         if (zeroForOne)
-            pay(address(token0), address(this), msg.sender, uint256(amount0));
-        else pay(address(token1), address(this), msg.sender, uint256(amount1));
+            TransferHelper.safeTransfer(
+                address(token0),
+                _msgSender(),
+                uint256(amount0)
+            );
+        else
+            TransferHelper.safeTransfer(
+                address(token1),
+                _msgSender(),
+                uint256(amount1)
+            );
     }
 
     /// @dev Burns all the Unipilot position and HODL in the vault to prevent users from huge IL
