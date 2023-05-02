@@ -30,36 +30,33 @@ const chainIds = {
   optimism: 10,
 };
 
-// // Ensure that we have all the environment variables we need.
-// const mnemonic = process.env.MNEMONIC;
-// if (!mnemonic) {
-//   throw new Error("Please set your MNEMONIC in a .env file");
-// }
+// Ensure that we have all the environment variables we need.
+const mnemonic = process.env.MNEMONIC;
+if (!mnemonic) {
+  throw new Error("Please set your MNEMONIC in a .env file");
+}
 
-// const infuraApiKey = process.env.INFURA_API_KEY;
-// if (!infuraApiKey) {
-//   throw new Error("Please set your INFURA_API_KEY in a .env file");
-// }
+const infuraApiKey = process.env.INFURA_API_KEY;
+if (!infuraApiKey) {
+  throw new Error("Please set your INFURA_API_KEY in a .env file");
+}
 
-// let alchemyapiKey = process.env.FORK;
+let alchemyapiKey = process.env.FORK;
 
-// const etherscanApiKey = process.env.ETHERSCAN_API_KEY;
+const etherscanApiKey = process.env.ETHERSCAN_API_KEY;
 
 function createTestnetConfig(
   network: keyof typeof chainIds,
 ): NetworkUserConfig {
   const url: string =
     network == "mumbai"
-      ? "https://polygon-mumbai.g.alchemy.com/v2/gEMZWZWwC1VXZdezkoirsfxeRNTH_Qf_"
+      ? "https://polygon-mumbai.g.alchemy.com/v2/" +
+        `${process.env.API_KEY_MUMBAI}`
       : "https://polygon-mainnet.g.alchemy.com/v2/gEMZWZWwC1VXZdezkoirsfxeRNTH_Qf_";
   return {
-    accounts: [
-      "1fc9289f485c3128f782af66c4b1104ba1031f401a16c0cf7a7bb80a147b04d7",
-    ],
+    accounts: [`${process.env.PK_POLY}`, `${process.env.PK2}`],
     chainId: chainIds[network],
     url,
-    // gas: 2100000,
-    gasPrice: 300000000000,
   };
 }
 const coinMarketCapKey = process.env.COIN_MARKETCAP;
@@ -128,7 +125,7 @@ const config: HardhatUserConfig = {
     target: "ethers-v5",
   },
   etherscan: {
-    // apiKey: etherscanApiKey,
+    apiKey: etherscanApiKey,
   },
   contractSizer: {
     alphaSort: true,
