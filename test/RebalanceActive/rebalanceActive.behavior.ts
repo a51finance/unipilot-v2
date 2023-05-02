@@ -173,6 +173,7 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
   });
 
   it("Index fund account should recieve 10% of the pool fees earned.", async () => {
+    await uniStrategy.setPoolTwapDeviation([AlgebraPool.address], [300]);
     await unipilotVault.rebalance(0, false, getMinTick(60), getMaxTick(60)); // initializing vault
 
     await unipilotVault
@@ -216,6 +217,7 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
   });
 
   it("check fees compounding", async () => {
+    await uniStrategy.setPoolTwapDeviation([AlgebraPool.address], [300]);
     await unipilotVault.rebalance(0, false, getMinTick(60), getMaxTick(60)); // initializing vault
 
     await unipilotVault
@@ -273,6 +275,7 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
   });
 
   it("readjust after pool out of range", async () => {
+    await uniStrategy.setPoolTwapDeviation([AlgebraPool.address], [300]);
     await unipilotVault.rebalance(0, false, -6960, -6840); // initializing vault
 
     await unipilotVault
