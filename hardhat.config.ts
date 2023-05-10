@@ -28,6 +28,7 @@ const chainIds = {
   optgoerli: 420,
   arbgoerli: 421613,
   optimism: 10,
+  zkevm: 1101,
 };
 
 // Ensure that we have all the environment variables we need.
@@ -52,7 +53,7 @@ function createTestnetConfig(
     network == "mumbai"
       ? "https://polygon-mumbai.g.alchemy.com/v2/" +
         `${process.env.API_KEY_MUMBAI}`
-      : "https://polygon-mainnet.g.alchemy.com/v2/gEMZWZWwC1VXZdezkoirsfxeRNTH_Qf_";
+      : "https://zkevm-rpc.com";
   return {
     accounts: [`${process.env.PK_POLY}`, `${process.env.PK2}`],
     chainId: chainIds[network],
@@ -90,6 +91,7 @@ const config: HardhatUserConfig = {
     optgoerli: createTestnetConfig("optgoerli"),
     arbgoerli: createTestnetConfig("arbgoerli"),
     optimism: createTestnetConfig("optimism"),
+    zkevm: createTestnetConfig("zkevm"),
   },
   mocha: {
     timeout: 50000,
