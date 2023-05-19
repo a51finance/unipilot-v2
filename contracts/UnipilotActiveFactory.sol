@@ -85,7 +85,7 @@ contract UnipilotActiveFactory is IUnipilotFactory {
         address pool = algebraFactory.poolByPair(token0, token1);
 
         if (pool != address(0)) {
-            require(vaults[token0][token1][0] == address(0));
+            require(vaults[token0][token1][_vaultStrategy] == address(0));
         } else {
             pool = algebraFactory.createPool(token0, token1);
             IAlgebraPool(pool).initialize(_sqrtPriceX96);
