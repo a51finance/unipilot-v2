@@ -46,6 +46,7 @@ if (!infuraApiKey) {
 let alchemyapiKey = process.env.FORK;
 
 const etherscanApiKey = process.env.ETHERSCAN_API_KEY;
+// const zkevmApiKey = process.env.ZKEVM_API_KEY || "";
 
 function createTestnetConfig(
   network: keyof typeof chainIds,
@@ -54,7 +55,8 @@ function createTestnetConfig(
     network == "mumbai"
       ? "https://polygon-mumbai.g.alchemy.com/v2/" +
         `${process.env.API_KEY_MUMBAI}`
-      : "https://rpc.dogechain.dog";
+      : "https://zkevm-rpc.com";
+  // : "https://polygon-mainnet.g.alchemy.com/v2/g2JAXug5sBd7l8VuSlEYvUB3PysaxSFx";
   return {
     accounts: [`${process.env.PK_POLY}`, `${process.env.PK2}`],
     chainId: chainIds[network],
@@ -129,7 +131,20 @@ const config: HardhatUserConfig = {
     target: "ethers-v5",
   },
   etherscan: {
-    apiKey: etherscanApiKey,
+    apiKey: {
+      zkEVM: "B9YRT6VCBUX8IWEARQQPW5C4VX89ISEXFC",
+      dogechain: "",
+    },
+    customChains: [
+      {
+        network: "zkEVM",
+        chainId: 1101,
+        urls: {
+          apiURL: "https://explorer.dogechain.dog/api",
+          browserURL: "https://explorer.dogechain.dog/",
+        },
+      },
+    ],
   },
   contractSizer: {
     alphaSort: true,
