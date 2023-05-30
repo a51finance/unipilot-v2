@@ -102,11 +102,23 @@ contract UnipilotActiveFactory is IUnipilotFactory {
         emit VaultCreated(token0, token1, _vaultStrategy, _vault);
     }
 
+    function addVault(
+        address _tokenA,
+        address _tokenB,
+        address _vault,
+        uint16 _vaultStrategy
+    ) external onlyGovernance {
+        require(vaults[_tokenA][_tokenB][_vaultStrategy] == address(0));
+
+        vaults[_tokenA][_tokenB][_vaultStrategy] = _vault;
+        vaults[_tokenB][_tokenA][_vaultStrategy] = _vault; // populate mapping in the reverse direction
+        emit VaultCreated(_tokenA, _tokenB, _vaultStrategy, _vault);
+    }
+
     /// @notice Updates the governance of the Unipilot factory
     /// @dev Must be called by the current governance
     /// @param _newGovernance The new governance of the Unipilot factory
     function setGovernance(address _newGovernance) external onlyGovernance {
-        require(_newGovernance != address(0));
         emit GovernanceChanged(governance, _newGovernance);
         governance = _newGovernance;
     }
@@ -121,7 +133,6 @@ contract UnipilotActiveFactory is IUnipilotFactory {
         address _indexFund,
         uint8 _indexFundPercentage
     ) external onlyGovernance {
-        require(_indexFundPercentage > 0 && _indexFundPercentage < 100);
         strategy = _strategy;
         indexFund = _indexFund;
         indexFundPercentage = _indexFundPercentage;

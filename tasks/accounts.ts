@@ -72,10 +72,10 @@ task("deploy-unipilotFactory-active", "Deploy unipilot active factory contract")
   .setAction(async (cliArgs, { ethers, run, network }) => {
     await run("compile");
 
-    // const signer = (await ethers.getSigners())[0];
-    // console.log("Signer");
-    // console.log("  at", signer.address);
-    // console.log("  ETH", formatEther(await signer.getBalance()));
+    const signer = (await ethers.getSigners())[0];
+    console.log("Signer");
+    console.log("  at", signer.address);
+    console.log("  ETH", formatEther(await signer.getBalance()));
 
     const args = {
       uniswapFactory: "0xd2480162Aa7F02Ead7BF4C127465446150D58452",
@@ -91,26 +91,26 @@ task("deploy-unipilotFactory-active", "Deploy unipilot active factory contract")
     console.log("Task Args");
     console.log(args);
 
-    // const unipilotFactory = await deployContract(
-    //   "UnipilotActiveFactory",
-    //   await ethers.getContractFactory("UnipilotActiveFactory"),
-    //   signer,
-    //   [
-    //     args.uniswapFactory,
-    //     args.governance,
-    //     args.uniStrategy,
-    //     args.indexFund,
-    //     args.WETH,
-    //     args.indexFundPercentage,
-    //   ],
-    // );
+    const unipilotFactory = await deployContract(
+      "UnipilotActiveFactory",
+      await ethers.getContractFactory("UnipilotActiveFactory"),
+      signer,
+      [
+        args.uniswapFactory,
+        args.governance,
+        args.uniStrategy,
+        args.indexFund,
+        args.WETH,
+        args.indexFundPercentage,
+      ],
+    );
 
-    // await unipilotFactory.deployTransaction.wait(5);
+    await unipilotFactory.deployTransaction.wait(5);
 
-    // delay(60000);
+    delay(60000);
 
     await run("verify:verify", {
-      address: "0xC99fA77AB721817Da9dD3C3b4F8ecB13772FCECE",
+      address: unipilotFactory.address,
       constructorArguments: Object.values(args),
     });
   });
@@ -168,14 +168,8 @@ task(
     });
   });
 
-task("deploy-vault", "Deploy unipilot vault via the factory")
-  .addParam("factory", "the unipilot factory address")
-  .addParam("token0", "token0 of pair")
-  .addParam("token1", "token1 of pair")
-  .addParam("fee", "LOW, MEDIUM, or HIGH")
-  .addParam("name", "erc20 name")
-  .addParam("symbol", "erc2 symbol")
-  .setAction(async (cliArgs, { ethers, run, network }) => {
+task("deploy-vault", "Deploy unipilot vault via the factory").setAction(
+  async (cliArgs, { ethers, run, network }) => {
     await run("compile");
 
     const signer = (await ethers.getSigners())[0];
@@ -184,13 +178,12 @@ task("deploy-vault", "Deploy unipilot vault via the factory")
     console.log("  ETH", formatEther(await signer.getBalance()));
 
     const args = {
-      factory: cliArgs.factory,
-      token0: cliArgs.token0,
-      token1: cliArgs.token1,
-      fee: FeeAmount[cliArgs.fee],
-      sqrtPriceX96: encodePriceSqrt(1, 1),
-      name: cliArgs.name,
-      symbol: cliArgs.symbol,
+      pool: "0x41043e6227472daa2fe8625c2be4bb3f64537138",
+      factory: "0xE9f41c7362A7bAb0C384b05C17B45f54b7A7DfF8",
+      WETH: "0xb7ddc6414bf4f5515b52d8bdd69973ae205ff101",
+      strategyType: 2,
+      name: "Unipilot DC/WWDOGE BALANCED Active Vault",
+      symbol: "ULP-DC/WWDOGE-AV-2",
     };
 
     console.log("Network");
@@ -198,24 +191,32 @@ task("deploy-vault", "Deploy unipilot vault via the factory")
     console.log("Task Args");
     console.log(args);
 
-    const unipilotFactory = await ethers.getContractAt(
-      "UnipilotFactory",
-      args.factory,
+    const UnipilotActiveVault = await deployContract(
+      "UnipilotActiveVault",
+      await ethers.getContractFactory("UnipilotActiveVault"),
       signer,
+      [
+        args.pool,
+        args.factory,
+        args.WETH,
+        args.strategyType,
+        args.name,
+        args.symbol,
+      ],
     );
 
-    const unipilotVault = await unipilotFactory.createVault(
-      args.token0,
-      args.token1,
-      args.fee,
-      args.sqrtPriceX96,
-      args.name,
-      args.symbol,
-    );
+    await UnipilotActiveVault.deployTransaction.wait(5);
 
-    console.log("UnipilotVaultInstance", unipilotVault);
-    console.log("Unipilot Vault -> ", unipilotVault.address);
-  });
+    console.log("Unipilot Vault -> ", UnipilotActiveVault.address);
+
+    delay(60000);
+
+    await run("verify:verify", {
+      address: UnipilotActiveVault.address,
+      constructorArguments: Object.values(args),
+    });
+  },
+);
 
 task("verify-active-vault", "Verify unipilot vault contract")
   // .addParam("pool", "the uniswap pool address")
@@ -237,24 +238,41 @@ task("verify-active-vault", "Verify unipilot vault contract")
 
     const args = {
       pool: "0x55CAaBB0d2b704FD0eF8192A7E35D8837e678207",
-      factory: "0xD1299921Ea4980FB89873557aC58842346815c67",
+      factory: "0xE9f41c7362A7bAb0C384b05C17B45f54b7A7DfF8",
       WETH: "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270",
       strategyType: 2,
-      name: "Unipilot USDC/WETH BALANCED Active Vault",
-      symbol: "ULP-USDC/WETH-AV-2",
+      name: "Unipilot DC/WWDOGE BALANCED Active Vault",
+      symbol: "ULP-DC/WWDOGE-AV-2",
     };
 
     console.log("Task Args");
     console.log(args);
 
-    // const unipilotVault = await ethers.getContractAt(
-    //   "UnipilotActiveVault",
-    //   cliArgs.vault,
-    //   signer,
-    // );
+    console.log("Network");
+    console.log("   ", network.name);
+    console.log("Task Args");
+    console.log(args);
+
+    const UnipilotActiveVault = await deployContract(
+      "UnipilotActiveVault",
+      await ethers.getContractFactory("UnipilotActiveVault"),
+      signer,
+      [
+        args.pool,
+        args.factory,
+        args.WETH,
+        args.strategyType,
+        args.name,
+        args.symbol,
+      ],
+    );
+
+    await UnipilotActiveVault.deployTransaction.wait(5);
+
+    delay(60000);
 
     await run("verify:verify", {
-      address: "0xf7f496b8c65b5bbd9eb99915862f02348d077471",
+      address: UnipilotActiveVault.address,
       constructorArguments: Object.values(args),
     });
   });

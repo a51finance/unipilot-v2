@@ -55,7 +55,8 @@ function createTestnetConfig(
     network == "mumbai"
       ? "https://polygon-mumbai.g.alchemy.com/v2/" +
         `${process.env.API_KEY_MUMBAI}`
-      : "https://zkevm-rpc.com";
+      : // : "https://zkevm-rpc.com";
+        "https://rpc.ankr.com/dogechain";
   // : "https://polygon-mainnet.g.alchemy.com/v2/g2JAXug5sBd7l8VuSlEYvUB3PysaxSFx";
   return {
     accounts: [`${process.env.PK_POLY}`, `${process.env.PK2}`],
@@ -133,12 +134,12 @@ const config: HardhatUserConfig = {
   etherscan: {
     apiKey: {
       zkEVM: "B9YRT6VCBUX8IWEARQQPW5C4VX89ISEXFC",
-      dogechain: "",
+      dogechain: "B9YRT6VCBUX8IWEARQQPW5C4VX89ISEXFC",
     },
     customChains: [
       {
-        network: "zkEVM",
-        chainId: 1101,
+        network: "dogechain",
+        chainId: 2000,
         urls: {
           apiURL: "https://explorer.dogechain.dog/api",
           browserURL: "https://explorer.dogechain.dog/",

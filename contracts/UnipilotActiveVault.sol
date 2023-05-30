@@ -417,25 +417,6 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
             );
     }
 
-    /// @dev Burns all the Unipilot position and HODL in the vault to prevent users from huge IL
-    /// Only called by the selected operators
-    /// @dev Users can also deposit/withdraw during HODL period.
-    function pullLiquidity() external onlyOperator {
-        (
-            uint256 reserves0,
-            uint256 reserves1,
-            uint256 fees0,
-            uint256 fees1
-        ) = pool.burnLiquidity(
-                ticksData.baseTickLower,
-                ticksData.baseTickUpper,
-                address(this)
-            );
-
-        _pulled = 2;
-        emit PullLiquidity(reserves0, reserves1, fees0, fees1);
-    }
-
     /// @notice Calculates the vault's total holdings of TOKEN0 and TOKEN1 - in
     /// other words, how much of each token the vault would hold if it withdrew
     /// all its liquidity from Uniswap.
