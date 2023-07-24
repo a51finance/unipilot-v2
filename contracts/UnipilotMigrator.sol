@@ -7,9 +7,10 @@ import "@openzeppelin/contracts/utils/Context.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
-import "@uniswap/v3-periphery/contracts/interfaces/INonfungiblePositionManager.sol";
+import "./pancake-v3/v3-core/contracts/libraries/FullMath.sol";
+import "./pancake-v3/v3-periphery/contracts/interfaces/INonfungiblePositionManager.sol";
+
 import "@uniswap/v2-core/contracts/interfaces/IUniswapV2Pair.sol";
-import "@uniswap/v3-core/contracts/libraries/FullMath.sol";
 
 import "./interfaces/IUnipilotVault.sol";
 import "./interfaces/external/IWETH9.sol";

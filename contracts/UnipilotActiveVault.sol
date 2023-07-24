@@ -23,8 +23,8 @@ import "@openzeppelin/contracts/drafts/ERC20Permit.sol";
 contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
     using SafeCastExtended for uint256;
     using LowGasSafeMath for uint256;
-    using UniswapPoolActions for IUniswapV3Pool;
-    using UniswapLiquidityManagement for IUniswapV3Pool;
+    using UniswapPoolActions for IPancakeV3Pool;
+    using UniswapLiquidityManagement for IPancakeV3Pool;
 
     IERC20 private token0;
     IERC20 private token1;
@@ -32,7 +32,7 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
     int24 private tickSpacing;
 
     TicksData public ticksData;
-    IUniswapV3Pool private pool;
+    IPancakeV3Pool private pool;
     IUnipilotFactory private unipilotFactory;
     uint256 internal constant MIN_INITIAL_SHARES = 1e3;
 
@@ -79,7 +79,7 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         require(_WETH != address(0));
         require(_unipilotFactory != address(0));
 
-        pool = IUniswapV3Pool(_pool);
+        pool = IPancakeV3Pool(_pool);
         unipilotFactory = IUnipilotFactory(_unipilotFactory);
         WETH = _WETH;
         token0 = IERC20(pool.token0());
