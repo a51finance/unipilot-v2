@@ -6,8 +6,7 @@ pragma abicoder v2;
 import "./interfaces/IUnipilotStrategy.sol";
 import "./base/oracle/libraries/OracleLibrary.sol";
 
-import "@uniswap/v3-core/contracts/libraries/TickMath.sol";
-import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
+import "@pancakeswap/v3-core/contracts/interfaces/IPancakeV3Pool.sol";
 
 /**
  *
@@ -152,7 +151,6 @@ contract UnipilotStrategy is IUnipilotStrategy {
     ) external onlyGovernance {
         require(_pools.length == _baseMultiplier.length);
         require(_pools.length == _strategyType.length);
-        require(_baseMultiplier.length == _strategyType.length);
 
         for (uint256 i = 0; i < _pools.length; i++) {
             activePoolStrategy[_pools[i]][_strategyType[i]] = _baseMultiplier[
@@ -207,6 +205,7 @@ contract UnipilotStrategy is IUnipilotStrategy {
             params.baseThreshold,
             IUniswapV3Pool(_pool).tickSpacing()
         );
+
         emit StrategyUpdated(
             oldStrategy,
             poolStrategy[_pool] = PoolStrategy({
@@ -250,7 +249,7 @@ contract UnipilotStrategy is IUnipilotStrategy {
         (int24 tick, ) = getCurrentTick(pool);
         int24 deviation = tick > twap ? tick - twap : twap - tick;
 
-        require(deviation <= maxTwapDeviation, "MTF");
+        require(deviation <= poolStrategy[pool].maxTwapDeviation, "MTF");
     }
 
     function getStrategy(address _pool)

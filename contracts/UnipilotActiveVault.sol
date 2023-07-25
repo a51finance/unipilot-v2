@@ -23,8 +23,8 @@ import "@openzeppelin/contracts/drafts/ERC20Permit.sol";
 contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
     using SafeCastExtended for uint256;
     using LowGasSafeMath for uint256;
-    using UniswapPoolActions for IUniswapV3Pool;
-    using UniswapLiquidityManagement for IUniswapV3Pool;
+    using UniswapPoolActions for IPancakeV3Pool;
+    using UniswapLiquidityManagement for IPancakeV3Pool;
 
     IERC20 private token0;
     IERC20 private token1;
@@ -32,7 +32,7 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
     int24 private tickSpacing;
 
     TicksData public ticksData;
-    IUniswapV3Pool private pool;
+    IPancakeV3Pool private pool;
     IUnipilotFactory private unipilotFactory;
     uint256 internal constant MIN_INITIAL_SHARES = 1e3;
 
@@ -79,7 +79,7 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         require(_WETH != address(0));
         require(_unipilotFactory != address(0));
 
-        pool = IUniswapV3Pool(_pool);
+        pool = IPancakeV3Pool(_pool);
         unipilotFactory = IUnipilotFactory(_unipilotFactory);
         WETH = _WETH;
         token0 = IERC20(pool.token0());
@@ -110,6 +110,7 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
             uint256 amount1
         )
     {
+        require(recipient != address(0));
         require(amount0Desired > 0 && amount1Desired > 0);
 
         address sender = _msgSender();
@@ -146,7 +147,7 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         }
 
         if (address(this).balance > 0)
-            TransferHelper.safeTransferETH(msg.sender, address(this).balance);
+            TransferHelper.safeTransferETH(sender, address(this).balance);
 
         _mint(recipient, lpShares);
         emit Deposit(sender, recipient, amount0, amount1, lpShares);
@@ -375,12 +376,22 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         bytes calldata data
     ) external override {
         _verifyCallback();
-        address recipient = msg.sender;
+        address recipient = _msgSender();
         address payer = abi.decode(data, (address));
+
         if (amount0Owed > 0)
-            pay(address(token0), payer, recipient, amount0Owed);
+            TransferHelper.safeTransfer(
+                address(token0),
+                recipient,
+                amount0Owed
+            );
+
         if (amount1Owed > 0)
-            pay(address(token1), payer, recipient, amount1Owed);
+            TransferHelper.safeTransfer(
+                address(token1),
+                recipient,
+                amount1Owed
+            );
     }
 
     /// @inheritdoc IUnipilotVault
@@ -395,12 +406,21 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
         bool zeroForOne = abi.decode(data, (bool));
 
         if (zeroForOne)
-            pay(address(token0), address(this), msg.sender, uint256(amount0));
-        else pay(address(token1), address(this), msg.sender, uint256(amount1));
+            TransferHelper.safeTransfer(
+                address(token0),
+                _msgSender(),
+                uint256(amount0)
+            );
+        else
+            TransferHelper.safeTransfer(
+                address(token1),
+                _msgSender(),
+                uint256(amount1)
+            );
     }
 
     /// @dev Burns all the Unipilot position and HODL in the vault to prevent users from huge IL
-    /// Only called by the governer or selected operators
+    /// Only called by the selected operators
     /// @dev Users can also deposit/withdraw during HODL period.
     function pullLiquidity() external onlyOperator {
         (

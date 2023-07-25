@@ -157,7 +157,6 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
       },
     );
 
-    await unipilotFactory.toggleWhitelistAccount(unipilotVault.address);
     await unipilotVault.toggleOperator(wallet.address);
   });
 

@@ -88,6 +88,9 @@ export async function shouldBehaveLikeDepositPassive(): Promise<void> {
       "WETH-SHIB",
     );
 
+    await SHIB.connect(wallet)._mint(user1.address, parseUnits("10000", "18"));
+    await SHIB.connect(wallet)._mint(user2.address, parseUnits("10000", "18"));
+
     await SHIB.connect(wallet)._mint(wallet.address, parseUnits("10000", "18"));
     await SHIB.connect(alice)._mint(alice.address, parseUnits("10000", "18"));
 
@@ -102,6 +105,9 @@ export async function shouldBehaveLikeDepositPassive(): Promise<void> {
 
     await SHIB.connect(wallet).approve(unipilotVault.address, MaxUint256);
     await WETH9.connect(wallet).approve(unipilotVault.address, MaxUint256);
+
+    await SHIB.connect(user1).approve(unipilotVault.address, MaxUint256);
+    await SHIB.connect(user2).approve(unipilotVault.address, MaxUint256);
 
     await SHIB.connect(wallet).approve(swapRouter.address, MaxUint256);
     await WETH9.connect(wallet).approve(swapRouter.address, MaxUint256);
@@ -192,5 +198,56 @@ export async function shouldBehaveLikeDepositPassive(): Promise<void> {
         positionDetails[0].lte(ethDeposited) &&
         ethDeposited.lt(parseUnits("1001", "18")),
     ).to.be.true;
+  });
+
+  it("should return extra eth during deposit", async () => {
+    const user1InitialBalance = await user1.getBalance();
+    const user2InitialBalance = await user2.getBalance();
+
+    const amountOutMinimum = parseUnits("9999", "18");
+
+    await unipilotVault
+      .connect(user1)
+      .deposit(
+        parseUnits("5000", "18"),
+        parseUnits("5000", "18"),
+        user1.address,
+        {
+          value: parseUnits("5000", "18"),
+        },
+      );
+
+    await unipilotVault
+      .connect(user2)
+      .deposit(
+        parseUnits("5000", "18"),
+        parseUnits("5000", "18"),
+        user2.address,
+        {
+          value: parseUnits("7000", "18"),
+        },
+      );
+
+    await unipilotVault
+      .connect(user2)
+      .withdraw(
+        await unipilotVault.balanceOf(user2.address),
+        user2.address,
+        true,
+      );
+
+    await unipilotVault
+      .connect(user1)
+      .withdraw(
+        await unipilotVault.balanceOf(user1.address),
+        user1.address,
+        true,
+      );
+
+    const user1FinalBalance = await user1.getBalance();
+    const user2FinalBalance = await user2.getBalance();
+
+    expect(user1FinalBalance).to.be.lte(user1InitialBalance);
+    expect(user2FinalBalance).to.be.gte(amountOutMinimum);
   });
 }

@@ -3,8 +3,10 @@ pragma solidity ^0.7.6;
 
 import "./UnipilotPassiveVault.sol";
 import "./interfaces/IUnipilotFactory.sol";
-import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
-import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
+
+import "@pancakeswap/v3-core/contracts/interfaces/IPancakeV3Factory.sol";
+import "@pancakeswap/v3-core/contracts/interfaces/IPancakeV3Factory.sol";
+
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 /// @title Unipilot Passive Factory
@@ -20,7 +22,7 @@ contract UnipilotPassiveFactory is IUnipilotFactory {
 
     uint8 private swapPercentage;
     uint8 private indexFundPercentage;
-    IUniswapV3Factory private uniswapFactory;
+    IPancakeV3Factory private uniswapFactory;
 
     constructor(
         address _uniswapFactory,
@@ -33,7 +35,7 @@ contract UnipilotPassiveFactory is IUnipilotFactory {
     ) {
         governance = _governance;
         strategy = _uniStrategy;
-        uniswapFactory = IUniswapV3Factory(_uniswapFactory);
+        uniswapFactory = IPancakeV3Factory(_uniswapFactory);
         indexFund = _indexFund;
         WETH = _WETH;
         indexFundPercentage = _indexFundPercentage;
@@ -92,7 +94,7 @@ contract UnipilotPassiveFactory is IUnipilotFactory {
             require(vaults[token0][token1][_fee][0] == address(0));
         } else {
             pool = uniswapFactory.createPool(token0, token1, _fee);
-            IUniswapV3Pool(pool).initialize(_sqrtPriceX96);
+            IPancakeV3Pool(pool).initialize(_sqrtPriceX96);
         }
 
         ERC20 token0Instance = ERC20(token0);

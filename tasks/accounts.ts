@@ -78,12 +78,12 @@ task("deploy-unipilotFactory-active", "Deploy unipilot active factory contract")
     console.log("  ETH", formatEther(await signer.getBalance()));
 
     const args = {
-      uniswapFactory: "0x1F98431c8aD98523631AE4a59f267346ea31F984",
+      uniswapFactory: "0x740b1c1de25031C31FF4fC9A62f554A55cdC1baD",
       governance: cliArgs.governance,
-      uniStrategy: "0x330e15829aB8c0DabAFc8Ead484CF643b8964FB3",
-      indexFund: "0x189254DeE4Ba8bb7fF5356F3C2E0f215525B3450",
-      WETH: "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270",
-      indexFundPercentage: 20,
+      uniStrategy: "0xB77F5D8a3e0E22a4ef89312960cB5f59dD97d4F5",
+      indexFund: cliArgs.governance,
+      WETH: "0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7",
+      indexFundPercentage: 10,
     };
 
     console.log("Network");
@@ -129,13 +129,13 @@ task(
     console.log("  ETH", formatEther(await signer.getBalance()));
 
     const args = {
-      uniswapFactory: "0x1f98431c8ad98523631ae4a59f267346ea31f984",
+      uniswapFactory: "0x740b1c1de25031C31FF4fC9A62f554A55cdC1baD",
       governance: cliArgs.governance,
-      uniStrategy: "0x330e15829aB8c0DabAFc8Ead484CF643b8964FB3",
-      indexFund: "0x189254DeE4Ba8bb7fF5356F3C2E0f215525B3450",
-      WETH: "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270",
+      uniStrategy: "0xB77F5D8a3e0E22a4ef89312960cB5f59dD97d4F5",
+      indexFund: cliArgs.governance,
+      WETH: "0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7",
       indexFundPercentage: 10,
-      swapPercentage: 20,
+      swapPercentage: 40,
     };
 
     console.log("Network");
@@ -238,7 +238,7 @@ task("verify-active-vault", "Verify unipilot vault contract")
     const args = {
       pool: cliArgs.pool,
       factory: cliArgs.factory,
-      WETH: "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270",
+      WETH: "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
       strategyType: cliArgs.strategy,
       name: cliArgs.name,
       symbol: cliArgs.symbol,
@@ -279,7 +279,7 @@ task("verify-passive-vault", "Verify unipilot vault contract")
     const args = {
       pool: cliArgs.pool,
       factory: cliArgs.factory,
-      WETH: "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270",
+      WETH: "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
       name: cliArgs.name,
       symbol: cliArgs.symbol,
     };

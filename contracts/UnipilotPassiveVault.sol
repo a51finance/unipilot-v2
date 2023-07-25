@@ -24,8 +24,8 @@ import "@openzeppelin/contracts/drafts/ERC20Permit.sol";
 contract UnipilotPassiveVault is ERC20Permit, IUnipilotVault {
     using SafeCastExtended for uint256;
     using LowGasSafeMath for uint256;
-    using UniswapPoolActions for IUniswapV3Pool;
-    using UniswapLiquidityManagement for IUniswapV3Pool;
+    using UniswapPoolActions for IPancakeV3Pool;
+    using UniswapLiquidityManagement for IPancakeV3Pool;
 
     IERC20 private immutable token0;
     IERC20 private immutable token1;
@@ -37,7 +37,7 @@ contract UnipilotPassiveVault is ERC20Permit, IUnipilotVault {
     uint256 internal constant MIN_INITIAL_SHARES = 1e3;
 
     TicksData public ticksData;
-    IUniswapV3Pool private pool;
+    IPancakeV3Pool private pool;
     uint96 private _unlocked = 1;
 
     modifier nonReentrant() {
@@ -64,7 +64,7 @@ contract UnipilotPassiveVault is ERC20Permit, IUnipilotVault {
         require(_WETH != address(0));
         require(_unipilotFactory != address(0));
 
-        pool = IUniswapV3Pool(_pool);
+        pool = IPancakeV3Pool(_pool);
         unipilotFactory = IUnipilotFactory(_unipilotFactory);
         WETH = _WETH;
         token0 = IERC20(pool.token0());
@@ -93,6 +93,7 @@ contract UnipilotPassiveVault is ERC20Permit, IUnipilotVault {
             uint256 amount1
         )
     {
+        require(recipient != address(0));
         require(amount0Desired > 0 && amount1Desired > 0);
 
         address sender = _msgSender();
@@ -133,7 +134,9 @@ contract UnipilotPassiveVault is ERC20Permit, IUnipilotVault {
             );
         }
 
-        refundETH();
+        if (address(this).balance > 0)
+            TransferHelper.safeTransferETH(sender, address(this).balance);
+
         _mint(recipient, lpShares);
         emit Deposit(sender, recipient, amount0, amount1, lpShares);
     }
@@ -279,12 +282,22 @@ contract UnipilotPassiveVault is ERC20Permit, IUnipilotVault {
         bytes calldata data
     ) external override {
         _verifyCallback();
-        address recipient = msg.sender;
+        address recipient = _msgSender();
         address payer = abi.decode(data, (address));
+
         if (amount0Owed > 0)
-            pay(address(token0), payer, recipient, amount0Owed);
+            TransferHelper.safeTransfer(
+                address(token0),
+                recipient,
+                amount0Owed
+            );
+
         if (amount1Owed > 0)
-            pay(address(token1), payer, recipient, amount1Owed);
+            TransferHelper.safeTransfer(
+                address(token1),
+                recipient,
+                amount1Owed
+            );
     }
 
     /// @inheritdoc IUnipilotVault
@@ -299,8 +312,17 @@ contract UnipilotPassiveVault is ERC20Permit, IUnipilotVault {
         bool zeroForOne = abi.decode(data, (bool));
 
         if (zeroForOne)
-            pay(address(token0), address(this), msg.sender, uint256(amount0));
-        else pay(address(token1), address(this), msg.sender, uint256(amount1));
+            TransferHelper.safeTransfer(
+                address(token0),
+                _msgSender(),
+                uint256(amount0)
+            );
+        else
+            TransferHelper.safeTransfer(
+                address(token1),
+                _msgSender(),
+                uint256(amount1)
+            );
     }
 
     /// @notice Calculates the vault's total holdings of TOKEN0 and TOKEN1 - in
@@ -546,13 +568,5 @@ contract UnipilotPassiveVault is ERC20Permit, IUnipilotVault {
     function unwrapWETH9(uint256 balanceWETH9, address recipient) internal {
         IWETH9(WETH).withdraw(balanceWETH9);
         TransferHelper.safeTransferETH(recipient, balanceWETH9);
-    }
-
-    /// @notice Refunds any ETH balance held by this contract to the `msg.sender`
-    /// @dev Useful for bundling with mint or increase liquidity that uses ether, or exact output swaps
-    /// that use ether for the input amount
-    function refundETH() internal {
-        if (address(this).balance > 0)
-            TransferHelper.safeTransferETH(msg.sender, address(this).balance);
     }
 }

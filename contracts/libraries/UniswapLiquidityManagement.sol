@@ -1,10 +1,13 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity >=0.5.0;
 import "./UniswapPoolActions.sol";
-import "@uniswap/v3-core/contracts/libraries/TickMath.sol";
-import "@uniswap/v3-core/contracts/libraries/SqrtPriceMath.sol";
-import "@uniswap/v3-periphery/contracts/libraries/PositionKey.sol";
-import "@uniswap/v3-periphery/contracts/libraries/LiquidityAmounts.sol";
+
+import "@pancakeswap/v3-core/contracts/libraries/TickMath.sol";
+import "@pancakeswap/v3-core/contracts/libraries/SqrtPriceMath.sol";
+
+import "@pancakeswap/v3-periphery/contracts/libraries/PositionKey.sol";
+import "@pancakeswap/v3-periphery/contracts/libraries/LiquidityAmounts.sol";
+
 import "../interfaces/IUnipilotVault.sol";
 
 /// @title Liquidity and ticks functions
@@ -29,7 +32,7 @@ library UniswapLiquidityManagement {
     /// @param _tickUpper The upper tick of the range
     /// @return amounts of token0 and token1 that corresponds to liquidity
     function getAmountsForLiquidity(
-        IUniswapV3Pool pool,
+        IPancakeV3Pool pool,
         uint128 liquidity,
         int24 _tickLower,
         int24 _tickUpper
@@ -52,7 +55,7 @@ library UniswapLiquidityManagement {
     /// @param _tickUpper The upper tick of the range
     /// @return The maximum amount of liquidity that can be held amount0 and amount1
     function getLiquidityForAmounts(
-        IUniswapV3Pool pool,
+        IPancakeV3Pool pool,
         uint256 amount0,
         uint256 amount1,
         int24 _tickLower,
@@ -76,7 +79,7 @@ library UniswapLiquidityManagement {
     /// @param _tickUpper The upper tick of the range
     /// @return liquidity stored in position
     function getPositionLiquidity(
-        IUniswapV3Pool pool,
+        IPancakeV3Pool pool,
         int24 _tickLower,
         int24 _tickUpper
     )
@@ -108,7 +111,7 @@ library UniswapLiquidityManagement {
         return compressed * tickSpacing;
     }
 
-    function getSqrtRatioX96AndTick(IUniswapV3Pool pool)
+    function getSqrtRatioX96AndTick(IPancakeV3Pool pool)
         internal
         view
         returns (
@@ -132,7 +135,7 @@ library UniswapLiquidityManagement {
     }
 
     function collectableAmountsInPosition(
-        IUniswapV3Pool pool,
+        IPancakeV3Pool pool,
         int24 _lowerTick,
         int24 _upperTick
     )
@@ -157,7 +160,7 @@ library UniswapLiquidityManagement {
     }
 
     function computeLpShares(
-        IUniswapV3Pool pool,
+        IPancakeV3Pool pool,
         bool isWhitelisted,
         uint256 amount0Max,
         uint256 amount1Max,
@@ -197,7 +200,7 @@ library UniswapLiquidityManagement {
     }
 
     function getTotalAmounts(
-        IUniswapV3Pool pool,
+        IPancakeV3Pool pool,
         bool isWhitelisted,
         IUnipilotVault.TicksData memory ticks
     )
@@ -235,7 +238,7 @@ library UniswapLiquidityManagement {
     }
 
     function getReserves(
-        IUniswapV3Pool pool,
+        IPancakeV3Pool pool,
         int24 tickLower,
         int24 tickUpper
     )
@@ -310,7 +313,7 @@ library UniswapLiquidityManagement {
     /// @return tickLower The lower tick of the range
     /// @return tickUpper The upper tick of the range
     function getPositionTicks(
-        IUniswapV3Pool pool,
+        IPancakeV3Pool pool,
         uint256 amount0Desired,
         uint256 amount1Desired,
         int24 baseThreshold,
@@ -393,7 +396,7 @@ library UniswapLiquidityManagement {
     /// @return amount0 amounts of token0 that can be stored in range
     /// @return amount1 amounts of token1 that can be stored in range
     function getAmountsForTicks(
-        IUniswapV3Pool pool,
+        IPancakeV3Pool pool,
         uint256 amount0Desired,
         uint256 amount1Desired,
         int24 _tickLower,

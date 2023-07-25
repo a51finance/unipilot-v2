@@ -26,8 +26,12 @@ const chainIds = {
   mumbai: 80001,
   polygon: 137,
   optgoerli: 420,
+  arbitrum: 42161,
   arbgoerli: 421613,
   optimism: 10,
+  bnbtestnet: 97,
+  bsc: 56,
+  avax: 43114,
 };
 
 // Ensure that we have all the environment variables we need.
@@ -49,15 +53,13 @@ function createTestnetConfig(
   network: keyof typeof chainIds,
 ): NetworkUserConfig {
   const url: string =
-    network == "mumbai"
-      ? "https://polygon-mumbai.g.alchemy.com/v2/gEMZWZWwC1VXZdezkoirsfxeRNTH_Qf_"
-      : "https://polygon-mainnet.g.alchemy.com/v2/gEMZWZWwC1VXZdezkoirsfxeRNTH_Qf_";
+    network == "optgoerli"
+      ? "https://opt-goerli.g.alchemy.com/v2/" + `${process.env.API_KEY_MUMBAI}`
+      : "https://api.avax.network/ext/bc/C/rpc";
   return {
     accounts: [`${process.env.PK_POLY}`, `${process.env.PK2}`],
     chainId: chainIds[network],
     url,
-    // gas: 2100000,
-    gasPrice: 300000000000,
   };
 }
 const coinMarketCapKey = process.env.COIN_MARKETCAP;
@@ -90,6 +92,10 @@ const config: HardhatUserConfig = {
     optgoerli: createTestnetConfig("optgoerli"),
     arbgoerli: createTestnetConfig("arbgoerli"),
     optimism: createTestnetConfig("optimism"),
+    arbitrum: createTestnetConfig("arbitrum"),
+    bnbtestnet: createTestnetConfig("bnbtestnet"),
+    bsc: createTestnetConfig("bsc"),
+    avax: createTestnetConfig("avax"),
   },
   mocha: {
     timeout: 50000,
