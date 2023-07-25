@@ -2,11 +2,11 @@
 pragma solidity >=0.5.0;
 import "./UniswapPoolActions.sol";
 
-import "../pancake-v3/v3-core/contracts/libraries/TickMath.sol";
-import "../pancake-v3/v3-core/contracts/libraries/SqrtPriceMath.sol";
+import "@pancakeswap/v3-core/contracts/libraries/TickMath.sol";
+import "@pancakeswap/v3-core/contracts/libraries/SqrtPriceMath.sol";
 
-import "../pancake-v3/v3-periphery/contracts/libraries/PositionKey.sol";
-import "../pancake-v3/v3-periphery/contracts/libraries/LiquidityAmounts.sol";
+import "@pancakeswap/v3-periphery/contracts/libraries/PositionKey.sol";
+import "@pancakeswap/v3-periphery/contracts/libraries/LiquidityAmounts.sol";
 
 import "../interfaces/IUnipilotVault.sol";
 

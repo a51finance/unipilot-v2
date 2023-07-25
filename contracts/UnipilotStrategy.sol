@@ -6,8 +6,7 @@ pragma abicoder v2;
 import "./interfaces/IUnipilotStrategy.sol";
 import "./base/oracle/libraries/OracleLibrary.sol";
 
-// import "./pancake-v3/v3-core/contracts/libraries/TickMath.sol";
-import "./pancake-v3/v3-core/contracts/interfaces/IPancakeV3Pool.sol";
+import "@pancakeswap/v3-core/contracts/interfaces/IPancakeV3Pool.sol";
 
 /**
  *

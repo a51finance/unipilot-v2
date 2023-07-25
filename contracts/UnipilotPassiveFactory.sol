@@ -4,8 +4,8 @@ pragma solidity ^0.7.6;
 import "./UnipilotPassiveVault.sol";
 import "./interfaces/IUnipilotFactory.sol";
 
-import "./pancake-v3/v3-core/contracts/interfaces/IPancakeV3Factory.sol";
-import "./pancake-v3/v3-core/contracts/interfaces/IPancakeV3Factory.sol";
+import "@pancakeswap/v3-core/contracts/interfaces/IPancakeV3Factory.sol";
+import "@pancakeswap/v3-core/contracts/interfaces/IPancakeV3Factory.sol";
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 

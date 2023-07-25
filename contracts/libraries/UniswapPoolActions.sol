@@ -4,9 +4,9 @@ pragma solidity >=0.5.0;
 import "./SafeCastExtended.sol";
 import "./UniswapLiquidityManagement.sol";
 
-import "../pancake-v3/v3-core/contracts/libraries/FullMath.sol";
-import "../pancake-v3/v3-core/contracts/libraries/LowGasSafeMath.sol";
-import "../pancake-v3/v3-core/contracts/interfaces/IPancakeV3Pool.sol";
+import "@pancakeswap/v3-core/contracts/libraries/FullMath.sol";
+import "@pancakeswap/v3-core/contracts/libraries/LowGasSafeMath.sol";
+import "@pancakeswap/v3-core/contracts/interfaces/IPancakeV3Pool.sol";
 
 /// @title Liquidity and ticks functions
 /// @notice Provides functions for computing liquidity and ticks for token amounts and prices

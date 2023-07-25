@@ -1484,10 +1484,44 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@openzeppelin/contracts-upgradeable@npm:3.4.2-solc-0.7":
+  version: 3.4.2-solc-0.7
+  resolution: "@openzeppelin/contracts-upgradeable@npm:3.4.2-solc-0.7"
+  checksum: 662d168ea1763faa5e168751043e4e041ccd810c3d4c781aa5aee0e9947e9f95d51edaeb1daaa4cc2860463beb961b576c6a3e60e3fbb6fa27188a611c8522e4
+  languageName: node
+  linkType: hard
+
 "@openzeppelin/contracts@npm:3.4.1-solc-0.7-2":
   version: 3.4.1-solc-0.7-2
   resolution: "@openzeppelin/contracts@npm:3.4.1-solc-0.7-2"
   checksum: 3608a4065f65946117caa543ef72477ce637bd5cc4f4853303b5f5b6c26516f8b50898ea3a8486e2877689cae81453ce22c72c8624c77c363c63f019b4086ffa
+  languageName: node
+  linkType: hard
+
+"@openzeppelin/contracts@npm:3.4.2-solc-0.7":
+  version: 3.4.2-solc-0.7
+  resolution: "@openzeppelin/contracts@npm:3.4.2-solc-0.7"
+  checksum: 1a6048f31ed560c34429a05e534102c51124ecaf113aca7ebeb7897cfaaf61007cdd7952374c282adaeb79b04ee86ee80b16eed28b62fc6d60e3ffcd7a696895
+  languageName: node
+  linkType: hard
+
+"@pancakeswap/v3-core@npm:^1.0.2":
+  version: 1.0.2
+  resolution: "@pancakeswap/v3-core@npm:1.0.2"
+  checksum: 3fddad82a0a4bfdbe99ee10e40b538dc9f83547b547a16c9ec02a145a4f2337e1eeca7525f628dde237554a0bd0266e231de0410a156eb53273a736d29a99609
+  languageName: node
+  linkType: hard
+
+"@pancakeswap/v3-periphery@npm:^1.0.2":
+  version: 1.0.2
+  resolution: "@pancakeswap/v3-periphery@npm:1.0.2"
+  dependencies:
+    "@openzeppelin/contracts": 3.4.2-solc-0.7
+    "@openzeppelin/contracts-upgradeable": 3.4.2-solc-0.7
+    "@uniswap/lib": ^4.0.1-alpha
+    "@uniswap/v2-core": 1.0.1
+    base64-sol: 1.0.1
+  checksum: 32624c66f1d4d366bd13a0430367f7a666af7478faff513cbe4544612cbf6b502f55b6f3e6ca755e1c262f13cfaefec6cd296a21206ae39050763cc0a94a56b6
   languageName: node
   linkType: hard
 
@@ -15138,6 +15172,8 @@ __metadata:
     "@nomiclabs/hardhat-waffle": ^2.0.1
     "@openzeppelin/contracts": 3.4.1-solc-0.7-2
     "@openzeppelin/contracts-upgradeable": 3.3.0
+    "@pancakeswap/v3-core": ^1.0.2
+    "@pancakeswap/v3-periphery": ^1.0.2
     "@typechain/ethers-v5": ^7.2.0
     "@typechain/hardhat": ^2.3.1
     "@types/chai": ^4.2.22
