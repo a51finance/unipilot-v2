@@ -238,7 +238,7 @@ task("verify-active-vault", "Verify unipilot vault contract")
     const args = {
       pool: cliArgs.pool,
       factory: cliArgs.factory,
-      WETH: "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+      WETH: "0x4200000000000000000000000000000000000006",
       strategyType: cliArgs.strategy,
       name: cliArgs.name,
       symbol: cliArgs.symbol,
