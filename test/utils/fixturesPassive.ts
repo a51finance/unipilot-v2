@@ -7,7 +7,7 @@ import {
   UnipilotPassiveFactory,
   UnipilotPassiveVault,
 } from "../../typechain";
-import { deployStrategy, deployUniswapContracts, deployWETH9 } from "../stubs";
+import { deployStrategy, deployPancakeContracts, deployWETH9 } from "../stubs";
 import { deployToken } from "../TokenDeployer/TokenStubs";
 
 const deployWeth9 = async (wallet: Wallet) => {
@@ -16,26 +16,26 @@ const deployWeth9 = async (wallet: Wallet) => {
 };
 
 const deployUniswap = async (wallet: Wallet, WETH9: Contract) => {
-  let uniswapv3Contracts = await deployUniswapContracts(wallet, WETH9);
+  let pancakev3Contracts = await deployPancakeContracts(wallet, WETH9);
   const nonFungible = await ethers.getContractFactory(
     "NonfungiblePositionManager",
   );
   const nonFungbileInstance = (await nonFungible.deploy(
-    uniswapv3Contracts.factory.address,
+    pancakev3Contracts.factory.address,
     WETH9.address,
-    uniswapv3Contracts.factory.address,
+    pancakev3Contracts.factory.address,
   )) as NonfungiblePositionManager;
 
   return {
-    uniswapV3Factory: uniswapv3Contracts.factory,
-    uniswapV3PositionManager: nonFungbileInstance,
-    swapRouter: uniswapv3Contracts.router,
+    pancakeV3Factory: pancakev3Contracts.factory,
+    pancakeV3PositionManager: nonFungbileInstance,
+    swapRouter: pancakev3Contracts.router,
   };
 };
 
-interface UNISWAP_V3_FIXTURES {
-  uniswapV3Factory: Contract;
-  uniswapV3PositionManager: NonfungiblePositionManager;
+interface PANCAKE_V3_FIXTURES {
+  pancakeV3Factory: Contract;
+  pancakeV3PositionManager: NonfungiblePositionManager;
   swapRouter: Contract;
 }
 
@@ -57,7 +57,7 @@ interface UNIPILOT_FACTORY_FIXTURE {
 }
 
 async function unipilotFactoryFixture(
-  uniswapV3Factory: string,
+  pancakeV3Factory: string,
   deployer: Wallet,
   indexFund: Wallet,
   uniStrategy: string,
@@ -69,7 +69,7 @@ async function unipilotFactoryFixture(
     "UnipilotPassiveFactory",
   );
   const unipilotFactory = (await unipilotFactoryDep.deploy(
-    uniswapV3Factory,
+    pancakeV3Factory,
     deployer.address,
     uniStrategy,
     indexFund.address,
@@ -81,7 +81,7 @@ async function unipilotFactoryFixture(
 }
 
 type FACTORIES = UNIPILOT_FACTORY_FIXTURE &
-  UNISWAP_V3_FIXTURES &
+  PANCAKE_V3_FIXTURES &
   TEST_ERC20 &
   STRATEGIES;
 interface UNIPILOT_VAULT_FIXTURE extends FACTORIES {
@@ -110,12 +110,12 @@ export const unipilotPassiveVaultFixture: Fixture<UNIPILOT_VAULT_FIXTURE> =
       user4,
     ] = waffle.provider.getWallets();
     const WETH9 = await deployWeth9(wallet);
-    const { uniswapV3Factory, uniswapV3PositionManager, swapRouter } =
+    const { pancakeV3Factory, pancakeV3PositionManager, swapRouter } =
       await deployUniswap(wallet, WETH9);
     const uniStrategy = await deployStrategy(wallet);
     const indexFund = carol;
     const { unipilotFactory } = await unipilotFactoryFixture(
-      uniswapV3Factory.address,
+      pancakeV3Factory.address,
       wallet,
       indexFund,
       uniStrategy.address,
@@ -135,8 +135,8 @@ export const unipilotPassiveVaultFixture: Fixture<UNIPILOT_VAULT_FIXTURE> =
     );
 
     return {
-      uniswapV3Factory,
-      uniswapV3PositionManager,
+      pancakeV3Factory,
+      pancakeV3PositionManager,
       swapRouter,
       unipilotFactory,
       PILOT,

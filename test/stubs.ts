@@ -1,6 +1,8 @@
 import { deployContract } from "ethereum-waffle";
 import { Contract } from "ethers";
 import { UniswapV3Deployer } from "./UniswapV3Deployer";
+import { PancakeswapV3Deployer } from "./utils/PancakeswapV3Deployer";
+
 import WETH9Artifact from "uniswap-v3-deploy-plugin/src/util/WETH9.json";
 import UnipilotFactoryArtifact from "../artifacts/contracts/UnipilotPassiveFactory.sol/UnipilotPassiveFactory.json";
 import UniStrategyArtifact from "../artifacts/contracts/UnipilotStrategy.sol/UnipilotStrategy.json";
@@ -19,6 +21,14 @@ export async function deployUniswapContracts(
 ): Promise<{ [name: string]: Contract }> {
   let uniswapV3 = await UniswapV3Deployer.deploy(deployer, WETH9);
   return uniswapV3;
+}
+
+export async function deployPancakeContracts(
+  deployer: any,
+  WETH9: Contract,
+): Promise<{ [name: string]: Contract }> {
+  let pancakev3 = await PancakeswapV3Deployer.deploy(deployer, WETH9);
+  return pancakev3;
 }
 
 export async function deployUnipilotFactory(
