@@ -19,8 +19,8 @@ import { generateFeeThroughSwap } from "../utils/SwapFunction/swap";
 import { expect } from "chai";
 export async function shouldBehaveLikeRebalancePassive(): Promise<void> {
   const createFixtureLoader = waffle.createFixtureLoader;
-  let uniswapV3Factory: Contract;
-  let uniswapV3PositionManager: NonfungiblePositionManager;
+  let pancakeV3Factory: Contract;
+  let pancakeV3PositionManager: NonfungiblePositionManager;
   let uniStrategy: Contract;
   let unipilotFactory: Contract;
   let swapRouter: Contract;
@@ -51,8 +51,8 @@ export async function shouldBehaveLikeRebalancePassive(): Promise<void> {
 
   beforeEach("setting up fixture contracts", async () => {
     ({
-      uniswapV3Factory,
-      uniswapV3PositionManager,
+      pancakeV3Factory,
+      pancakeV3PositionManager,
       swapRouter,
       unipilotFactory,
       PILOT,
@@ -61,9 +61,9 @@ export async function shouldBehaveLikeRebalancePassive(): Promise<void> {
       createVault,
     } = await loadFixture(unipilotPassiveVaultFixture));
 
-    await uniswapV3Factory.createPool(PILOT.address, ENS.address, 3000);
+    await pancakeV3Factory.createPool(PILOT.address, ENS.address, 3000);
 
-    let uniswapPoolAddress = await uniswapV3Factory.getPool(
+    let uniswapPoolAddress = await pancakeV3Factory.getPool(
       PILOT.address,
       ENS.address,
       3000,
@@ -96,16 +96,16 @@ export async function shouldBehaveLikeRebalancePassive(): Promise<void> {
     await ENS._mint(bob.address, parseUnits("100000000", "18"));
     await PILOT._mint(bob.address, parseUnits("100000000", "18"));
 
-    await PILOT.approve(uniswapV3PositionManager.address, MaxUint256);
-    await ENS.approve(uniswapV3PositionManager.address, MaxUint256);
+    await PILOT.approve(pancakeV3PositionManager.address, MaxUint256);
+    await ENS.approve(pancakeV3PositionManager.address, MaxUint256);
 
     await PILOT.connect(alice).approve(
-      uniswapV3PositionManager.address,
+      pancakeV3PositionManager.address,
       MaxUint256,
     );
 
     await ENS.connect(alice).approve(
-      uniswapV3PositionManager.address,
+      pancakeV3PositionManager.address,
       MaxUint256,
     );
 
@@ -134,7 +134,7 @@ export async function shouldBehaveLikeRebalancePassive(): Promise<void> {
     token1Instance =
       ENS.address.toLowerCase() > PILOT.address.toLowerCase() ? ENS : PILOT;
 
-    await uniswapV3PositionManager.connect(alice).mint(
+    await pancakeV3PositionManager.connect(alice).mint(
       {
         token0: token0,
         token1: token1,

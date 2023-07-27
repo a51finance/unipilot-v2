@@ -20,8 +20,8 @@ import { generateFeeThroughSwap } from "../utils/SwapFunction/swap";
 
 export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
   const createFixtureLoader = waffle.createFixtureLoader;
-  let uniswapV3Factory: Contract;
-  let uniswapV3PositionManager: NonfungiblePositionManager;
+  let pancakeV3Factory: Contract;
+  let pancakeV3PositionManager: NonfungiblePositionManager;
   let uniStrategy: Contract;
   let unipilotFactory: UnipilotActiveFactory;
   let swapRouter: Contract;
@@ -52,8 +52,8 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
 
   beforeEach("setting up fixture contracts", async () => {
     ({
-      uniswapV3Factory,
-      uniswapV3PositionManager,
+      pancakeV3Factory,
+      pancakeV3PositionManager,
       swapRouter,
       unipilotFactory,
       SUSDC,
@@ -62,8 +62,8 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
       createVault,
     } = await loadFixture(unipilotActiveVaultFixture));
 
-    await uniswapV3Factory.createPool(SUSDC.address, UNI.address, 3000);
-    let uniswapPoolAddress = await uniswapV3Factory.getPool(
+    await pancakeV3Factory.createPool(SUSDC.address, UNI.address, 3000);
+    let uniswapPoolAddress = await pancakeV3Factory.getPool(
       SUSDC.address,
       UNI.address,
       3000,
@@ -100,21 +100,21 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
     await SUSDC.connect(wallet).approve(unipilotVault.address, MaxUint256);
 
     await SUSDC.connect(wallet).approve(
-      uniswapV3PositionManager.address,
+      pancakeV3PositionManager.address,
       MaxUint256,
     );
 
     await UNI.connect(wallet).approve(
-      uniswapV3PositionManager.address,
+      pancakeV3PositionManager.address,
       MaxUint256,
     );
 
     await UNI.connect(alice).approve(
-      uniswapV3PositionManager.address,
+      pancakeV3PositionManager.address,
       MaxUint256,
     );
     await SUSDC.connect(alice).approve(
-      uniswapV3PositionManager.address,
+      pancakeV3PositionManager.address,
       MaxUint256,
     );
 
@@ -140,7 +140,7 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
     token1Instance =
       UNI.address.toLowerCase() > SUSDC.address.toLowerCase() ? UNI : SUSDC;
 
-    await uniswapV3PositionManager.connect(alice).mint(
+    await pancakeV3PositionManager.connect(alice).mint(
       {
         token0: token0,
         token1: token1,

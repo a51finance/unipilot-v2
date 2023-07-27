@@ -18,8 +18,8 @@ import { generateFeeThroughSwap } from "../utils/SwapFunction/swap";
 
 export async function shouldBehaveLikeDepositActive(): Promise<void> {
   const createFixtureLoader = waffle.createFixtureLoader;
-  let uniswapV3Factory: Contract;
-  let uniswapV3PositionManager: NonfungiblePositionManager;
+  let pancakeV3Factory: Contract;
+  let pancakeV3PositionManager: NonfungiblePositionManager;
   let uniStrategy: Contract;
   let unipilotFactory: Contract;
   let swapRouter: Contract;
@@ -50,8 +50,8 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
 
   beforeEach("setting up fixture contracts", async () => {
     ({
-      uniswapV3Factory,
-      uniswapV3PositionManager,
+      pancakeV3Factory,
+      pancakeV3PositionManager,
       swapRouter,
       unipilotFactory,
       DAI,
@@ -60,9 +60,9 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
       createVault,
     } = await loadFixture(unipilotActiveVaultFixture));
 
-    await uniswapV3Factory.createPool(DAI.address, USDT.address, 3000);
+    await pancakeV3Factory.createPool(DAI.address, USDT.address, 3000);
 
-    let daiUsdtPoolAddress = await uniswapV3Factory.getPool(
+    let daiUsdtPoolAddress = await pancakeV3Factory.getPool(
       DAI.address,
       USDT.address,
       3000,
@@ -101,8 +101,8 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
     await USDT.connect(user0)._mint(user0.address, parseUnits("2000000", "18"));
     await DAI.connect(user0)._mint(user0.address, parseUnits("2000000", "18"));
 
-    await DAI.approve(uniswapV3PositionManager.address, MaxUint256);
-    await USDT.approve(uniswapV3PositionManager.address, MaxUint256);
+    await DAI.approve(pancakeV3PositionManager.address, MaxUint256);
+    await USDT.approve(pancakeV3PositionManager.address, MaxUint256);
 
     await USDT.connect(wallet).approve(unipilotVault.address, MaxUint256);
     await DAI.connect(wallet).approve(unipilotVault.address, MaxUint256);
@@ -138,7 +138,7 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
     token1Instance =
       USDT.address.toLowerCase() > DAI.address.toLowerCase() ? USDT : DAI;
 
-    await uniswapV3PositionManager.connect(wallet).mint(
+    await pancakeV3PositionManager.connect(wallet).mint(
       {
         token0: token0,
         token1: token1,

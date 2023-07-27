@@ -10,7 +10,7 @@ import { unipilotActiveVaultFixture } from "../utils/fixuresActive";
 
 export async function shouldBehaveLikeUnipilotFactory(): Promise<void> {
   const createFixtureLoader = waffle.createFixtureLoader;
-  let uniswapV3Factory: Contract;
+  let pancakeV3Factory: Contract;
   let uniStrategy: Contract;
   let unipilotFactory: Contract;
   let unipilotVault: UnipilotPassiveVault;
@@ -40,16 +40,16 @@ export async function shouldBehaveLikeUnipilotFactory(): Promise<void> {
 
   beforeEach("setting up fixture contracts", async () => {
     ({
-      uniswapV3Factory,
+      pancakeV3Factory,
       unipilotFactory,
       DAI,
       USDT,
       uniStrategy,
       createVault,
     } = await loadFixture(unipilotActiveVaultFixture)),
-      await uniswapV3Factory.createPool(DAI.address, USDT.address, 3000);
+      await pancakeV3Factory.createPool(DAI.address, USDT.address, 3000);
 
-    let daiUsdtPoolAddress = await uniswapV3Factory.getPool(
+    let daiUsdtPoolAddress = await pancakeV3Factory.getPool(
       DAI.address,
       USDT.address,
       3000,
@@ -101,8 +101,8 @@ export async function shouldBehaveLikeUnipilotFactory(): Promise<void> {
   });
 
   it("Testing Factory : Should take gas snapshot of create vault func", async () => {
-    await uniswapV3Factory.createPool(DAI.address, USDT.address, 10000);
-    let poolAddress = await uniswapV3Factory.getPool(
+    await pancakeV3Factory.createPool(DAI.address, USDT.address, 10000);
+    let poolAddress = await pancakeV3Factory.getPool(
       DAI.address,
       USDT.address,
       10000,
@@ -131,8 +131,8 @@ export async function shouldBehaveLikeUnipilotFactory(): Promise<void> {
   });
 
   it("Testing Factory : Should create pool with 1% fee tier", async () => {
-    await uniswapV3Factory.createPool(DAI.address, USDT.address, 10000);
-    let poolAddress = await uniswapV3Factory.getPool(
+    await pancakeV3Factory.createPool(DAI.address, USDT.address, 10000);
+    let poolAddress = await pancakeV3Factory.getPool(
       DAI.address,
       USDT.address,
       10000,
@@ -161,9 +161,9 @@ export async function shouldBehaveLikeUnipilotFactory(): Promise<void> {
   });
 
   it("Testing Factory : Should create pool with 0.05% fee tier", async () => {
-    await uniswapV3Factory.createPool(DAI.address, USDT.address, 500);
+    await pancakeV3Factory.createPool(DAI.address, USDT.address, 500);
 
-    let poolAddress = await uniswapV3Factory.getPool(
+    let poolAddress = await pancakeV3Factory.getPool(
       DAI.address,
       USDT.address,
       500,
@@ -192,9 +192,9 @@ export async function shouldBehaveLikeUnipilotFactory(): Promise<void> {
   });
 
   it("Testing Factory : Should create pool with 0.05% fee tier", async () => {
-    await uniswapV3Factory.createPool(USDT.address, DAI.address, 500);
+    await pancakeV3Factory.createPool(USDT.address, DAI.address, 500);
 
-    let poolAddress = await uniswapV3Factory.getPool(
+    let poolAddress = await pancakeV3Factory.getPool(
       USDT.address,
       DAI.address,
       500,
@@ -238,9 +238,9 @@ export async function shouldBehaveLikeUnipilotFactory(): Promise<void> {
   });
 
   it("Testing Factory : Should fail, same token address", async () => {
-    await uniswapV3Factory.createPool(DAI.address, USDT.address, 500);
+    await pancakeV3Factory.createPool(DAI.address, USDT.address, 500);
 
-    let poolAddress = await uniswapV3Factory.getPool(
+    let poolAddress = await pancakeV3Factory.getPool(
       DAI.address,
       DAI.address,
       500,
@@ -270,9 +270,9 @@ export async function shouldBehaveLikeUnipilotFactory(): Promise<void> {
   });
 
   it("Testing Factory : Pool should not whitelisted but include after run ", async () => {
-    await uniswapV3Factory.createPool(DAI.address, USDT.address, 500);
+    await pancakeV3Factory.createPool(DAI.address, USDT.address, 500);
 
-    let poolAddress = await uniswapV3Factory.getPool(
+    let poolAddress = await pancakeV3Factory.getPool(
       DAI.address,
       USDT.address,
       500,

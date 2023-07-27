@@ -18,8 +18,8 @@ import { generateFeeThroughSwap } from "../utils/SwapFunction/swap";
 
 export async function shouldBehaveLikeDepositPassive(): Promise<void> {
   const createFixtureLoader = waffle.createFixtureLoader;
-  let uniswapV3Factory: Contract;
-  let uniswapV3PositionManager: NonfungiblePositionManager;
+  let pancakeV3Factory: Contract;
+  let pancakeV3PositionManager: NonfungiblePositionManager;
   let uniStrategy: Contract;
   let unipilotFactory: Contract;
   let swapRouter: Contract;
@@ -52,8 +52,8 @@ export async function shouldBehaveLikeDepositPassive(): Promise<void> {
 
   beforeEach("setting up fixture contracts", async () => {
     ({
-      uniswapV3Factory,
-      uniswapV3PositionManager,
+      pancakeV3Factory,
+      pancakeV3PositionManager,
       swapRouter,
       unipilotFactory,
       WETH9,
@@ -62,9 +62,9 @@ export async function shouldBehaveLikeDepositPassive(): Promise<void> {
       createVault,
     } = await loadFixture(unipilotPassiveVaultFixture));
 
-    await uniswapV3Factory.createPool(WETH9.address, SHIB.address, 3000);
+    await pancakeV3Factory.createPool(WETH9.address, SHIB.address, 3000);
 
-    let uniswapPoolAddress = await uniswapV3Factory.getPool(
+    let uniswapPoolAddress = await pancakeV3Factory.getPool(
       WETH9.address,
       SHIB.address,
       3000,
@@ -95,11 +95,11 @@ export async function shouldBehaveLikeDepositPassive(): Promise<void> {
     await SHIB.connect(alice)._mint(alice.address, parseUnits("10000", "18"));
 
     await SHIB.connect(alice).approve(
-      uniswapV3PositionManager.address,
+      pancakeV3PositionManager.address,
       MaxUint256,
     );
     await WETH9.connect(alice).approve(
-      uniswapV3PositionManager.address,
+      pancakeV3PositionManager.address,
       MaxUint256,
     );
 
@@ -131,7 +131,7 @@ export async function shouldBehaveLikeDepositPassive(): Promise<void> {
     token1Instance =
       SHIB.address.toLowerCase() > WETH9.address.toLowerCase() ? SHIB : WETH9;
 
-    await uniswapV3PositionManager.connect(alice).mint(
+    await pancakeV3PositionManager.connect(alice).mint(
       {
         token0: token0,
         token1: token1,

@@ -19,8 +19,8 @@ import { utils } from "jest-snapshot";
 
 export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
   const createFixtureLoader = waffle.createFixtureLoader;
-  let uniswapV3PositionManager: NonfungiblePositionManager;
-  let uniswapV3Factory: Contract;
+  let pancakeV3PositionManager: NonfungiblePositionManager;
+  let pancakeV3Factory: Contract;
   let uniStrategy: Contract;
   let unipilotFactory: Contract;
   let swapRouter: Contract;
@@ -45,8 +45,8 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
 
   beforeEach("basic setup", async () => {
     ({
-      uniswapV3Factory,
-      uniswapV3PositionManager,
+      pancakeV3Factory,
+      pancakeV3PositionManager,
       swapRouter,
       unipilotFactory,
       AAVE,
@@ -55,9 +55,9 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
       createVault,
     } = await loadFixture(unipilotActiveVaultFixture));
 
-    await uniswapV3Factory.createPool(USDC.address, AAVE.address, 3000);
+    await pancakeV3Factory.createPool(USDC.address, AAVE.address, 3000);
 
-    let poolAddress = await uniswapV3Factory.getPool(
+    let poolAddress = await pancakeV3Factory.getPool(
       AAVE.address,
       USDC.address,
       3000,
@@ -91,14 +91,14 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
 
     await AAVE.connect(other).approve(vault.address, constants.MaxUint256);
     await AAVE.connect(other).approve(
-      uniswapV3PositionManager.address,
+      pancakeV3PositionManager.address,
       constants.MaxUint256,
     );
     await AAVE.connect(other).approve(swapRouter.address, constants.MaxUint256);
 
     await USDC.connect(other).approve(vault.address, constants.MaxUint256);
     await USDC.connect(other).approve(
-      uniswapV3PositionManager.address,
+      pancakeV3PositionManager.address,
       constants.MaxUint256,
     );
     await USDC.connect(other).approve(swapRouter.address, constants.MaxUint256);
@@ -119,7 +119,7 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
     token1Instance =
       USDC.address.toLowerCase() > AAVE.address.toLowerCase() ? USDC : AAVE;
 
-    await uniswapV3PositionManager.connect(other).mint(
+    await pancakeV3PositionManager.connect(other).mint(
       {
         token0: token0,
         token1: token1,
