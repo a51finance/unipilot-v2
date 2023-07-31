@@ -62,12 +62,14 @@ export async function shouldBehaveLikeDepositPassive(): Promise<void> {
       createVault,
     } = await loadFixture(unipilotPassiveVaultFixture));
 
-    await pancakeV3Factory.createPool(WETH9.address, SHIB.address, 3000);
+    await pancakeV3Factory.createPool(WETH9.address, SHIB.address, 2500, {
+      gasLimit: 3e7,
+    });
 
     let pancakePoolAddress = await pancakeV3Factory.getPool(
       WETH9.address,
       SHIB.address,
-      3000,
+      2500,
     );
 
     pancakePool = (await ethers.getContractAt(
@@ -82,7 +84,7 @@ export async function shouldBehaveLikeDepositPassive(): Promise<void> {
     unipilotVault = await createVault(
       SHIB.address,
       WETH9.address,
-      3000,
+      2500,
       encodedPrice,
       "unipilot WETH-SHIB",
       "WETH-SHIB",
@@ -135,14 +137,14 @@ export async function shouldBehaveLikeDepositPassive(): Promise<void> {
       {
         token0: token0,
         token1: token1,
-        tickLower: getMinTick(60),
-        tickUpper: getMaxTick(60),
-        fee: 3000,
-        recipient: wallet.address,
+        fee: 2500,
+        tickLower: getMinTick(50),
+        tickUpper: getMaxTick(50),
         amount0Desired: parseUnits("1000", "18"),
         amount1Desired: parseUnits("1000", "18"),
         amount0Min: 0,
         amount1Min: 0,
+        recipient: wallet.address,
         deadline: 2000000000,
       },
       {

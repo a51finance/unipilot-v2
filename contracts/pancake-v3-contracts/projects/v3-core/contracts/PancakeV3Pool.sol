@@ -554,6 +554,7 @@ contract PancakeV3Pool is IPancakeV3Pool {
             amount1,
             data
         );
+
         if (amount0 > 0)
             require(balance0Before.add(amount0) <= balance0(), "M0");
         if (amount1 > 0)

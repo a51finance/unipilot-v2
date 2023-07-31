@@ -74,7 +74,13 @@ contract SwapRouter2 is
         (address tokenIn, address tokenOut, uint24 fee) = data
             .path
             .decodeFirstPool();
-        CallbackValidation.verifyCallback(deployer, tokenIn, tokenOut, fee);
+        CallbackValidation.verifyCallback(
+            deployer,
+            factory,
+            tokenIn,
+            tokenOut,
+            fee
+        );
 
         (bool isExactInput, uint256 amountToPay) = amount0Delta > 0
             ? (tokenIn < tokenOut, uint256(amount0Delta))

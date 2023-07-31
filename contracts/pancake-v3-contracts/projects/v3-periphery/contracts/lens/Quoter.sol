@@ -53,7 +53,13 @@ contract Quoter is IQuoter, IPancakeV3SwapCallback, PeripheryImmutableState {
         require(amount0Delta > 0 || amount1Delta > 0); // swaps entirely within 0-liquidity regions are not supported
         (address tokenIn, address tokenOut, uint24 fee) = path
             .decodeFirstPool();
-        CallbackValidation.verifyCallback(deployer, tokenIn, tokenOut, fee);
+        CallbackValidation.verifyCallback(
+            deployer,
+            factory,
+            tokenIn,
+            tokenOut,
+            fee
+        );
 
         (
             bool isExactInput,

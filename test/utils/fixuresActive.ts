@@ -20,15 +20,18 @@ const deployPancake = async (wallet: Wallet, WETH9: Contract) => {
     "NonfungiblePositionManager",
   );
   const nonFungbileInstance = (await nonFungible.deploy(
-    pancakev3Contracts.factory.address,
+    pancakev3Contracts.pancakeV3PoolDeployer.address,
+    pancakev3Contracts.pancakeswapV3Factory.address,
     WETH9.address,
-    pancakev3Contracts.factory.address,
+    pancakev3Contracts.positionDescriptor.address,
   )) as NonfungiblePositionManager;
 
+  console.log("nonFungbileInstance", nonFungbileInstance.address);
+
   return {
-    pancakeV3Factory: pancakev3Contracts.factory,
+    pancakeV3Factory: pancakev3Contracts.pancakeswapV3Factory,
     pancakeV3PositionManager: nonFungbileInstance,
-    swapRouter: pancakev3Contracts.router,
+    swapRouter: pancakev3Contracts.swapRouter,
   };
 };
 
@@ -106,15 +109,12 @@ export const unipilotActiveVaultFixture: Fixture<UNIPILOT_VAULT_FIXTURE> =
       user3,
       user4,
     ] = waffle.provider.getWallets();
+
     const WETH9 = await deployWeth9(wallet);
+
     const { pancakeV3Factory, pancakeV3PositionManager, swapRouter } =
       await deployPancake(wallet, WETH9);
-    console.log(
-      "pancakeV3Factory, pancakeV3PositionManager, swapRouter",
-      pancakeV3Factory.address,
-      pancakeV3PositionManager.address,
-      swapRouter.address,
-    );
+
     const uniStrategy = await deployStrategy(wallet);
     const indexFund = carol;
     const { unipilotFactory } = await unipilotFactoryFixture(
@@ -157,7 +157,7 @@ export const unipilotActiveVaultFixture: Fixture<UNIPILOT_VAULT_FIXTURE> =
         tokenName,
         tokenSymbol,
       ) => {
-        const tx = await unipilotFactory.createVault(
+        await unipilotFactory.createVault(
           tokenA,
           tokenB,
           fee,

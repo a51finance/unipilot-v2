@@ -5,15 +5,15 @@ import {
   PancakeV3Factory,
   PancakeV3PoolDeployer,
   SwapRouter2,
+  NonfungiblePositionManager,
 } from "../../typechain";
 import { linkLibraries } from "./linklibraries";
-import { NonfungiblePositionManager } from "@uniswap/v3-sdk";
 
 import PancakeV3PoolDeployerABI from "../../artifacts/contracts/pancake-v3-contracts/projects/v3-core/contracts/PancakeV3PoolDeployer.sol/PancakeV3PoolDeployer.json";
+import { ethers } from "hardhat";
 
 type ContractJson = { abi: any; bytecode: string };
 
-("");
 const artifacts: { [name: string]: ContractJson } = {
   PancakeV3PoolDeployer: require("../../artifacts/contracts/pancake-v3-contracts/projects/v3-core/contracts/PancakeV3PoolDeployer.sol/PancakeV3PoolDeployer.json"),
   PancakeV3Factory: require("@pancakeswap/v3-core/artifacts/contracts/PancakeV3Factory.sol/PancakeV3Factory.json"),
@@ -26,14 +26,16 @@ const artifacts: { [name: string]: ContractJson } = {
 
 export class PancakeswapV3Deployer {
   static async deploy(actor: Signer, weth9: Contract) {
-    console.log("actor in deploy", await actor.getAddress());
     const deployer = new PancakeswapV3Deployer(actor);
 
     const pancakeV3PoolDeployer = await deployer.deployPancankeV3PoolDeployer();
+
     console.log("pancakeV3PoolDeployer", pancakeV3PoolDeployer.address);
     const pancakeswapV3Factory = await deployer.deployFactory(
       pancakeV3PoolDeployer.address,
     );
+
+    await pancakeV3PoolDeployer.setFactoryAddress(pancakeswapV3Factory.address);
 
     const swapRouter = await deployer.deploySwapRouter(
       pancakeV3PoolDeployer.address,
@@ -43,26 +45,33 @@ export class PancakeswapV3Deployer {
 
     const nftDescriptorLibrary = await deployer.deployNFTDescriptorLibrary();
 
-    const nftDescriptorEX = await deployer.deployNFTDescriptorEX();
+    // const nftDescriptorEX = await deployer.deployNFTDescriptorEX();
+
+    const nftDescriptorExFactory = await ethers.getContractFactory(
+      "NFTDescriptorEx",
+    );
+    const nftDescriptorEx = await nftDescriptorExFactory.deploy();
 
     const positionDescriptor = await deployer.deployPositionDescriptor(
       weth9.address,
       "0x4554480000000000000000000000000000000000000000000000000000000000",
-      nftDescriptorEX.address,
+      nftDescriptorEx.address,
       nftDescriptorLibrary.address,
     );
 
-    const positionManager = await deployer.deployNonfungiblePositionManager(
-      pancakeV3PoolDeployer.address,
-      pancakeswapV3Factory.address,
-      weth9.address,
-      positionDescriptor.address,
-    );
+    // const positionManager = await deployer.deployNonfungiblePositionManager(
+    //   pancakeV3PoolDeployer.address,
+    //   pancakeswapV3Factory.address,
+    //   weth9.address,
+    //   positionDescriptor.address,
+    // );
+
     return {
       weth9,
+      pancakeV3PoolDeployer,
       pancakeswapV3Factory,
+      positionDescriptor,
       swapRouter,
-      positionManager,
     };
   }
 
@@ -161,7 +170,7 @@ export class PancakeswapV3Deployer {
     weth9Address: string,
     positionDescriptorAddress: string,
   ) {
-    return await this.deployContract<Contract>(
+    return (await this.deployContract<Contract>(
       artifacts.NonfungiblePositionManager.abi,
       artifacts.NonfungiblePositionManager.bytecode,
       [
@@ -171,7 +180,7 @@ export class PancakeswapV3Deployer {
         positionDescriptorAddress,
       ],
       this.deployer,
-    );
+    )) as NonfungiblePositionManager;
   }
 
   private async deployContract<T>(
@@ -181,6 +190,8 @@ export class PancakeswapV3Deployer {
     actor: Signer,
   ) {
     const factory = new ContractFactory(abi, bytecode, actor);
-    return await factory.deploy(...deployParams, { gasPrice: 90000000000 });
+    return await factory.deploy(...deployParams, {
+      gasPrice: 90000000000,
+    });
   }
 }

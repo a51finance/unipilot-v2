@@ -2,6 +2,8 @@
 pragma solidity =0.7.6;
 
 import "@pancakeswap/v3-core/contracts/interfaces/IPancakeV3Pool.sol";
+import "@pancakeswap/v3-core/contracts/interfaces/IPancakeV3Factory.sol";
+
 import "./PoolAddress.sol";
 
 /// @notice Provides validation for callbacks from PancakeSwap V3 Pools
@@ -14,6 +16,7 @@ library CallbackValidation {
     /// @return pool The V3 pool contract address
     function verifyCallback(
         address deployer,
+        address factory,
         address tokenA,
         address tokenB,
         uint24 fee
@@ -21,6 +24,7 @@ library CallbackValidation {
         return
             verifyCallback(
                 deployer,
+                factory,
                 PoolAddress.getPoolKey(tokenA, tokenB, fee)
             );
     }
@@ -31,9 +35,16 @@ library CallbackValidation {
     /// @return pool The V3 pool contract address
     function verifyCallback(
         address deployer,
+        address factory,
         PoolAddress.PoolKey memory poolKey
     ) internal view returns (IPancakeV3Pool pool) {
-        pool = IPancakeV3Pool(PoolAddress.computeAddress(deployer, poolKey));
+        address poolAddress = IPancakeV3Factory(factory).getPool(
+            poolKey.token0,
+            poolKey.token1,
+            poolKey.fee
+        );
+        pool = IPancakeV3Pool(poolAddress);
+        // pool = IPancakeV3Pool(PoolAddress.computeAddress(deployer, poolKey));
         require(msg.sender == address(pool));
     }
 }

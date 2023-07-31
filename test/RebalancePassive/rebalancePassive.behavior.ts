@@ -61,12 +61,12 @@ export async function shouldBehaveLikeRebalancePassive(): Promise<void> {
       createVault,
     } = await loadFixture(unipilotPassiveVaultFixture));
 
-    await pancakeV3Factory.createPool(PILOT.address, ENS.address, 3000);
+    await pancakeV3Factory.createPool(PILOT.address, ENS.address, 2500);
 
     let pacakePoolAddress = await pancakeV3Factory.getPool(
       PILOT.address,
       ENS.address,
-      3000,
+      2500,
     );
 
     pacakePool = (await ethers.getContractAt(
@@ -81,7 +81,7 @@ export async function shouldBehaveLikeRebalancePassive(): Promise<void> {
     unipilotVault = await createVault(
       ENS.address,
       PILOT.address,
-      3000,
+      2500,
       encodedPrice,
       "unipilot PILOT-ENS",
       "PILOT-ENS",
@@ -138,14 +138,14 @@ export async function shouldBehaveLikeRebalancePassive(): Promise<void> {
       {
         token0: token0,
         token1: token1,
+        fee: 2500,
         tickLower: getMinTick(60),
         tickUpper: getMaxTick(60),
-        fee: 3000,
-        recipient: alice.address,
         amount0Desired: parseUnits("7000", "18"),
         amount1Desired: parseUnits("7000", "18"),
         amount0Min: 0,
         amount1Min: 0,
+        recipient: alice.address,
         deadline: 2000000000,
       },
       {

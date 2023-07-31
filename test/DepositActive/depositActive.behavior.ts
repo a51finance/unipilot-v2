@@ -15,6 +15,7 @@ import {
   PancakeV3Pool,
 } from "../../typechain";
 import { generateFeeThroughSwap } from "../utils/SwapFunction/swap";
+import { computePoolAddress } from "../utils/computePoolAddress";
 
 export async function shouldBehaveLikeDepositActive(): Promise<void> {
   const createFixtureLoader = waffle.createFixtureLoader;
@@ -62,12 +63,14 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
       createVault,
     } = await loadFixture(unipilotActiveVaultFixture));
 
-    await pancakeV3Factory.createPool(DAI.address, USDT.address, 3000);
+    await pancakeV3Factory.createPool(DAI.address, USDT.address, 2500, {
+      gasLimit: 3e7,
+    });
 
     let daiUsdtPoolAddress = await pancakeV3Factory.getPool(
       DAI.address,
       USDT.address,
-      3000,
+      2500,
     );
 
     pancakePool = (await ethers.getContractAt(
@@ -81,9 +84,9 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
     await uniStrategy.setBaseTicks([daiUsdtPoolAddress], [0], [100]);
 
     unipilotVault = await createVault(
-      USDT.address,
       DAI.address,
-      3000,
+      USDT.address,
+      2500,
       encodedPrice,
       "unipilot USDT-DAI",
       "USDT-DAI",
@@ -141,18 +144,32 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
     token1Instance =
       USDT.address.toLowerCase() > DAI.address.toLowerCase() ? USDT : DAI;
 
+    // await pancakeV3PositionManager.createAndInitializePoolIfNecessary(
+    //   token0Instance.address,
+    //   token1Instance.address,
+    //   2500,
+    //   encodePriceSqrt(1, 1),
+    // );
+
+    const expectedAddress = computePoolAddress(
+      "0x0b90cd33c16103c67e25604e4b8bd906e747c6bc",
+      [token0Instance.address, token1Instance.address],
+      2500,
+    );
+
+    console.log("computed pool addrees", expectedAddress);
     await pancakeV3PositionManager.connect(wallet).mint(
       {
         token0: token0,
         token1: token1,
-        tickLower: getMinTick(60),
-        tickUpper: getMaxTick(60),
-        fee: 3000,
-        recipient: wallet.address,
+        fee: 2500,
+        tickLower: getMinTick(50),
+        tickUpper: getMaxTick(50),
         amount0Desired: parseUnits("100000", "18"),
         amount1Desired: parseUnits("100000", "18"),
         amount0Min: 0,
         amount1Min: 0,
+        recipient: wallet.address,
         deadline: 2000000000,
       },
       {

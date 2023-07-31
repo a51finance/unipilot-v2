@@ -53,12 +53,14 @@ export async function shouldBehaveLikeWithdrawPassive(): Promise<void> {
       createVault,
     } = await loadFixture(unipilotPassiveVaultFixture));
 
-    await pancakeV3Factory.createPool(FEI.address, SPELL.address, 3000);
+    await pancakeV3Factory.createPool(FEI.address, SPELL.address, 2500, {
+      gasLimit: 3e7,
+    });
 
     let poolAddress = await pancakeV3Factory.getPool(
       FEI.address,
       SPELL.address,
-      3000,
+      2500,
     );
 
     pool = (await ethers.getContractAt(
@@ -72,7 +74,7 @@ export async function shouldBehaveLikeWithdrawPassive(): Promise<void> {
     vault = await createVault(
       SPELL.address,
       FEI.address,
-      3000,
+      2500,
       encodePriceSqrt(1, 2),
       "FEI-SPELL UniLP",
       "UniLP",
@@ -124,14 +126,14 @@ export async function shouldBehaveLikeWithdrawPassive(): Promise<void> {
       {
         token0: token0,
         token1: token1,
-        tickLower: getMinTick(60),
-        tickUpper: getMaxTick(60),
-        fee: 3000,
-        recipient: other.address.toLowerCase(),
+        fee: 2500,
+        tickLower: getMinTick(50),
+        tickUpper: getMaxTick(50),
         amount0Desired: parseUnits("1500", "18"),
         amount1Desired: parseUnits("1500", "18"),
         amount0Min: 0,
         amount1Min: 0,
+        recipient: other.address.toLowerCase(),
         deadline: 2000000000,
       },
       {

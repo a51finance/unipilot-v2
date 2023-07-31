@@ -53,7 +53,7 @@ contract PairFlash is IPancakeV3FlashCallback, PeripheryPayments {
             data,
             (FlashCallbackData)
         );
-        CallbackValidation.verifyCallback(deployer, decoded.poolKey);
+        CallbackValidation.verifyCallback(deployer, factory, decoded.poolKey);
 
         address token0 = decoded.poolKey.token0;
         address token1 = decoded.poolKey.token1;

@@ -55,12 +55,14 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
       createVault,
     } = await loadFixture(unipilotActiveVaultFixture));
 
-    await pancakeV3Factory.createPool(USDC.address, AAVE.address, 3000);
+    await pancakeV3Factory.createPool(USDC.address, AAVE.address, 2500, {
+      gasLimit: 3e7,
+    });
 
     let poolAddress = await pancakeV3Factory.getPool(
       AAVE.address,
       USDC.address,
-      3000,
+      2500,
     );
 
     pool = (await ethers.getContractAt(
@@ -74,7 +76,7 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
     vault = await createVault(
       USDC.address,
       AAVE.address,
-      3000,
+      2500,
       encodePriceSqrt(1, 2),
       "AAVE-USDC UniLP",
       "UniLP",
@@ -123,14 +125,14 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
       {
         token0: token0,
         token1: token1,
-        tickLower: getMinTick(60),
-        tickUpper: getMaxTick(60),
-        fee: 3000,
-        recipient: other.address,
+        fee: 2500,
+        tickLower: getMinTick(50),
+        tickUpper: getMaxTick(50),
         amount0Desired: parseUnits("100000", "18"),
         amount1Desired: parseUnits("100000", "18"),
         amount0Min: 0,
         amount1Min: 0,
+        recipient: other.address,
         deadline: 2000000000,
       },
       {
@@ -143,7 +145,7 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
     beforeEach("Add liquidity in vault and whiteliste vault", async () => {
       await vault.toggleOperator(wallet.address);
 
-      await vault.rebalance(0, false, getMinTick(60), getMaxTick(60)); // initializing vault
+      await vault.rebalance(0, false, getMinTick(50), getMaxTick(50)); // initializing vault
       await vault.deposit(
         parseUnits("1000", "18"),
         parseUnits("1000", "18"),
@@ -434,7 +436,7 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
     });
 
     it("rebalance method test", async () => {
-      await vault.rebalance(0, true, getMinTick(60), getMaxTick(60));
+      await vault.rebalance(0, true, getMinTick(50), getMaxTick(50));
 
       await generateFeeThroughSwap(
         swapRouter,
@@ -461,7 +463,7 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
       const amount0IndexFund = reservesBefore[2].div(details[3]);
       const amount1IndexFund = reservesBefore[3].div(details[3]);
 
-      await vault.rebalance(0, false, getMinTick(60), getMaxTick(60));
+      await vault.rebalance(0, false, getMinTick(50), getMaxTick(50));
 
       // idle assets
       const unusedAmount0 = await token0Instance.balanceOf(vault.address);
@@ -490,7 +492,7 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
       expect(unipilotPosition[0]).to.be.eq(0);
       expect(unipilotPosition[1]).to.be.eq(0);
 
-      await vault.rebalance(0, false, getMinTick(60), getMaxTick(60));
+      await vault.rebalance(0, false, getMinTick(50), getMaxTick(50));
       var newPosition = await vault.callStatic.getPositionDetails();
 
       expect(newPosition[0]).to.be.eq(newReserves0.sub(2));
@@ -499,8 +501,8 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
       await vault.rebalance(
         parseUnits("500", "18"),
         false,
-        getMinTick(60),
-        getMaxTick(60),
+        getMinTick(50),
+        getMaxTick(50),
       );
       newPosition = await vault.callStatic.getPositionDetails();
       expect(newPosition[1]).to.be.eq(
@@ -517,7 +519,7 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
       expect(newPosition[0]).to.be.lte(newReserves0);
 
       await expect(
-        vault.connect(other).rebalance(0, true, getMinTick(60), getMaxTick(60)),
+        vault.connect(other).rebalance(0, true, getMinTick(50), getMaxTick(50)),
       ).to.be.reverted;
     });
 

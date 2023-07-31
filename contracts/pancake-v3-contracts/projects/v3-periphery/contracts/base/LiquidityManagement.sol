@@ -32,7 +32,7 @@ abstract contract LiquidityManagement is
         bytes calldata data
     ) external override {
         MintCallbackData memory decoded = abi.decode(data, (MintCallbackData));
-        CallbackValidation.verifyCallback(deployer, decoded.poolKey);
+        CallbackValidation.verifyCallback(deployer, factory, decoded.poolKey);
 
         if (amount0Owed > 0)
             pay(decoded.poolKey.token0, decoded.payer, msg.sender, amount0Owed);
@@ -69,8 +69,15 @@ abstract contract LiquidityManagement is
             fee: params.fee
         });
 
-        pool = IPancakeV3Pool(PoolAddress.computeAddress(deployer, poolKey));
+        // pool = IPancakeV3Pool(PoolAddress.computeAddress(deployer, poolKey));
 
+        address poolAddress = IPancakeV3Factory(factory).getPool(
+            params.token0,
+            params.token1,
+            params.fee
+        );
+
+        pool = IPancakeV3Pool(poolAddress);
         // compute the liquidity amount
         {
             (uint160 sqrtPriceX96, , , , , , ) = pool.slot0();

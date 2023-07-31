@@ -20,16 +20,18 @@ const deployPancake = async (wallet: Wallet, WETH9: Contract) => {
   const nonFungible = await ethers.getContractFactory(
     "NonfungiblePositionManager",
   );
+
   const nonFungbileInstance = (await nonFungible.deploy(
-    pancakev3Contracts.factory.address,
+    pancakev3Contracts.pancakeV3PoolDeployer.address,
+    pancakev3Contracts.pancakeswapV3Factory.address,
     WETH9.address,
-    pancakev3Contracts.factory.address,
+    pancakev3Contracts.positionDescriptor.address,
   )) as NonfungiblePositionManager;
 
   return {
-    pancakeV3Factory: pancakev3Contracts.factory,
+    pancakeV3Factory: pancakev3Contracts.pancakeswapV3Factory,
     pancakeV3PositionManager: nonFungbileInstance,
-    swapRouter: pancakev3Contracts.router,
+    swapRouter: pancakev3Contracts.swapRouter,
   };
 };
 
