@@ -12,7 +12,7 @@ import { MaxUint256 } from "@ethersproject/constants";
 import { ethers, waffle } from "hardhat";
 import { encodePriceSqrt } from "../utils/encodePriceSqrt";
 import {
-  UniswapV3Pool,
+  PancakeV3Pool,
   NonfungiblePositionManager,
   UnipilotPassiveVault,
 } from "../../typechain";
