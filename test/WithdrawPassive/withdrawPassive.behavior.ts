@@ -10,22 +10,22 @@ import hre, { ethers, waffle } from "hardhat";
 import { encodePriceSqrt } from "../utils/encodePriceSqrt";
 import {
   UnipilotPassiveVault,
-  UniswapV3Pool,
+  PancakeV3Pool,
   NonfungiblePositionManager,
 } from "../../typechain";
 import { generateFeeThroughSwap } from "../utils/SwapFunction/swap";
 
 export async function shouldBehaveLikeWithdrawPassive(): Promise<void> {
   const createFixtureLoader = waffle.createFixtureLoader;
-  let uniswapV3PositionManager: NonfungiblePositionManager;
-  let uniswapV3Factory: Contract;
+  let pancakeV3PositionManager: NonfungiblePositionManager;
+  let pancakeV3Factory: Contract;
   let uniStrategy: Contract;
   let unipilotFactory: Contract;
   let swapRouter: Contract;
   let vault: UnipilotPassiveVault;
   let FEI: Contract;
   let SPELL: Contract;
-  let pool: UniswapV3Pool;
+  let pool: PancakeV3Pool;
   let token0Instance: Contract;
   let token1Instance: Contract;
 
@@ -43,8 +43,8 @@ export async function shouldBehaveLikeWithdrawPassive(): Promise<void> {
 
   beforeEach("basic setup", async () => {
     ({
-      uniswapV3Factory,
-      uniswapV3PositionManager,
+      pancakeV3Factory,
+      pancakeV3PositionManager,
       swapRouter,
       unipilotFactory,
       FEI,
@@ -53,18 +53,18 @@ export async function shouldBehaveLikeWithdrawPassive(): Promise<void> {
       createVault,
     } = await loadFixture(unipilotPassiveVaultFixture));
 
-    await uniswapV3Factory.createPool(FEI.address, SPELL.address, 3000);
+    await pancakeV3Factory.createPool(FEI.address, SPELL.address, 3000);
 
-    let poolAddress = await uniswapV3Factory.getPool(
+    let poolAddress = await pancakeV3Factory.getPool(
       FEI.address,
       SPELL.address,
       3000,
     );
 
     pool = (await ethers.getContractAt(
-      "UniswapV3Pool",
+      "PancakeV3Pool",
       poolAddress,
-    )) as UniswapV3Pool;
+    )) as PancakeV3Pool;
 
     await pool.initialize(encodePriceSqrt(1, 2));
     await uniStrategy.setBaseTicks([poolAddress], [0], [1800]);
@@ -89,14 +89,14 @@ export async function shouldBehaveLikeWithdrawPassive(): Promise<void> {
 
     await FEI.connect(other).approve(vault.address, constants.MaxUint256);
     await FEI.connect(other).approve(
-      uniswapV3PositionManager.address,
+      pancakeV3PositionManager.address,
       constants.MaxUint256,
     );
     await FEI.connect(other).approve(swapRouter.address, constants.MaxUint256);
 
     await SPELL.connect(other).approve(vault.address, constants.MaxUint256);
     await SPELL.connect(other).approve(
-      uniswapV3PositionManager.address,
+      pancakeV3PositionManager.address,
       constants.MaxUint256,
     );
     await SPELL.connect(other).approve(
@@ -120,7 +120,7 @@ export async function shouldBehaveLikeWithdrawPassive(): Promise<void> {
     token1Instance =
       SPELL.address.toLowerCase() > FEI.address.toLowerCase() ? SPELL : FEI;
 
-    await uniswapV3PositionManager.connect(other).mint(
+    await pancakeV3PositionManager.connect(other).mint(
       {
         token0: token0,
         token1: token1,

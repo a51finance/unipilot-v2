@@ -109,6 +109,12 @@ export const unipilotActiveVaultFixture: Fixture<UNIPILOT_VAULT_FIXTURE> =
     const WETH9 = await deployWeth9(wallet);
     const { pancakeV3Factory, pancakeV3PositionManager, swapRouter } =
       await deployPancake(wallet, WETH9);
+    console.log(
+      "pancakeV3Factory, pancakeV3PositionManager, swapRouter",
+      pancakeV3Factory.address,
+      pancakeV3PositionManager.address,
+      swapRouter.address,
+    );
     const uniStrategy = await deployStrategy(wallet);
     const indexFund = carol;
     const { unipilotFactory } = await unipilotFactoryFixture(

@@ -4,19 +4,19 @@ import { parseUnits } from "ethers/lib/utils";
 import { unipilotPassiveVaultFixture } from "../utils/fixturesPassive";
 import { ethers, waffle } from "hardhat";
 import { encodePriceSqrt } from "../utils/encodePriceSqrt";
-import { UniswapV3Pool, UnipilotPassiveVault } from "../../typechain";
+import { PancakeV3Pool, UnipilotPassiveVault } from "../../typechain";
 import snapshotGasCost from "../utils/snapshotGasCost";
 import { unipilotActiveVaultFixture } from "../utils/fixuresActive";
 
 export async function shouldBehaveLikeUnipilotFactory(): Promise<void> {
   const createFixtureLoader = waffle.createFixtureLoader;
-  let uniswapV3Factory: Contract;
+  let pancakeV3Factory: Contract;
   let uniStrategy: Contract;
   let unipilotFactory: Contract;
   let unipilotVault: UnipilotPassiveVault;
   let DAI: Contract;
   let USDT: Contract;
-  let daiUsdtUniswapPool: UniswapV3Pool;
+  let daiUsdtUniswapPool: PancakeV3Pool;
 
   const encodedPrice = encodePriceSqrt(
     parseUnits("1", "18"),
@@ -40,25 +40,25 @@ export async function shouldBehaveLikeUnipilotFactory(): Promise<void> {
 
   beforeEach("setting up fixture contracts", async () => {
     ({
-      uniswapV3Factory,
+      pancakeV3Factory,
       unipilotFactory,
       DAI,
       USDT,
       uniStrategy,
       createVault,
     } = await loadFixture(unipilotActiveVaultFixture)),
-      await uniswapV3Factory.createPool(DAI.address, USDT.address, 3000);
+      await pancakeV3Factory.createPool(DAI.address, USDT.address, 3000);
 
-    let daiUsdtPoolAddress = await uniswapV3Factory.getPool(
+    let daiUsdtPoolAddress = await pancakeV3Factory.getPool(
       DAI.address,
       USDT.address,
       3000,
     );
 
     daiUsdtUniswapPool = (await ethers.getContractAt(
-      "UniswapV3Pool",
+      "PancakeV3Pool",
       daiUsdtPoolAddress,
-    )) as UniswapV3Pool;
+    )) as PancakeV3Pool;
 
     await daiUsdtUniswapPool.initialize(encodedPrice);
 
@@ -101,17 +101,17 @@ export async function shouldBehaveLikeUnipilotFactory(): Promise<void> {
   });
 
   it("Testing Factory : Should take gas snapshot of create vault func", async () => {
-    await uniswapV3Factory.createPool(DAI.address, USDT.address, 10000);
-    let poolAddress = await uniswapV3Factory.getPool(
+    await pancakeV3Factory.createPool(DAI.address, USDT.address, 10000);
+    let poolAddress = await pancakeV3Factory.getPool(
       DAI.address,
       USDT.address,
       10000,
     );
 
     let uniswapPool = (await ethers.getContractAt(
-      "UniswapV3Pool",
+      "PancakeV3Pool",
       poolAddress,
-    )) as UniswapV3Pool;
+    )) as PancakeV3Pool;
 
     await uniswapPool.initialize(encodedPrice);
 
@@ -131,17 +131,17 @@ export async function shouldBehaveLikeUnipilotFactory(): Promise<void> {
   });
 
   it("Testing Factory : Should create pool with 1% fee tier", async () => {
-    await uniswapV3Factory.createPool(DAI.address, USDT.address, 10000);
-    let poolAddress = await uniswapV3Factory.getPool(
+    await pancakeV3Factory.createPool(DAI.address, USDT.address, 10000);
+    let poolAddress = await pancakeV3Factory.getPool(
       DAI.address,
       USDT.address,
       10000,
     );
 
     let uniswapPool = (await ethers.getContractAt(
-      "UniswapV3Pool",
+      "PancakeV3Pool",
       poolAddress,
-    )) as UniswapV3Pool;
+    )) as PancakeV3Pool;
 
     await uniswapPool.initialize(encodedPrice);
 
@@ -161,18 +161,18 @@ export async function shouldBehaveLikeUnipilotFactory(): Promise<void> {
   });
 
   it("Testing Factory : Should create pool with 0.05% fee tier", async () => {
-    await uniswapV3Factory.createPool(DAI.address, USDT.address, 500);
+    await pancakeV3Factory.createPool(DAI.address, USDT.address, 500);
 
-    let poolAddress = await uniswapV3Factory.getPool(
+    let poolAddress = await pancakeV3Factory.getPool(
       DAI.address,
       USDT.address,
       500,
     );
 
     let uniswapPool = (await ethers.getContractAt(
-      "UniswapV3Pool",
+      "PancakeV3Pool",
       poolAddress,
-    )) as UniswapV3Pool;
+    )) as PancakeV3Pool;
 
     await uniswapPool.initialize(encodedPrice);
 
@@ -192,18 +192,18 @@ export async function shouldBehaveLikeUnipilotFactory(): Promise<void> {
   });
 
   it("Testing Factory : Should create pool with 0.05% fee tier", async () => {
-    await uniswapV3Factory.createPool(USDT.address, DAI.address, 500);
+    await pancakeV3Factory.createPool(USDT.address, DAI.address, 500);
 
-    let poolAddress = await uniswapV3Factory.getPool(
+    let poolAddress = await pancakeV3Factory.getPool(
       USDT.address,
       DAI.address,
       500,
     );
 
     let uniswapPool = (await ethers.getContractAt(
-      "UniswapV3Pool",
+      "PancakeV3Pool",
       poolAddress,
-    )) as UniswapV3Pool;
+    )) as PancakeV3Pool;
 
     await uniswapPool.initialize(encodedPrice);
 
@@ -238,18 +238,18 @@ export async function shouldBehaveLikeUnipilotFactory(): Promise<void> {
   });
 
   it("Testing Factory : Should fail, same token address", async () => {
-    await uniswapV3Factory.createPool(DAI.address, USDT.address, 500);
+    await pancakeV3Factory.createPool(DAI.address, USDT.address, 500);
 
-    let poolAddress = await uniswapV3Factory.getPool(
+    let poolAddress = await pancakeV3Factory.getPool(
       DAI.address,
       DAI.address,
       500,
     );
 
     let uniswapPool = (await ethers.getContractAt(
-      "UniswapV3Pool",
+      "PancakeV3Pool",
       poolAddress,
-    )) as UniswapV3Pool;
+    )) as PancakeV3Pool;
 
     await uniswapPool.initialize(encodedPrice);
 
@@ -270,18 +270,18 @@ export async function shouldBehaveLikeUnipilotFactory(): Promise<void> {
   });
 
   it("Testing Factory : Pool should not whitelisted but include after run ", async () => {
-    await uniswapV3Factory.createPool(DAI.address, USDT.address, 500);
+    await pancakeV3Factory.createPool(DAI.address, USDT.address, 500);
 
-    let poolAddress = await uniswapV3Factory.getPool(
+    let poolAddress = await pancakeV3Factory.getPool(
       DAI.address,
       USDT.address,
       500,
     );
 
     let uniswapPool = (await ethers.getContractAt(
-      "UniswapV3Pool",
+      "PancakeV3Pool",
       poolAddress,
-    )) as UniswapV3Pool;
+    )) as PancakeV3Pool;
 
     await uniswapPool.initialize(encodedPrice);
 

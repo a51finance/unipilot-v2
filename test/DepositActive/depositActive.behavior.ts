@@ -10,23 +10,23 @@ import { MaxUint256 } from "@ethersproject/constants";
 import { ethers, waffle } from "hardhat";
 import { encodePriceSqrt } from "../utils/encodePriceSqrt";
 import {
-  UniswapV3Pool,
   NonfungiblePositionManager,
   UnipilotActiveVault,
+  PancakeV3Pool,
 } from "../../typechain";
 import { generateFeeThroughSwap } from "../utils/SwapFunction/swap";
 
 export async function shouldBehaveLikeDepositActive(): Promise<void> {
   const createFixtureLoader = waffle.createFixtureLoader;
-  let uniswapV3Factory: Contract;
-  let uniswapV3PositionManager: NonfungiblePositionManager;
+  let pancakeV3Factory: Contract;
+  let pancakeV3PositionManager: NonfungiblePositionManager;
   let uniStrategy: Contract;
   let unipilotFactory: Contract;
   let swapRouter: Contract;
   let unipilotVault: UnipilotActiveVault;
   let DAI: Contract;
   let USDT: Contract;
-  let uniswapPool: UniswapV3Pool;
+  let pancakePool: PancakeV3Pool;
   let token0Instance: Contract;
   let token1Instance: Contract;
 
@@ -34,6 +34,8 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
     parseUnits("1", "18"),
     parseUnits("8", "18"),
   );
+
+  console.log("encodedPrice", encodedPrice);
 
   type ThenArg<T> = T extends PromiseLike<infer U> ? U : T;
   const [wallet, alice, bob, carol, other, user0, user1, user2, user3, user4] =
@@ -50,8 +52,8 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
 
   beforeEach("setting up fixture contracts", async () => {
     ({
-      uniswapV3Factory,
-      uniswapV3PositionManager,
+      pancakeV3Factory,
+      pancakeV3PositionManager,
       swapRouter,
       unipilotFactory,
       DAI,
@@ -60,20 +62,21 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
       createVault,
     } = await loadFixture(unipilotActiveVaultFixture));
 
-    await uniswapV3Factory.createPool(DAI.address, USDT.address, 3000);
+    await pancakeV3Factory.createPool(DAI.address, USDT.address, 3000);
 
-    let daiUsdtPoolAddress = await uniswapV3Factory.getPool(
+    let daiUsdtPoolAddress = await pancakeV3Factory.getPool(
       DAI.address,
       USDT.address,
       3000,
     );
 
-    uniswapPool = (await ethers.getContractAt(
-      "UniswapV3Pool",
+    pancakePool = (await ethers.getContractAt(
+      "PancakeV3Pool",
       daiUsdtPoolAddress,
-    )) as UniswapV3Pool;
+    )) as PancakeV3Pool;
 
-    await uniswapPool.initialize(encodedPrice);
+    console.log("pancakePool address", pancakePool.address);
+    await pancakePool.initialize(encodedPrice);
 
     await uniStrategy.setBaseTicks([daiUsdtPoolAddress], [0], [100]);
 
@@ -101,8 +104,8 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
     await USDT.connect(user0)._mint(user0.address, parseUnits("2000000", "18"));
     await DAI.connect(user0)._mint(user0.address, parseUnits("2000000", "18"));
 
-    await DAI.approve(uniswapV3PositionManager.address, MaxUint256);
-    await USDT.approve(uniswapV3PositionManager.address, MaxUint256);
+    await DAI.approve(pancakeV3PositionManager.address, MaxUint256);
+    await USDT.approve(pancakeV3PositionManager.address, MaxUint256);
 
     await USDT.connect(wallet).approve(unipilotVault.address, MaxUint256);
     await DAI.connect(wallet).approve(unipilotVault.address, MaxUint256);
@@ -138,7 +141,7 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
     token1Instance =
       USDT.address.toLowerCase() > DAI.address.toLowerCase() ? USDT : DAI;
 
-    await uniswapV3PositionManager.connect(wallet).mint(
+    await pancakeV3PositionManager.connect(wallet).mint(
       {
         token0: token0,
         token1: token1,

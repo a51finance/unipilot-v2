@@ -15,7 +15,7 @@ const deployWeth9 = async (wallet: Wallet) => {
   return WETH9;
 };
 
-const deployUniswap = async (wallet: Wallet, WETH9: Contract) => {
+const deployPancake = async (wallet: Wallet, WETH9: Contract) => {
   let pancakev3Contracts = await deployPancakeContracts(wallet, WETH9);
   const nonFungible = await ethers.getContractFactory(
     "NonfungiblePositionManager",
@@ -111,7 +111,7 @@ export const unipilotPassiveVaultFixture: Fixture<UNIPILOT_VAULT_FIXTURE> =
     ] = waffle.provider.getWallets();
     const WETH9 = await deployWeth9(wallet);
     const { pancakeV3Factory, pancakeV3PositionManager, swapRouter } =
-      await deployUniswap(wallet, WETH9);
+      await deployPancake(wallet, WETH9);
     const uniStrategy = await deployStrategy(wallet);
     const indexFund = carol;
     const { unipilotFactory } = await unipilotFactoryFixture(

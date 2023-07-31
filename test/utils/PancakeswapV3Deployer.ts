@@ -9,8 +9,11 @@ import {
 import { linkLibraries } from "./linklibraries";
 import { NonfungiblePositionManager } from "@uniswap/v3-sdk";
 
+import PancakeV3PoolDeployerABI from "../../artifacts/contracts/pancake-v3-contracts/projects/v3-core/contracts/PancakeV3PoolDeployer.sol/PancakeV3PoolDeployer.json";
+
 type ContractJson = { abi: any; bytecode: string };
 
+("");
 const artifacts: { [name: string]: ContractJson } = {
   PancakeV3PoolDeployer: require("../../artifacts/contracts/pancake-v3-contracts/projects/v3-core/contracts/PancakeV3PoolDeployer.sol/PancakeV3PoolDeployer.json"),
   PancakeV3Factory: require("@pancakeswap/v3-core/artifacts/contracts/PancakeV3Factory.sol/PancakeV3Factory.json"),
@@ -23,9 +26,11 @@ const artifacts: { [name: string]: ContractJson } = {
 
 export class PancakeswapV3Deployer {
   static async deploy(actor: Signer, weth9: Contract) {
+    console.log("actor in deploy", await actor.getAddress());
     const deployer = new PancakeswapV3Deployer(actor);
 
     const pancakeV3PoolDeployer = await deployer.deployPancankeV3PoolDeployer();
+    console.log("pancakeV3PoolDeployer", pancakeV3PoolDeployer.address);
     const pancakeswapV3Factory = await deployer.deployFactory(
       pancakeV3PoolDeployer.address,
     );
@@ -69,8 +74,8 @@ export class PancakeswapV3Deployer {
 
   async deployPancankeV3PoolDeployer() {
     return (await this.deployContract<Contract>(
-      artifacts.PancakeV3Factorsy.abi,
-      artifacts.PancakeV3Factory.bytecode,
+      PancakeV3PoolDeployerABI.abi,
+      PancakeV3PoolDeployerABI.bytecode,
       [],
       this.deployer,
     )) as PancakeV3PoolDeployer;

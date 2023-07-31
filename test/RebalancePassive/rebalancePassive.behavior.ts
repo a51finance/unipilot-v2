@@ -9,7 +9,7 @@ import { MaxUint256 } from "@ethersproject/constants";
 import { ethers, waffle } from "hardhat";
 import { encodePriceSqrt } from "../utils/encodePriceSqrt";
 import {
-  UniswapV3Pool,
+  PancakeV3Pool,
   NonfungiblePositionManager,
   UnipilotPassiveVault,
 } from "../../typechain";
@@ -19,15 +19,15 @@ import { generateFeeThroughSwap } from "../utils/SwapFunction/swap";
 import { expect } from "chai";
 export async function shouldBehaveLikeRebalancePassive(): Promise<void> {
   const createFixtureLoader = waffle.createFixtureLoader;
-  let uniswapV3Factory: Contract;
-  let uniswapV3PositionManager: NonfungiblePositionManager;
+  let pancakeV3Factory: Contract;
+  let pancakeV3PositionManager: NonfungiblePositionManager;
   let uniStrategy: Contract;
   let unipilotFactory: Contract;
   let swapRouter: Contract;
   let unipilotVault: UnipilotPassiveVault;
   let PILOT: Contract;
   let ENS: Contract;
-  let uniswapPool: UniswapV3Pool;
+  let pacakePool: PancakeV3Pool;
   let token0Instance: Contract;
   let token1Instance: Contract;
 
@@ -51,8 +51,8 @@ export async function shouldBehaveLikeRebalancePassive(): Promise<void> {
 
   beforeEach("setting up fixture contracts", async () => {
     ({
-      uniswapV3Factory,
-      uniswapV3PositionManager,
+      pancakeV3Factory,
+      pancakeV3PositionManager,
       swapRouter,
       unipilotFactory,
       PILOT,
@@ -61,22 +61,22 @@ export async function shouldBehaveLikeRebalancePassive(): Promise<void> {
       createVault,
     } = await loadFixture(unipilotPassiveVaultFixture));
 
-    await uniswapV3Factory.createPool(PILOT.address, ENS.address, 3000);
+    await pancakeV3Factory.createPool(PILOT.address, ENS.address, 3000);
 
-    let uniswapPoolAddress = await uniswapV3Factory.getPool(
+    let pacakePoolAddress = await pancakeV3Factory.getPool(
       PILOT.address,
       ENS.address,
       3000,
     );
 
-    uniswapPool = (await ethers.getContractAt(
-      "UniswapV3Pool",
-      uniswapPoolAddress,
-    )) as UniswapV3Pool;
+    pacakePool = (await ethers.getContractAt(
+      "PancakeV3Pool",
+      pacakePoolAddress,
+    )) as PancakeV3Pool;
 
-    await uniswapPool.initialize(encodedPrice);
+    await pacakePool.initialize(encodedPrice);
 
-    await uniStrategy.setBaseTicks([uniswapPoolAddress], [0], [100]);
+    await uniStrategy.setBaseTicks([pacakePoolAddress], [0], [100]);
 
     unipilotVault = await createVault(
       ENS.address,
@@ -96,16 +96,16 @@ export async function shouldBehaveLikeRebalancePassive(): Promise<void> {
     await ENS._mint(bob.address, parseUnits("100000000", "18"));
     await PILOT._mint(bob.address, parseUnits("100000000", "18"));
 
-    await PILOT.approve(uniswapV3PositionManager.address, MaxUint256);
-    await ENS.approve(uniswapV3PositionManager.address, MaxUint256);
+    await PILOT.approve(pancakeV3PositionManager.address, MaxUint256);
+    await ENS.approve(pancakeV3PositionManager.address, MaxUint256);
 
     await PILOT.connect(alice).approve(
-      uniswapV3PositionManager.address,
+      pancakeV3PositionManager.address,
       MaxUint256,
     );
 
     await ENS.connect(alice).approve(
-      uniswapV3PositionManager.address,
+      pancakeV3PositionManager.address,
       MaxUint256,
     );
 
@@ -134,7 +134,7 @@ export async function shouldBehaveLikeRebalancePassive(): Promise<void> {
     token1Instance =
       ENS.address.toLowerCase() > PILOT.address.toLowerCase() ? ENS : PILOT;
 
-    await uniswapV3PositionManager.connect(alice).mint(
+    await pancakeV3PositionManager.connect(alice).mint(
       {
         token0: token0,
         token1: token1,
@@ -152,7 +152,7 @@ export async function shouldBehaveLikeRebalancePassive(): Promise<void> {
         gasLimit: "3000000",
       },
     );
-    await uniswapPool.increaseObservationCardinalityNext("80");
+    await pacakePool.increaseObservationCardinalityNext("80");
   });
 
   it("Index fund account should recieve 10% of the pool fees earned.", async () => {
