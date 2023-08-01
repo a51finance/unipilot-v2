@@ -36,7 +36,6 @@ export async function generateFeeThroughSwap(
     sqrtPriceLimitX96: "0",
   };
   // for (let i = 0; i < 2; i++) {
-  console.log("params -> ", sellOrderParams);
   await swapRouter.connect(wallet).exactInputSingle(sellOrderParams, {
     gasLimit: "3000000",
   });

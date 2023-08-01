@@ -195,7 +195,7 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
       bob,
       token0Instance,
       token1Instance,
-      2500,
+      3000,
       "5000",
     );
 
@@ -247,7 +247,7 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
       bob,
       token0Instance,
       token1Instance,
-      2500,
+      3000,
       "5000",
     );
 
@@ -293,7 +293,7 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
       bob,
       token0Instance,
       token1Instance,
-      2500,
+      3000,
       "30000",
     );
 

@@ -221,7 +221,7 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
         other,
         token0Instance,
         token1Instance,
-        2500,
+        3000,
         "1000",
       );
 
@@ -230,7 +230,7 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
         other,
         token1Instance,
         token0Instance,
-        2500,
+        3000,
         "1000",
       );
       const fees = await vault.callStatic.getPositionDetails();
@@ -270,7 +270,7 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
         other,
         token0Instance,
         token1Instance,
-        2500,
+        3000,
         "1000",
       );
       await generateFeeThroughSwap(
@@ -278,7 +278,7 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
         other,
         token1Instance,
         token0Instance,
-        2500,
+        3000,
         "1000",
       );
 
@@ -323,7 +323,7 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
         other,
         token0Instance,
         token1Instance,
-        2500,
+        3000,
         "1000",
       );
       await generateFeeThroughSwap(
@@ -331,7 +331,7 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
         other,
         token1Instance,
         token0Instance,
-        2500,
+        3000,
         "1000",
       );
 
@@ -454,7 +454,7 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
         other,
         token0Instance,
         token1Instance,
-        2500,
+        3000,
         "3000",
       );
 
@@ -463,7 +463,7 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
         other,
         token1Instance,
         token0Instance,
-        2500,
+        3000,
         "4000",
       );
 
