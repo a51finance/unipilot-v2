@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity =0.7.6;
 
-import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
+import "@pancakeswap/v3-core/contracts/interfaces/IPancakeV3Pool.sol";
 import "@uniswap/v3-core/contracts/libraries/FullMath.sol";
 import "@uniswap/v3-core/contracts/libraries/TickMath.sol";
 
@@ -21,7 +21,7 @@ library OracleLibrary {
         secondAgos[0] = period;
         secondAgos[1] = 0;
 
-        (int56[] memory tickCumulatives, ) = IUniswapV3Pool(pool).observe(
+        (int56[] memory tickCumulatives, ) = IPancakeV3Pool(pool).observe(
             secondAgos
         );
         int56 tickCumulativesDelta = tickCumulatives[1] - tickCumulatives[0];

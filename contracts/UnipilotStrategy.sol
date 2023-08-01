@@ -203,7 +203,7 @@ contract UnipilotStrategy is IUnipilotStrategy {
         PoolStrategy memory oldStrategy = poolStrategy[_pool];
         validateStrategy(
             params.baseThreshold,
-            IUniswapV3Pool(_pool).tickSpacing()
+            IPancakeV3Pool(_pool).tickSpacing()
         );
 
         emit StrategyUpdated(
@@ -288,9 +288,9 @@ contract UnipilotStrategy is IUnipilotStrategy {
      *   @param pool: pool address
      **/
     function calculateTwap(address pool) internal view returns (int24 twap) {
-        uint128 inRangeLiquidity = IUniswapV3Pool(pool).liquidity();
+        uint128 inRangeLiquidity = IPancakeV3Pool(pool).liquidity();
         if (inRangeLiquidity == 0) {
-            (uint160 sqrtPriceX96, , , , , , ) = IUniswapV3Pool(pool).slot0();
+            (uint160 sqrtPriceX96, , , , , , ) = IPancakeV3Pool(pool).slot0();
             twap = TickMath.getTickAtSqrtRatio(sqrtPriceX96);
         } else {
             twap = getTwap(pool);
@@ -302,7 +302,7 @@ contract UnipilotStrategy is IUnipilotStrategy {
      *   @param _pool: pool address
      **/
     function getTwap(address _pool) public view override returns (int24 twap) {
-        IUniswapV3Pool uniswapV3Pool = IUniswapV3Pool(_pool);
+        IPancakeV3Pool pancakeV3Pool = IPancakeV3Pool(_pool);
         (
             ,
             ,
@@ -311,15 +311,19 @@ contract UnipilotStrategy is IUnipilotStrategy {
             ,
             ,
 
-        ) = uniswapV3Pool.slot0();
-        (uint32 lastTimeStamp, , , ) = uniswapV3Pool.observations(
+        ) = pancakeV3Pool.slot0();
+
+        (uint32 lastTimeStamp, , , ) = pancakeV3Pool.observations(
             (observationIndex + 1) % observationCardinality
         );
+
         uint32 timeDiff = uint32(block.timestamp) - lastTimeStamp;
         uint32 duration = poolStrategy[_pool].twapDuration;
+
         if (duration == 0) {
             duration = twapDuration;
         }
+
         twap = OracleLibrary.consult(
             _pool,
             timeDiff > duration ? duration : timeDiff
@@ -350,8 +354,8 @@ contract UnipilotStrategy is IUnipilotStrategy {
         view
         returns (int24 tick, int24 tickSpacing)
     {
-        (, tick, , , , , ) = IUniswapV3PoolState(pool).slot0();
-        tickSpacing = IUniswapV3Pool(pool).tickSpacing();
+        (, tick, , , , , ) = IPancakeV3PoolState(pool).slot0();
+        tickSpacing = IPancakeV3Pool(pool).tickSpacing();
     }
 
     /**

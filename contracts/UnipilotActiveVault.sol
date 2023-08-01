@@ -370,7 +370,7 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
     }
 
     /// @inheritdoc IUnipilotVault
-    function uniswapV3MintCallback(
+    function pancakeV3MintCallback(
         uint256 amount0Owed,
         uint256 amount1Owed,
         bytes calldata data
@@ -395,7 +395,7 @@ contract UnipilotActiveVault is ERC20Permit, IUnipilotVault {
     }
 
     /// @inheritdoc IUnipilotVault
-    function uniswapV3SwapCallback(
+    function pancakeV3SwapCallback(
         int256 amount0,
         int256 amount1,
         bytes calldata data
