@@ -17,7 +17,7 @@ type ContractJson = { abi: any; bytecode: string };
 const artifacts: { [name: string]: ContractJson } = {
   PancakeV3PoolDeployer: require("../../artifacts/contracts/pancake-v3-contracts/projects/v3-core/contracts/PancakeV3PoolDeployer.sol/PancakeV3PoolDeployer.json"),
   PancakeV3Factory: require("@pancakeswap/v3-core/artifacts/contracts/PancakeV3Factory.sol/PancakeV3Factory.json"),
-  SwapRouter: require("@pancakeswap/v3-periphery/artifacts/contracts/SwapRouter.sol/SwapRouter.json"),
+  SwapRouter: require("../../artifacts/contracts/pancake-v3-contracts/projects/v3-periphery/contracts/SwapRouter.sol/SwapRouter2.json"),
   NonfungiblePositionManager: require("@pancakeswap/v3-periphery/artifacts/contracts/NonfungiblePositionManager.sol/NonfungiblePositionManager.json"),
   NFTDescriptor: require("@pancakeswap/v3-periphery/artifacts/contracts/libraries/NFTDescriptor.sol/NFTDescriptor.json"),
   NonfungibleTokenPositionDescriptor: require("@pancakeswap/v3-periphery/artifacts/contracts/NonfungibleTokenPositionDescriptor.sol/NonfungibleTokenPositionDescriptor.json"),

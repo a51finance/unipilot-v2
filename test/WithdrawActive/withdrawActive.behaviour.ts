@@ -218,6 +218,7 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
         other,
         token0Instance,
         token1Instance,
+        2500,
         "1000",
       );
       await generateFeeThroughSwap(
@@ -225,9 +226,9 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
         other,
         token1Instance,
         token0Instance,
+        2500,
         "1000",
       );
-
       const fees = await vault.callStatic.getPositionDetails();
       const unusedAmount0 = await token0Instance.balanceOf(vault.address);
 
@@ -265,6 +266,7 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
         other,
         token0Instance,
         token1Instance,
+        2500,
         "1000",
       );
       await generateFeeThroughSwap(
@@ -272,6 +274,7 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
         other,
         token1Instance,
         token0Instance,
+        2500,
         "1000",
       );
 
@@ -316,6 +319,7 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
         other,
         token0Instance,
         token1Instance,
+        2500,
         "1000",
       );
       await generateFeeThroughSwap(
@@ -323,6 +327,7 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
         other,
         token1Instance,
         token0Instance,
+        2500,
         "1000",
       );
 
@@ -443,6 +448,7 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
         other,
         token0Instance,
         token1Instance,
+        2500,
         "3000",
       );
 
@@ -451,6 +457,7 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
         other,
         token1Instance,
         token0Instance,
+        2500,
         "4000",
       );
 
@@ -512,8 +519,8 @@ export async function shouldBehaveLikeWithdrawActive(): Promise<void> {
       await vault.rebalance(
         parseUnits("500", "18"),
         true,
-        getMinTick(60),
-        getMaxTick(60),
+        getMinTick(50),
+        getMaxTick(50),
       );
       newPosition = await vault.callStatic.getPositionDetails();
       expect(newPosition[0]).to.be.lte(newReserves0);

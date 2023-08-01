@@ -8,6 +8,7 @@ export async function generateFeeThroughSwap(
   wallet: Wallet,
   tokenIn: Contract,
   tokenOut: Contract,
+  fee: number,
   amountIn: string,
 ) {
   // await tokenIn.approve(swapRouter.address, MaxUint256);
@@ -19,7 +20,7 @@ export async function generateFeeThroughSwap(
   const sellOrderParams = {
     tokenIn: tokenIn.address,
     tokenOut: tokenOut.address,
-    fee: 3000,
+    fee: fee,
     recipient: wallet.address,
     deadline: Math.round(Date.now() / 1000) + 86400,
     amountIn: parseUnits(amountIn, "18"),
@@ -30,14 +31,13 @@ export async function generateFeeThroughSwap(
   const buyOrderParams = {
     tokenIn: tokenOut.address,
     tokenOut: tokenIn.address,
-    fee: 3000,
+    fee: fee,
     recipient: wallet.address,
     deadline: Math.round(Date.now() / 1000) + 86400,
     amountIn: parseUnits(amountIn, decimalsOut.toString()),
     amountOutMinimum: parseUnits("0", decimalsIn.toString()),
     sqrtPriceLimitX96: "0",
   };
-
   // for (let i = 0; i < 2; i++) {
   await swapRouter.connect(wallet).exactInputSingle(sellOrderParams, {
     gasLimit: "3000000",

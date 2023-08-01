@@ -49,13 +49,13 @@ contract SwapRouter2 is
         address tokenB,
         uint24 fee
     ) private view returns (IPancakeV3Pool) {
-        return
-            IPancakeV3Pool(
-                PoolAddress.computeAddress(
-                    deployer,
-                    PoolAddress.getPoolKey(tokenA, tokenB, fee)
-                )
-            );
+        // return IPancakeV3Pool(PoolAddress.computeAddress(deployer, PoolAddress.getPoolKey(tokenA, tokenB, fee)));
+        address poolAddress = IPancakeV3Factory(factory).getPool(
+            tokenA,
+            tokenB,
+            fee
+        );
+        return IPancakeV3Pool(poolAddress);
     }
 
     struct SwapCallbackData {
@@ -109,7 +109,6 @@ contract SwapRouter2 is
     ) private returns (uint256 amountOut) {
         // allow swapping to the router address with address 0
         if (recipient == address(0)) recipient = address(this);
-
         (address tokenIn, address tokenOut, uint24 fee) = data
             .path
             .decodeFirstPool();

@@ -174,6 +174,7 @@ export async function shouldBehaveLikeWithdrawPassive(): Promise<void> {
         other,
         token0Instance,
         token1Instance,
+        2500,
         "1000",
       );
       await generateFeeThroughSwap(
@@ -181,6 +182,7 @@ export async function shouldBehaveLikeWithdrawPassive(): Promise<void> {
         other,
         token1Instance,
         token0Instance,
+        2500,
         "1000",
       );
 
@@ -224,6 +226,7 @@ export async function shouldBehaveLikeWithdrawPassive(): Promise<void> {
         other,
         token0Instance,
         token1Instance,
+        2500,
         "1000",
       );
       await generateFeeThroughSwap(
@@ -231,6 +234,7 @@ export async function shouldBehaveLikeWithdrawPassive(): Promise<void> {
         other,
         token1Instance,
         token0Instance,
+        2500,
         "1000",
       );
 
