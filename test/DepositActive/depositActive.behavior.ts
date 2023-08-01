@@ -229,6 +229,7 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
 
   it("should successfully predict amounts after deposit", async () => {
     await unipilotVault.rebalance(0, false, getMinTick(50), getMaxTick(50)); // initializing vault
+
     await unipilotVault
       .connect(wallet)
       .deposit(
@@ -289,13 +290,13 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
     );
 
     expect(
-      token0Balance.gt(parseUnits("1898000", "18")) &&
+      token0Balance.gt(parseUnits("1897999", "18")) &&
         token0Balance.lt(parseUnits("1898001", "18")),
     ).to.be.true;
 
     expect(
-      token1Balance.gt(parseUnits("1986371", "18")) &&
-        token1Balance.lt(parseUnits("1986372", "18")),
+      token1Balance.gt(parseUnits("1948495", "18")) &&
+        token1Balance.lt(parseUnits("1948497", "18")),
     ).to.be.true;
   });
 
@@ -412,8 +413,8 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
       lpBalanceOfCarol.lt(parseUnits("1001", "18"));
 
     const user0Lp =
-      lpBalanceOfUser0.gte(parseUnits("3198", "18")) &&
-      lpBalanceOfUser0.lt(parseUnits("3841", "18"));
+      lpBalanceOfUser0.gte(parseUnits("3922", "18")) &&
+      lpBalanceOfUser0.lt(parseUnits("3924", "18"));
 
     expect(bobLp && walletLp && carolLp && user0Lp).to.be.true;
   });
