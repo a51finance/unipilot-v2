@@ -31,12 +31,7 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
   let token0Instance: Contract;
   let token1Instance: Contract;
 
-  const encodedPrice = encodePriceSqrt(
-    parseUnits("1", "18"),
-    parseUnits("8", "18"),
-  );
-
-  console.log("encodedPrice", encodedPrice);
+  const encodedPrice = encodePriceSqrt(1, 2);
 
   type ThenArg<T> = T extends PromiseLike<infer U> ? U : T;
   const [wallet, alice, bob, carol, other, user0, user1, user2, user3, user4] =
@@ -78,7 +73,6 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
       daiUsdtPoolAddress,
     )) as PancakeV3Pool;
 
-    console.log("pancakePool address", pancakePool.address);
     await pancakePool.initialize(encodedPrice);
 
     await uniStrategy.setBaseTicks([daiUsdtPoolAddress], [0], [100]);
@@ -144,20 +138,6 @@ export async function shouldBehaveLikeDepositActive(): Promise<void> {
     token1Instance =
       USDT.address.toLowerCase() > DAI.address.toLowerCase() ? USDT : DAI;
 
-    // await pancakeV3PositionManager.createAndInitializePoolIfNecessary(
-    //   token0Instance.address,
-    //   token1Instance.address,
-    //   2500,
-    //   encodePriceSqrt(1, 1),
-    // );
-
-    const expectedAddress = computePoolAddress(
-      "0x0b90cd33c16103c67e25604e4b8bd906e747c6bc",
-      [token0Instance.address, token1Instance.address],
-      2500,
-    );
-
-    console.log("computed pool addrees", expectedAddress);
     await pancakeV3PositionManager.connect(wallet).mint(
       {
         token0: token0,

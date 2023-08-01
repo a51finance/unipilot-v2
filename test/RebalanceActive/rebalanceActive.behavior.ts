@@ -62,14 +62,16 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
       createVault,
     } = await loadFixture(unipilotActiveVaultFixture));
 
-    await pancakeV3Factory.createPool(SUSDC.address, UNI.address, 2500, {
+    await pancakeV3Factory.enableFeeAmount(3000, 60);
+
+    await pancakeV3Factory.createPool(SUSDC.address, UNI.address, 3000, {
       gasLimit: 3e7,
     });
 
     let pancakePoolAddress = await pancakeV3Factory.getPool(
       SUSDC.address,
       UNI.address,
-      2500,
+      3000,
     );
 
     pancakePool = (await ethers.getContractAt(
@@ -84,7 +86,7 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
     unipilotVault = await createVault(
       UNI.address,
       SUSDC.address,
-      2500,
+      3000,
       encodedPrice,
       "unipilot PILOT-UNI",
       "PILOT-UNI",
@@ -147,9 +149,9 @@ export async function shouldBehaveLikeRebalanceActive(): Promise<void> {
       {
         token0: token0,
         token1: token1,
-        fee: 2500,
-        tickLower: getMinTick(50),
-        tickUpper: getMaxTick(50),
+        fee: 3000,
+        tickLower: getMinTick(60),
+        tickUpper: getMaxTick(60),
         amount0Desired: parseUnits("20000000", "18"),
         amount1Desired: parseUnits("20000000", "18"),
         amount0Min: 0,

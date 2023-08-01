@@ -26,8 +26,6 @@ const deployPancake = async (wallet: Wallet, WETH9: Contract) => {
     pancakev3Contracts.positionDescriptor.address,
   )) as NonfungiblePositionManager;
 
-  console.log("nonFungbileInstance", nonFungbileInstance.address);
-
   return {
     pancakeV3Factory: pancakev3Contracts.pancakeswapV3Factory,
     pancakeV3PositionManager: nonFungbileInstance,
