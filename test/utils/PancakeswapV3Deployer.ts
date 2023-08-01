@@ -30,7 +30,6 @@ export class PancakeswapV3Deployer {
 
     const pancakeV3PoolDeployer = await deployer.deployPancankeV3PoolDeployer();
 
-    console.log("pancakeV3PoolDeployer", pancakeV3PoolDeployer.address);
     const pancakeswapV3Factory = await deployer.deployFactory(
       pancakeV3PoolDeployer.address,
     );

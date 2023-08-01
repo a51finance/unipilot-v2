@@ -266,39 +266,5 @@ export async function shouldBehaveLikeWithdrawPassive(): Promise<void> {
       expect(userToken0Balance).to.be.eq(reservesAfter[0].add(unusedAmount0));
       expect(userToken1Balance).to.be.eq(reservesAfter[1]);
     });
-
-    // it("should withdraw after pulling liquidity", async () => {
-    //   await vault
-    //     .connect(other)
-    //     .deposit(
-    //       parseUnits("1000", "18"),
-    //       parseUnits("1000", "18"),
-    //       other.address,
-    //     );
-
-    //   const user1LP = await vault.balanceOf(other.address);
-    //   const user1DaiBalanceBefore = await FEI.balanceOf(other.address);
-    //   const user1UsdtBalanceBefore = await SPELL.balanceOf(other.address);
-
-    //   await vault.pullLiquidity();
-
-    //   const contractDaiBalance = await FEI.balanceOf(vault.address);
-    //   const contractUsdtBalance = await SPELL.balanceOf(vault.address);
-
-    //   await vault.connect(other).withdraw(user1LP, other.address, false);
-
-    //   const user1LpBalance = await vault.balanceOf(other.address);
-
-    //   const user1DaiBalance = await FEI.balanceOf(other.address);
-    //   const user1UsdtBalance = await SPELL.balanceOf(other.address);
-
-    //   expect(user1LpBalance).to.be.eq(0);
-    //   expect(user1UsdtBalance.sub(user1UsdtBalanceBefore)).to.be.eq(
-    //     contractUsdtBalance.div(2),
-    //   );
-    //   expect(user1DaiBalance.sub(user1DaiBalanceBefore)).to.be.eq(
-    //     contractDaiBalance.div(2),
-    //   );
-    // });
   });
 }

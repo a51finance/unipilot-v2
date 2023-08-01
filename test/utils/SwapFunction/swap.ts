@@ -10,9 +10,6 @@ export async function generateFeeThroughSwap(
   tokenOut: Contract,
   amountIn: string,
 ) {
-  // await tokenIn.approve(swapRouter.address, MaxUint256);
-  // await tokenOut.approve(swapRouter.address, MaxUint256);
-
   const decimalsIn: BigNumber = await tokenIn.decimals();
   const decimalsOut: BigNumber = await tokenOut.decimals();
 
@@ -39,6 +36,7 @@ export async function generateFeeThroughSwap(
   };
 
   // for (let i = 0; i < 2; i++) {
+  console.log("params -> ", sellOrderParams);
   await swapRouter.connect(wallet).exactInputSingle(sellOrderParams, {
     gasLimit: "3000000",
   });
