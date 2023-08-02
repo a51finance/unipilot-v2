@@ -4,7 +4,6 @@ import "@typechain/hardhat";
 import "hardhat-gas-reporter";
 import "hardhat-contract-sizer";
 import "solidity-coverage";
-
 import "./tasks/accounts";
 
 import { resolve } from "path";
@@ -26,10 +25,12 @@ const chainIds = {
   mumbai: 80001,
   polygon: 137,
   optgoerli: 420,
+  arbitrum: 42161,
   arbgoerli: 421613,
   optimism: 10,
-  zkevm: 1101,
-  dogechain: 2000,
+  bnbtestnet: 97,
+  bsc: 56,
+  avax: 43114,
 };
 
 // Ensure that we have all the environment variables we need.
@@ -46,19 +47,17 @@ if (!infuraApiKey) {
 let alchemyapiKey = process.env.FORK;
 
 const etherscanApiKey = process.env.ETHERSCAN_API_KEY;
-// const zkevmApiKey = process.env.ZKEVM_API_KEY || "";
 
 function createTestnetConfig(
   network: keyof typeof chainIds,
 ): NetworkUserConfig {
   const url: string =
-    network == "mumbai"
-      ? "https://polygon-mumbai.g.alchemy.com/v2/" +
-        `${process.env.API_KEY_MUMBAI}`
-      : "https://zkevm-rpc.com";
-  // : "https://polygon-mainnet.g.alchemy.com/v2/g2JAXug5sBd7l8VuSlEYvUB3PysaxSFx";
+    network == "optgoerli"
+      ? "https://opt-goerli.g.alchemy.com/v2/" + `${process.env.API_KEY_MUMBAI}`
+      : "https://bsc.publicnode.com";
+
   return {
-    accounts: [`${process.env.PK_POLY}`, `${process.env.PK2}`],
+    accounts: [`${process.env.PK_THENA}`],
     chainId: chainIds[network],
     url,
   };
@@ -77,9 +76,8 @@ const config: HardhatUserConfig = {
   },
   networks: {
     hardhat: {
-      allowUnlimitedContractSize: true,
       accounts: {
-        //mnemonic,
+        mnemonic,
       },
       chainId: chainIds.hardhat,
     },
@@ -94,8 +92,10 @@ const config: HardhatUserConfig = {
     optgoerli: createTestnetConfig("optgoerli"),
     arbgoerli: createTestnetConfig("arbgoerli"),
     optimism: createTestnetConfig("optimism"),
-    zkevm: createTestnetConfig("zkevm"),
-    dogechain: createTestnetConfig("dogechain"),
+    arbitrum: createTestnetConfig("arbitrum"),
+    bnbtestnet: createTestnetConfig("bnbtestnet"),
+    bsc: createTestnetConfig("bsc"),
+    avax: createTestnetConfig("avax"),
   },
   mocha: {
     timeout: 50000,
@@ -131,20 +131,7 @@ const config: HardhatUserConfig = {
     target: "ethers-v5",
   },
   etherscan: {
-    apiKey: {
-      zkEVM: "B9YRT6VCBUX8IWEARQQPW5C4VX89ISEXFC",
-      dogechain: "",
-    },
-    customChains: [
-      {
-        network: "zkEVM",
-        chainId: 1101,
-        urls: {
-          apiURL: "https://explorer.dogechain.dog/api",
-          browserURL: "https://explorer.dogechain.dog/",
-        },
-      },
-    ],
+    apiKey: etherscanApiKey,
   },
   contractSizer: {
     alphaSort: true,

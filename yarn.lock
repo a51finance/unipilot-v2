@@ -633,14 +633,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@cryptoalgebra/core@npm:^2.0.0":
+"@cryptoalgebra/core@npm:2.0.0, @cryptoalgebra/core@npm:^2.0.0":
   version: 2.0.0
   resolution: "@cryptoalgebra/core@npm:2.0.0"
   checksum: ad3cff559c7772dd50436569b1bd817ba3279d53781f9da823610b8ea30d4bfe7d62f1d9b020cec165640e76714b9226e8c59946e7e43e9c2045a8f9f8f1bf60
   languageName: node
   linkType: hard
 
-"@cryptoalgebra/periphery@npm:^1.0.0":
+"@cryptoalgebra/periphery@npm:1.0.0":
   version: 1.0.0
   resolution: "@cryptoalgebra/periphery@npm:1.0.0"
   dependencies:
@@ -15139,8 +15139,8 @@ __metadata:
     "@codechecks/client": ^0.1.12
     "@commitlint/cli": ^14.1.0
     "@commitlint/config-conventional": ^14.1.0
-    "@cryptoalgebra/core": ^2.0.0
-    "@cryptoalgebra/periphery": ^1.0.0
+    "@cryptoalgebra/core": 2.0.0
+    "@cryptoalgebra/periphery": 1.0.0
     "@ethersproject/abi": ^5.2.0
     "@ethersproject/abstract-signer": ^5.2.0
     "@ethersproject/bignumber": ^5.2.0
