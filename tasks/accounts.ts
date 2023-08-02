@@ -78,11 +78,11 @@ task("deploy-unipilotFactory-active", "Deploy unipilot active factory contract")
     console.log("  ETH", formatEther(await signer.getBalance()));
 
     const args = {
-      uniswapFactory: "0x740b1c1de25031C31FF4fC9A62f554A55cdC1baD",
+      uniswapFactory: "0x0BFbCF9fa4f9C56B0F40a671Ad40E0805A091865",
       governance: cliArgs.governance,
-      uniStrategy: "0xB77F5D8a3e0E22a4ef89312960cB5f59dD97d4F5",
+      uniStrategy: "0xCbE0Ac9a00A69aA28099091B2ceac5941EC43521",
       indexFund: cliArgs.governance,
-      WETH: "0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7",
+      WETH: "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
       indexFundPercentage: 10,
     };
 
@@ -129,11 +129,11 @@ task(
     console.log("  ETH", formatEther(await signer.getBalance()));
 
     const args = {
-      uniswapFactory: "0x740b1c1de25031C31FF4fC9A62f554A55cdC1baD",
+      uniswapFactory: "0x0BFbCF9fa4f9C56B0F40a671Ad40E0805A091865",
       governance: cliArgs.governance,
-      uniStrategy: "0xB77F5D8a3e0E22a4ef89312960cB5f59dD97d4F5",
+      uniStrategy: "0xCbE0Ac9a00A69aA28099091B2ceac5941EC43521",
       indexFund: cliArgs.governance,
-      WETH: "0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7",
+      WETH: "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
       indexFundPercentage: 10,
       swapPercentage: 40,
     };

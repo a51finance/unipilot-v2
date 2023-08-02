@@ -54,7 +54,7 @@ function createTestnetConfig(
   const url: string =
     network == "optgoerli"
       ? "https://opt-goerli.g.alchemy.com/v2/" + `${process.env.API_KEY_MUMBAI}`
-      : "https://api.avax.network/ext/bc/C/rpc";
+      : "https://bsc.publicnode.com";
 
   return {
     accounts: [`${process.env.PK2}`],
